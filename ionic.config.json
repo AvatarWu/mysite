@@ -1,0 +1,7 @@
+{
+  "name": "careold-health",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
