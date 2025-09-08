@@ -9,6 +9,168 @@ const BloodPressure: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [selectedPeriod, setSelectedPeriod] = useState<'week' | 'month' | 'all'>('week');
 
+  // 多語言函數
+  const getText = (key: string) => {
+    const savedSettings = localStorage.getItem('careold-settings');
+    let language = 'zh-TW';
+    
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        language = settings.general?.language || 'zh-TW';
+      } catch (error) {
+        console.error('讀取語言設定失敗:', error);
+      }
+    }
+    
+    const texts = {
+      'zh-TW': {
+        'back': '返回',
+        'bloodPressureManagement': '血壓管理',
+        'add': '新增',
+        'averageSystolicPressure': '平均收縮壓',
+        'averageDiastolicPressure': '平均舒張壓',
+        'averagePulse': '平均脈搏',
+        'mmHg': 'mmHg',
+        'bpm': 'bpm',
+        'latestStatus': '最新狀態',
+        'normal': '正常',
+        'normalHigh': '正常偏高',
+        'hypertensionStage1': '高血壓一期',
+        'hypertensionStage2': '高血壓二期',
+        'hypertensionStage3': '高血壓三期',
+        'lastWeek': '最近一週',
+        'lastMonth': '最近一月',
+        'allRecords': '全部記錄',
+        'bloodPressureRecords': '血壓記錄',
+        'records': '筆記錄',
+        'loading': '載入中...',
+        'noRecords': '暫無記錄',
+        'addFirstRecord': '添加您的第一筆血壓記錄',
+        'confirmDelete': '確定要刪除這筆記錄嗎？',
+        'deleteFailed': '刪除失敗，請重試',
+        'loadFailed': '載入血壓記錄失敗'
+      },
+      'zh-CN': {
+        'back': '返回',
+        'bloodPressureManagement': '血压管理',
+        'add': '新增',
+        'averageSystolicPressure': '平均收缩压',
+        'averageDiastolicPressure': '平均舒张压',
+        'averagePulse': '平均脉搏',
+        'mmHg': 'mmHg',
+        'bpm': 'bpm',
+        'latestStatus': '最新状态',
+        'normal': '正常',
+        'normalHigh': '正常偏高',
+        'hypertensionStage1': '高血压一期',
+        'hypertensionStage2': '高血压二期',
+        'hypertensionStage3': '高血压三期',
+        'lastWeek': '最近一周',
+        'lastMonth': '最近一月',
+        'allRecords': '全部记录',
+        'bloodPressureRecords': '血压记录',
+        'records': '笔记录',
+        'loading': '载入中...',
+        'noRecords': '暂无记录',
+        'addFirstRecord': '添加您的第一笔血压记录',
+        'confirmDelete': '确定要删除这笔记录吗？',
+        'deleteFailed': '删除失败，请重试',
+        'loadFailed': '载入血压记录失败'
+      },
+      'en': {
+        'back': 'Back',
+        'bloodPressureManagement': 'Blood Pressure Management',
+        'add': 'Add',
+        'averageSystolicPressure': 'Average Systolic Pressure',
+        'averageDiastolicPressure': 'Average Diastolic Pressure',
+        'averagePulse': 'Average Pulse',
+        'mmHg': 'mmHg',
+        'bpm': 'bpm',
+        'latestStatus': 'Latest Status',
+        'normal': 'Normal',
+        'normalHigh': 'Normal High',
+        'hypertensionStage1': 'Hypertension Stage I',
+        'hypertensionStage2': 'Hypertension Stage II',
+        'hypertensionStage3': 'Hypertension Stage III',
+        'lastWeek': 'Last Week',
+        'lastMonth': 'Last Month',
+        'allRecords': 'All Records',
+        'bloodPressureRecords': 'Blood Pressure Records',
+        'records': 'records',
+        'loading': 'Loading...',
+        'noRecords': 'No records',
+        'addFirstRecord': 'Add your first blood pressure record',
+        'confirmDelete': 'Are you sure you want to delete this record?',
+        'deleteFailed': 'Delete failed, please try again',
+        'loadFailed': 'Failed to load blood pressure records'
+      }
+    };
+    
+    return (texts as any)[language]?.[key] || (texts as any)['zh-TW'][key] || key;
+  };
+
+  // 應用主題到頁面
+  useEffect(() => {
+    const applyTheme = () => {
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          const theme = settings.general?.appearance || 'auto';
+          
+          if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.body.setAttribute('data-theme', 'dark');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          } else if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.body.setAttribute('data-theme', 'light');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          } else {
+            // 自動模式
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+              document.body.setAttribute('data-theme', 'dark');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#ffffff');
+            } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+              document.body.setAttribute('data-theme', 'light');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+            }
+          }
+        } catch (error) {
+          console.error('應用主題失敗:', error);
+        }
+      }
+    };
+
+    applyTheme();
+
+    // 監聽主題變更事件
+    const handleThemeChange = (_event: CustomEvent) => {
+      applyTheme();
+    };
+    
+    const handleLanguageChange = (_event: CustomEvent) => {
+      // 重新載入頁面以應用語言變更
+      window.location.reload();
+    };
+    
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     loadRecords();
   }, []);
@@ -19,7 +181,7 @@ const BloodPressure: React.FC = () => {
       const data = await healthDataService.getBloodPressureRecords();
       setRecords(data);
     } catch (error) {
-      console.error('載入血壓記錄失敗:', error);
+      console.error(getText('loadFailed'), error);
     } finally {
       setLoading(false);
     }
@@ -30,28 +192,28 @@ const BloodPressure: React.FC = () => {
   };
 
   const handleDeleteRecord = async (id: string) => {
-    if (window.confirm('確定要刪除這筆記錄嗎？')) {
+    if (window.confirm(getText('confirmDelete'))) {
       try {
         await healthDataService.deleteBloodPressureRecord(id);
         await loadRecords();
       } catch (error) {
         console.error('刪除記錄失敗:', error);
-        alert('刪除失敗，請重試');
+        alert(getText('deleteFailed'));
       }
     }
   };
 
   const getBloodPressureStatus = (systolic: number, diastolic: number) => {
     if (systolic < 120 && diastolic < 80) {
-      return { status: '正常', color: '#34C759', icon: '✅' };
+      return { status: getText('normal'), color: '#34C759', icon: '✅' };
     } else if (systolic < 130 && diastolic < 80) {
-      return { status: '正常偏高', color: '#FF9500', icon: '⚠️' };
+      return { status: getText('normalHigh'), color: '#FF9500', icon: '⚠️' };
     } else if (systolic < 140 || diastolic < 90) {
-      return { status: '高血壓一期', color: '#FF3B30', icon: '🔴' };
+      return { status: getText('hypertensionStage1'), color: '#FF3B30', icon: '🔴' };
     } else if (systolic < 160 || diastolic < 100) {
-      return { status: '高血壓二期', color: '#FF3B30', icon: '🔴' };
+      return { status: getText('hypertensionStage2'), color: '#FF3B30', icon: '🔴' };
     } else {
-      return { status: '高血壓三期', color: '#FF3B30', icon: '🔴' };
+      return { status: getText('hypertensionStage3'), color: '#FF3B30', icon: '🔴' };
     }
   };
 
@@ -126,7 +288,7 @@ const BloodPressure: React.FC = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>返回</span>
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>{getText('back')}</span>
           </div>
           <div 
             className="custom-title" 
@@ -146,7 +308,7 @@ const BloodPressure: React.FC = () => {
               zIndex: 1000
             }}
           >
-            血壓管理
+            {getText('bloodPressureManagement')}
           </div>
           <div
             onClick={() => navigate('/blood-pressure/add')}
@@ -173,7 +335,7 @@ const BloodPressure: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>新增</span>
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>{getText('add')}</span>
           </div>
         </div>
       </header>
@@ -187,20 +349,20 @@ const BloodPressure: React.FC = () => {
               <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="stat-icon">📊</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgSystolic}</div>
-                <div className="stat-label" style={{ color: '#8e8e93' }}>平均收縮壓</div>
-                <div className="stat-unit" style={{ color: '#8e8e93' }}>mmHg</div>
+                <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageSystolicPressure')}</div>
+                <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mmHg')}</div>
               </div>
               <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="stat-icon">📈</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgDiastolic}</div>
-                <div className="stat-label" style={{ color: '#8e8e93' }}>平均舒張壓</div>
-                <div className="stat-unit" style={{ color: '#8e8e93' }}>mmHg</div>
+                <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageDiastolicPressure')}</div>
+                <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mmHg')}</div>
               </div>
               <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="stat-icon">💓</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgPulse}</div>
-                <div className="stat-label" style={{ color: '#8e8e93' }}>平均脈搏</div>
-                <div className="stat-unit" style={{ color: '#8e8e93' }}>bpm</div>
+                <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averagePulse')}</div>
+                <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('bpm')}</div>
               </div>
             </div>
             
@@ -210,7 +372,7 @@ const BloodPressure: React.FC = () => {
               </div>
               <div className="status-content">
                 <div className="status-title" style={{ color: '#ffffff' }}>{statistics.latestStatus.status}</div>
-                <div className="status-subtitle" style={{ color: '#8e8e93' }}>最新狀態</div>
+                <div className="status-subtitle" style={{ color: '#8e8e93' }}>{getText('latestStatus')}</div>
               </div>
             </div>
           </div>
@@ -223,19 +385,19 @@ const BloodPressure: React.FC = () => {
               className={`filter-button ${selectedPeriod === 'week' ? 'active' : ''}`}
               onClick={() => setSelectedPeriod('week')}
             >
-              最近一週
+              {getText('lastWeek')}
             </button>
             <button 
               className={`filter-button ${selectedPeriod === 'month' ? 'active' : ''}`}
               onClick={() => setSelectedPeriod('month')}
             >
-              最近一月
+              {getText('lastMonth')}
             </button>
             <button 
               className={`filter-button ${selectedPeriod === 'all' ? 'active' : ''}`}
               onClick={() => setSelectedPeriod('all')}
             >
-              全部記錄
+              {getText('allRecords')}
             </button>
           </div>
         </div>
@@ -243,14 +405,14 @@ const BloodPressure: React.FC = () => {
         {/* 記錄列表 */}
         <div className="records-section">
           <div className="records-header">
-            <h2 className="records-title">血壓記錄</h2>
-            <span className="records-count">{records.length} 筆記錄</span>
+            <h2 className="records-title">{getText('bloodPressureRecords')}</h2>
+            <span className="records-count">{records.length} {getText('records')}</span>
           </div>
 
           {loading ? (
             <div className="loading-state">
               <div className="loading-spinner"></div>
-              <p>載入中...</p>
+              <p>{getText('loading')}</p>
             </div>
           ) : records.length === 0 ? (
             <div className="empty-state">

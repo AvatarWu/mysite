@@ -2,7 +2,8 @@
 
 .medications-page {
   min-height: 100vh;
-  background: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
+  color: var(--theme-text, #1d1d1f);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
 }
 

@@ -412,6 +412,18 @@ const Settings: React.FC = () => {
     // 立即應用語言設定變更
     if (category === 'general' && key === 'language') {
       applyLanguage(value as 'zh-TW' | 'zh-CN' | 'en');
+      // 觸發語言變更事件
+      window.dispatchEvent(new CustomEvent('languageChanged', { 
+        detail: { language: value } 
+      }));
+    }
+    
+    // 立即應用外觀設定變更
+    if (category === 'general' && key === 'appearance') {
+      // 觸發主題變更事件
+      window.dispatchEvent(new CustomEvent('themeChanged', { 
+        detail: { theme: value } 
+      }));
     }
   };
 
@@ -458,6 +470,23 @@ const Settings: React.FC = () => {
       
       // 應用語言設定
       applyLanguage(tempSettings.general.language);
+      
+      // 觸發全局事件，通知其他頁面更新
+      window.dispatchEvent(new CustomEvent('themeChanged', { 
+        detail: { theme: tempSettings.general.appearance } 
+      }));
+      
+      window.dispatchEvent(new CustomEvent('languageChanged', { 
+        detail: { language: tempSettings.general.language } 
+      }));
+      
+      window.dispatchEvent(new CustomEvent('highContrastChanged', { 
+        detail: { enabled: tempSettings.accessibility.highContrast } 
+      }));
+      
+      window.dispatchEvent(new CustomEvent('largeTextChanged', { 
+        detail: { enabled: tempSettings.accessibility.fontSize !== 'medium' } 
+      }));
       
       alert('設定已儲存！');
       navigate('/');

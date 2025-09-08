@@ -2,151 +2,298 @@ import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Home.css';
 
-// 功能卡片數據
-const featureCards = [
-  {
-    id: 'medication',
-    title: '用藥管理',
-    description: '管理日常用藥提醒',
-    icon: '💊',
-    color: '#3b82f6',
-    route: '/medications'
-  },
-  {
-    id: 'weight',
-    title: '體重管理',
-    description: '追蹤體重變化趨勢',
-    icon: '⚖️',
-    color: '#16a34a',
-    route: '/weight-list'
-  },
-  {
-    id: 'blood-pressure',
-    title: '血壓管理',
-    description: '監控血壓健康狀況',
-    icon: '❤️',
-    color: '#f59e0b',
-    route: '/blood-pressure'
-  },
-  {
-    id: 'blood-sugar',
-    title: '血糖管理',
-    description: '追蹤血糖控制情況',
-    icon: '🩸',
-    color: '#dc2626',
-    route: '/blood-sugar'
-  },
-  {
-    id: 'ai-assistant',
-    title: 'AI健康助手',
-    description: '智能健康諮詢與建議',
-    icon: '🤖',
-    color: '#8b5cf6',
-    route: '/ai-assistant'
-  }
-];
+// 功能卡片數據 - 將在組件內動態生成
 
-// 快速操作數據
-const quickActions = [
-  {
-    id: 'emergency',
-    title: '緊急求助',
-    description: '快速聯繫緊急服務',
-    icon: '🚨',
-    color: '#dc2626',
-    route: '/emergency'
-  },
-  {
-    id: 'reminder',
-    title: '設置提醒',
-    description: '管理健康提醒事項',
-    icon: '⏰',
-    color: '#3b82f6',
-    route: '/reminders'
-  }
-];
+// 快速操作數據 - 將在組件內動態生成
 
-// 底部導航數據
-const navigationItems = [
-  { id: 'home', label: '首頁', icon: '🏠', route: '/', active: true },
-  { id: 'medication', label: '用藥', icon: '💊', route: '/medications' },
-  { id: 'profile', label: '個人', icon: '👤', route: '/profile' },
-  { id: 'settings', label: '設置', icon: '⚙️', route: '/settings' }
-];
+// 底部導航數據 - 將在組件內動態生成
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
 
-  // 在頁面載入時檢查並應用主題
-  useEffect(() => {
-    const applyThemeToHome = () => {
+  // 多語言函數
+  const getText = (key: string) => {
+    const savedSettings = localStorage.getItem('careold-settings');
+    let language = 'zh-TW';
+    
+    if (savedSettings) {
       try {
-        const savedSettings = localStorage.getItem('settings');
-        if (savedSettings) {
-          const settings = JSON.parse(savedSettings);
-          if (settings.general && settings.general.theme) {
-            console.log('Home.tsx: 檢查到主題設定:', settings.general.theme);
-            
-            if (settings.general.theme === 'dark') {
-              console.log('Home.tsx: 應用深色模式到首頁');
-              
-              // 強制應用深色模式到首頁元素
-              document.body.style.setProperty('background-color', '#1a1a1a', 'important');
-              document.body.style.setProperty('color', '#ffffff', 'important');
-              
-              // 強制覆蓋所有內聯樣式
-              const allDivs = document.querySelectorAll('div');
-              allDivs.forEach(div => {
-                if (div instanceof HTMLElement) {
-                  if (div.style.backgroundColor || div.style.background) {
-                    div.style.setProperty('background-color', '#1a1a1a', 'important');
-                    div.style.setProperty('background', '#1a1a1a', 'important');
-                  }
-                  if (div.style.color) {
-                    div.style.setProperty('color', '#ffffff', 'important');
-                  }
-                }
-              });
-              
-              // 強制覆蓋標題
-              const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
-              allHeadings.forEach(heading => {
-                if (heading instanceof HTMLElement) {
-                  heading.style.setProperty('color', '#ffffff', 'important');
-                }
-              });
-              
-              // 強制覆蓋段落
-              const allParagraphs = document.querySelectorAll('p');
-              allParagraphs.forEach(p => {
-                if (p instanceof HTMLElement) {
-                  p.style.setProperty('color', '#e0e0e0', 'important');
-                }
-              });
-              
-              // 強制覆蓋按鈕
-              const allButtons = document.querySelectorAll('button');
-              allButtons.forEach(button => {
-                if (button instanceof HTMLElement) {
-                  button.style.setProperty('background-color', '#3d3d3d', 'important');
-                  button.style.setProperty('color', '#ffffff', 'important');
-                  button.style.setProperty('border-color', '#4d4d4d', 'important');
-                }
-              });
-              
-              console.log('Home.tsx: 深色模式已應用到首頁');
-            }
-          }
-        }
+        const settings = JSON.parse(savedSettings);
+        language = settings.general?.language || 'zh-TW';
       } catch (error) {
-        console.error('Home.tsx: 應用主題失敗:', error);
+        console.error('讀取語言設定失敗:', error);
+      }
+    }
+    
+    const texts = {
+      'zh-TW': {
+        'medicationManagement': '用藥管理',
+        'medicationManagementDesc': '管理日常用藥提醒',
+        'weightManagement': '體重管理',
+        'weightManagementDesc': '追蹤體重變化趨勢',
+        'bloodPressureManagement': '血壓管理',
+        'bloodPressureManagementDesc': '監控血壓健康狀況',
+        'bloodSugarManagement': '血糖管理',
+        'bloodSugarManagementDesc': '追蹤血糖控制情況',
+        'aiHealthAssistant': 'AI健康助手',
+        'aiHealthAssistantDesc': '智能健康諮詢與建議',
+        'emergencyHelp': '緊急求助',
+        'emergencyHelpDesc': '快速聯繫緊急服務',
+        'setReminder': '設置提醒',
+        'setReminderDesc': '管理健康提醒事項',
+        'home': '首頁',
+        'medication': '用藥',
+        'profile': '個人',
+        'settings': '設置',
+        'appTitle': 'CareOld',
+        'appSubtitle': '您的健康管理助手',
+        'welcomeBack': '歡迎回來！',
+        'welcomeMessage': '今天也要關注您的健康哦',
+        'mainFeatures': '主要功能',
+        'quickActions': '快速操作',
+        'healthSummary': '健康摘要',
+        'currentWeight': '當前體重(kg)',
+        'bloodPressure': '血壓(mmHg)',
+        'weightValue': '72.5',
+        'bloodPressureValue': '120/80'
+      },
+      'zh-CN': {
+        'medicationManagement': '用药管理',
+        'medicationManagementDesc': '管理日常用药提醒',
+        'weightManagement': '体重管理',
+        'weightManagementDesc': '追踪体重变化趋势',
+        'bloodPressureManagement': '血压管理',
+        'bloodPressureManagementDesc': '监控血压健康状况',
+        'bloodSugarManagement': '血糖管理',
+        'bloodSugarManagementDesc': '追踪血糖控制情况',
+        'aiHealthAssistant': 'AI健康助手',
+        'aiHealthAssistantDesc': '智能健康咨询与建议',
+        'emergencyHelp': '紧急求助',
+        'emergencyHelpDesc': '快速联系紧急服务',
+        'setReminder': '设置提醒',
+        'setReminderDesc': '管理健康提醒事项',
+        'home': '首页',
+        'medication': '用药',
+        'profile': '个人',
+        'settings': '设置',
+        'appTitle': 'CareOld',
+        'appSubtitle': '您的健康管理助手',
+        'welcomeBack': '欢迎回来！',
+        'welcomeMessage': '今天也要关注您的健康哦',
+        'mainFeatures': '主要功能',
+        'quickActions': '快速操作',
+        'healthSummary': '健康摘要',
+        'currentWeight': '当前体重(kg)',
+        'bloodPressure': '血压(mmHg)',
+        'weightValue': '72.5',
+        'bloodPressureValue': '120/80'
+      },
+      'en': {
+        'medicationManagement': 'Medication Management',
+        'medicationManagementDesc': 'Manage daily medication reminders',
+        'weightManagement': 'Weight Management',
+        'weightManagementDesc': 'Track weight change trends',
+        'bloodPressureManagement': 'Blood Pressure Management',
+        'bloodPressureManagementDesc': 'Monitor blood pressure health',
+        'bloodSugarManagement': 'Blood Sugar Management',
+        'bloodSugarManagementDesc': 'Track blood sugar control',
+        'aiHealthAssistant': 'AI Health Assistant',
+        'aiHealthAssistantDesc': 'Intelligent health consultation and advice',
+        'emergencyHelp': 'Emergency Help',
+        'emergencyHelpDesc': 'Quick contact with emergency services',
+        'setReminder': 'Set Reminder',
+        'setReminderDesc': 'Manage health reminder items',
+        'home': 'Home',
+        'medication': 'Medication',
+        'profile': 'Profile',
+        'settings': 'Settings',
+        'appTitle': 'CareOld',
+        'appSubtitle': 'Your Health Management Assistant',
+        'welcomeBack': 'Welcome Back!',
+        'welcomeMessage': 'Take care of your health today',
+        'mainFeatures': 'Main Features',
+        'quickActions': 'Quick Actions',
+        'healthSummary': 'Health Summary',
+        'currentWeight': 'Current Weight (kg)',
+        'bloodPressure': 'Blood Pressure (mmHg)',
+        'weightValue': '72.5',
+        'bloodPressureValue': '120/80'
       }
     };
+    
+    return (texts as any)[language]?.[key] || (texts as any)['zh-TW'][key] || key;
+  };
 
+  // 動態生成功能卡片數據
+  const featureCards = [
+    {
+      id: 'medication',
+      title: getText('medicationManagement'),
+      description: getText('medicationManagementDesc'),
+      icon: '💊',
+      color: '#3b82f6',
+      route: '/medications'
+    },
+    {
+      id: 'weight',
+      title: getText('weightManagement'),
+      description: getText('weightManagementDesc'),
+      icon: '⚖️',
+      color: '#16a34a',
+      route: '/weight-list'
+    },
+    {
+      id: 'blood-pressure',
+      title: getText('bloodPressureManagement'),
+      description: getText('bloodPressureManagementDesc'),
+      icon: '❤️',
+      color: '#f59e0b',
+      route: '/blood-pressure'
+    },
+    {
+      id: 'blood-sugar',
+      title: getText('bloodSugarManagement'),
+      description: getText('bloodSugarManagementDesc'),
+      icon: '🩸',
+      color: '#dc2626',
+      route: '/blood-sugar'
+    },
+    {
+      id: 'ai-assistant',
+      title: getText('aiHealthAssistant'),
+      description: getText('aiHealthAssistantDesc'),
+      icon: '🤖',
+      color: '#8b5cf6',
+      route: '/ai-assistant'
+    }
+  ];
+
+  // 動態生成快速操作數據
+  const quickActions = [
+    {
+      id: 'emergency',
+      title: getText('emergencyHelp'),
+      description: getText('emergencyHelpDesc'),
+      icon: '🚨',
+      color: '#dc2626',
+      route: '/emergency'
+    },
+    {
+      id: 'reminder',
+      title: getText('setReminder'),
+      description: getText('setReminderDesc'),
+      icon: '⏰',
+      color: '#3b82f6',
+      route: '/reminders'
+    }
+  ];
+
+  // 動態生成底部導航數據
+  const navigationItems = [
+    { id: 'home', label: getText('home'), icon: '🏠', route: '/', active: true },
+    { id: 'medication', label: getText('medication'), icon: '💊', route: '/medications' },
+    { id: 'profile', label: getText('profile'), icon: '👤', route: '/profile' },
+    { id: 'settings', label: getText('settings'), icon: '⚙️', route: '/settings' }
+  ];
+
+  // 應用主題到首頁的函數
+  const applyThemeToHome = (theme?: string) => {
+    try {
+      let targetTheme = theme;
+      
+      // 如果沒有指定主題，從本地存儲讀取
+      if (!targetTheme) {
+        const savedSettings = localStorage.getItem('careold-settings');
+        if (savedSettings) {
+          const settings = JSON.parse(savedSettings);
+          targetTheme = settings.general?.appearance || 'auto';
+        }
+      }
+      
+      console.log('Home.tsx: 應用主題到首頁:', targetTheme);
+      
+      if (targetTheme === 'dark') {
+        console.log('Home.tsx: 應用深色模式到首頁');
+        
+        // 應用深色主題
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        
+        // 強制應用深色模式到首頁元素
+        document.body.style.setProperty('background', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)', 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        
+      } else if (targetTheme === 'light') {
+        console.log('Home.tsx: 應用淺色模式到首頁');
+        
+        // 應用淺色主題
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        
+        // 強制應用淺色模式到首頁元素
+        document.body.style.setProperty('background', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)', 'important');
+        document.body.style.setProperty('color', '#1d1d1f', 'important');
+        
+      } else {
+        // 自動模式
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        console.log('Home.tsx: 應用自動模式到首頁:', prefersDark ? 'dark' : 'light');
+        
+        if (prefersDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.setAttribute('data-theme', 'dark');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          document.body.style.setProperty('background', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)', 'important');
+          document.body.style.setProperty('color', '#ffffff', 'important');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          document.body.style.setProperty('background', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)', 'important');
+          document.body.style.setProperty('color', '#1d1d1f', 'important');
+        }
+      }
+      
+      console.log('Home.tsx: 主題已應用到首頁');
+    } catch (error) {
+      console.error('Home.tsx: 應用主題失敗:', error);
+    }
+  };
+
+  // 在頁面載入時檢查並應用主題
+  useEffect(() => {
     // 延遲應用主題，確保 DOM 已完全載入
-    const timer = setTimeout(applyThemeToHome, 100);
+    const timer = setTimeout(() => applyThemeToHome(), 100);
     
     return () => clearTimeout(timer);
+  }, []);
+
+  // 監聽全局主題變更事件
+  useEffect(() => {
+    const handleThemeChange = (event: CustomEvent) => {
+      console.log('Home.tsx: 收到主題變更事件:', event.detail.theme);
+      applyThemeToHome(event.detail.theme);
+    };
+    
+    const handleLanguageChange = (event: CustomEvent) => {
+      console.log('Home.tsx: 收到語言變更事件:', event.detail.language);
+      // 重新載入頁面以應用語言變更
+      window.location.reload();
+    };
+    
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
   }, []);
 
   const handleFeatureClick = (route: string) => {
@@ -180,7 +327,8 @@ const Home: React.FC = () => {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%)',
+      background: 'var(--theme-bg, linear-gradient(135deg, #f8f9fa 0%, #e9ecef 50%, #dee2e6 100%))',
+      color: 'var(--theme-text, #1d1d1f)',
       fontFamily: '-apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif'
     }}>
       {/* 導航頭部 */}
@@ -208,12 +356,12 @@ const Home: React.FC = () => {
               fontWeight: '700',
               color: '#1d1d1f',
               margin: '0 0 4px 0'
-            }}>CareOld</h1>
+            }}>{getText('appTitle')}</h1>
             <p style={{
               fontSize: '14px',
               color: '#6b7280',
               margin: '0'
-            }}>您的健康管理助手</p>
+            }}>{getText('appSubtitle')}</p>
           </div>
           <button style={{
             background: 'transparent',
@@ -252,13 +400,13 @@ const Home: React.FC = () => {
               fontWeight: '700',
               color: '#495057',
               margin: '0 0 8px 0'
-            }}>歡迎回來！</h2>
+            }}>{getText('welcomeBack')}</h2>
             <p style={{
               fontSize: '16px',
               color: '#6c757d',
               margin: '0',
               fontWeight: '500'
-            }}>今天也要關注您的健康哦</p>
+            }}>{getText('welcomeMessage')}</p>
           </div>
         </section>
 
@@ -270,7 +418,7 @@ const Home: React.FC = () => {
             color: '#495057',
             margin: '0 0 24px 0',
             textAlign: 'center'
-          }}>主要功能</h2>
+          }}>{getText('mainFeatures')}</h2>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
@@ -335,7 +483,7 @@ const Home: React.FC = () => {
             color: '#1d1d1f',
             margin: '0 0 20px 0',
             textAlign: 'center'
-          }}>快速操作</h2>
+          }}>{getText('quickActions')}</h2>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(2, 1fr)',
@@ -394,7 +542,7 @@ const Home: React.FC = () => {
             color: '#1d1d1f',
             margin: '0 0 20px 0',
             textAlign: 'center'
-          }}>健康摘要</h2>
+          }}>{getText('healthSummary')}</h2>
           <div style={{
             backgroundColor: '#ffffff',
             borderRadius: '16px',
@@ -418,11 +566,11 @@ const Home: React.FC = () => {
                   fontWeight: '700',
                   color: '#3b82f6',
                   marginBottom: '8px'
-                }}>72.5</div>
+                }}>{getText('weightValue')}</div>
                 <div style={{
                   fontSize: '14px',
                   color: '#6b7280'
-                }}>當前體重 (kg)</div>
+                }}>{getText('currentWeight')}</div>
               </div>
               <div style={{
                 textAlign: 'center',
@@ -435,11 +583,11 @@ const Home: React.FC = () => {
                   fontWeight: '700',
                   color: '#16a34a',
                   marginBottom: '8px'
-                }}>120/80</div>
+                }}>{getText('bloodPressureValue')}</div>
                 <div style={{
                   fontSize: '14px',
                   color: '#6b7280'
-                }}>血壓 (mmHg)</div>
+                }}>{getText('bloodPressure')}</div>
               </div>
             </div>
           </div>

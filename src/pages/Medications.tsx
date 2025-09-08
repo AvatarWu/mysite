@@ -24,6 +24,159 @@ const Medications: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // 多語言函數
+  const getText = (key: string) => {
+    const savedSettings = localStorage.getItem('careold-settings');
+    let language = 'zh-TW';
+    
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        language = settings.general?.language || 'zh-TW';
+      } catch (error) {
+        console.error('讀取語言設定失敗:', error);
+      }
+    }
+    
+    const texts = {
+      'zh-TW': {
+        'back': '返回',
+        'medicationManagement': '用藥管理',
+        'medicationOverview': '用藥概況',
+        'healthManagementStatus': '您的健康管理狀態',
+        'totalMedications': '總用藥數',
+        'activeMedications': '活躍用藥',
+        'todayDoses': '今日劑量',
+        'completionRate': '完成率',
+        'addMedication': '添加用藥',
+        'noMedications': '暫無用藥記錄',
+        'addFirstMedication': '添加您的第一種用藥',
+        'loading': '載入中...',
+        'error': '載入失敗',
+        'retry': '重試',
+        'edit': '編輯',
+        'delete': '刪除',
+        'mg': '毫克',
+        'timesPerDay': '次/天',
+        'morning': '早上',
+        'afternoon': '下午',
+        'evening': '晚上',
+        'night': '夜間'
+      },
+      'zh-CN': {
+        'back': '返回',
+        'medicationManagement': '用药管理',
+        'medicationOverview': '用药概况',
+        'healthManagementStatus': '您的健康管理状态',
+        'totalMedications': '总用药数',
+        'activeMedications': '活跃用药',
+        'todayDoses': '今日剂量',
+        'completionRate': '完成率',
+        'addMedication': '添加用药',
+        'noMedications': '暂无用药记录',
+        'addFirstMedication': '添加您的第一种用药',
+        'loading': '载入中...',
+        'error': '载入失败',
+        'retry': '重试',
+        'edit': '编辑',
+        'delete': '删除',
+        'mg': '毫克',
+        'timesPerDay': '次/天',
+        'morning': '早上',
+        'afternoon': '下午',
+        'evening': '晚上',
+        'night': '夜间'
+      },
+      'en': {
+        'back': 'Back',
+        'medicationManagement': 'Medication Management',
+        'medicationOverview': 'Medication Overview',
+        'healthManagementStatus': 'Your health management status',
+        'totalMedications': 'Total Medications',
+        'activeMedications': 'Active Medications',
+        'todayDoses': 'Today\'s Doses',
+        'completionRate': 'Completion Rate',
+        'addMedication': 'Add Medication',
+        'noMedications': 'No medication records',
+        'addFirstMedication': 'Add your first medication',
+        'loading': 'Loading...',
+        'error': 'Loading failed',
+        'retry': 'Retry',
+        'edit': 'Edit',
+        'delete': 'Delete',
+        'mg': 'mg',
+        'timesPerDay': 'times/day',
+        'morning': 'Morning',
+        'afternoon': 'Afternoon',
+        'evening': 'Evening',
+        'night': 'Night'
+      }
+    };
+    
+    return (texts as any)[language]?.[key] || (texts as any)['zh-TW'][key] || key;
+  };
+
+  // 應用主題到頁面
+  useEffect(() => {
+    const applyTheme = () => {
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          const theme = settings.general?.appearance || 'auto';
+          
+          if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.body.setAttribute('data-theme', 'dark');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          } else if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.body.setAttribute('data-theme', 'light');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          } else {
+            // 自動模式
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+              document.body.setAttribute('data-theme', 'dark');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#ffffff');
+            } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+              document.body.setAttribute('data-theme', 'light');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+            }
+          }
+        } catch (error) {
+          console.error('應用主題失敗:', error);
+        }
+      }
+    };
+
+    applyTheme();
+
+    // 監聽主題變更事件
+    const handleThemeChange = (_event: CustomEvent) => {
+      applyTheme();
+    };
+    
+    const handleLanguageChange = (_event: CustomEvent) => {
+      // 重新載入頁面以應用語言變更
+      window.location.reload();
+    };
+    
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     fetchMedications();
   }, []);
@@ -152,16 +305,16 @@ const Medications: React.FC = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              返回
+              {getText('back')}
             </button>
-            <h1 className="header-title">用藥管理</h1>
+            <h1 className="header-title">{getText('medicationManagement')}</h1>
           </div>
         </header>
         
         <main className="main-content">
           <div className="loading-state">
             <div className="loading-spinner"></div>
-            <p>載入中...</p>
+            <p>{getText('loading')}</p>
           </div>
         </main>
       </div>
@@ -177,9 +330,9 @@ const Medications: React.FC = () => {
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              返回
+              {getText('back')}
             </button>
-            <h1 className="header-title">用藥管理</h1>
+            <h1 className="header-title">{getText('medicationManagement')}</h1>
           </div>
         </header>
         
@@ -208,7 +361,7 @@ const Medications: React.FC = () => {
             </svg>
             返回
           </button>
-          <h1 className="header-title">用藥管理</h1>
+          <h1 className="header-title">{getText('medicationManagement')}</h1>
         </div>
       </header>
 
@@ -217,8 +370,8 @@ const Medications: React.FC = () => {
         {/* 統計信息 - 以用戶邏輯重新設計 */}
         <div className="stats-overview">
           <div className="stats-header">
-            <h2 className="stats-title">用藥概況</h2>
-            <p className="stats-subtitle">您的健康管理狀態</p>
+            <h2 className="stats-title">{getText('medicationOverview')}</h2>
+            <p className="stats-subtitle">{getText('healthManagementStatus')}</p>
           </div>
           
           <div className="stats-grid">
