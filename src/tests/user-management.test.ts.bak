@@ -1,0 +1,127 @@
+// 用戶管理測試
+describe('用戶管理', () => {
+  test('應該能驗證電子郵件格式', () => {
+    const validateEmail = (email: string) => {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email);
+    };
+    
+    expect(validateEmail('user@example.com')).toBe(true);
+    expect(validateEmail('test.email@domain.co.uk')).toBe(true);
+    expect(validateEmail('invalid-email')).toBe(false);
+    expect(validateEmail('user@')).toBe(false);
+    expect(validateEmail('@domain.com')).toBe(false);
+    expect(validateEmail('')).toBe(false);
+  });
+
+  test('應該能驗證密碼強度', () => {
+    const validatePassword = (password: string) => {
+      const minLength = 8;
+      const hasUpperCase = /[A-Z]/.test(password);
+      const hasLowerCase = /[a-z]/.test(password);
+      const hasNumbers = /\d/.test(password);
+      const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+      
+      return password.length >= minLength && 
+             hasUpperCase && 
+             hasLowerCase && 
+             hasNumbers && 
+             hasSpecialChar;
+    };
+    
+    expect(validatePassword('StrongPass123!')).toBe(true);
+    expect(validatePassword('weakpass')).toBe(false);
+    expect(validatePassword('NoNumbers!')).toBe(false);
+    expect(validatePassword('nouppercase123!')).toBe(false);
+    expect(validatePassword('NOLOWERCASE123!')).toBe(false);
+  });
+
+  test('應該能驗證手機號碼格式', () => {
+    const validatePhoneNumber = (phone: string) => {
+      // 支援台灣手機號碼格式
+      const phoneRegex = /^09\d{8}$/;
+      return phoneRegex.test(phone.replace(/\s/g, ''));
+    };
+    
+    expect(validatePhoneNumber('0912345678')).toBe(true);
+    expect(validatePhoneNumber('09 1234 5678')).toBe(true);
+    expect(validatePhoneNumber('0812345678')).toBe(false);
+    expect(validatePhoneNumber('1234567890')).toBe(false);
+    expect(validatePhoneNumber('')).toBe(false);
+  });
+
+  test('應該能驗證年齡範圍', () => {
+    const validateAge = (age: number) => {
+      return age >= 0 && age <= 150;
+    };
+    
+    expect(validateAge(25)).toBe(true);
+    expect(validateAge(0)).toBe(true);
+    expect(validateAge(150)).toBe(true);
+    expect(validateAge(-1)).toBe(false);
+    expect(validateAge(151)).toBe(false);
+  });
+
+  test('應該能格式化用戶資料', () => {
+    const formatUserData = (userData: Record<string, any>) => {
+      const formatted: Record<string, any> = {};
+      
+      // 格式化姓名
+      if (userData.name) {
+        formatted.name = userData.name.trim().replace(/\s+/g, ' ');
+      }
+      
+      // 格式化電子郵件
+      if (userData.email) {
+        formatted.email = userData.email.toLowerCase().trim();
+      }
+      
+      // 格式化手機號碼
+      if (userData.phone) {
+        formatted.phone = userData.phone.replace(/\s/g, '');
+      }
+      
+      // 確保年齡為數字
+      if (userData.age) {
+        formatted.age = parseInt(userData.age.toString(), 10);
+      }
+      
+      return formatted;
+    };
+    
+    const input = {
+      name: '  張三  李四  ',
+      email: '  USER@EXAMPLE.COM  ',
+      phone: '09 1234 5678',
+      age: '25'
+    };
+    
+    const expected = {
+      name: '張三 李四',
+      email: 'user@example.com',
+      phone: '0912345678',
+      age: 25
+    };
+    
+    expect(formatUserData(input)).toEqual(expected);
+  });
+
+  test('應該能檢查用戶權限', () => {
+    const checkUserPermission = (userRole: string, requiredPermission: string) => {
+      const permissions: Record<string, string[]> = {
+        'admin': ['read', 'write', 'delete', 'manage_users'],
+        'caregiver': ['read', 'write'],
+        'family': ['read'],
+        'patient': ['read_own']
+      };
+      
+      const userPermissions = permissions[userRole] || [];
+      return userPermissions.includes(requiredPermission);
+    };
+    
+    expect(checkUserPermission('admin', 'manage_users')).toBe(true);
+    expect(checkUserPermission('caregiver', 'read')).toBe(true);
+    expect(checkUserPermission('family', 'delete')).toBe(false);
+    expect(checkUserPermission('patient', 'read_own')).toBe(true);
+  });
+}); 

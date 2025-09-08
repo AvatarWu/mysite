@@ -1,0 +1,6 @@
+import React from 'react';
+import BloodPressure from './BloodPressure';
+
+const Tab2: React.FC = () => <BloodPressure />;
+
+export default Tab2;

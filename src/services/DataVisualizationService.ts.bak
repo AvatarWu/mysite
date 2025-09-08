@@ -1,0 +1,404 @@
+import { WeightRecord, BloodPressureRecord, BloodSugarRecord, MedicationRecord } from './HealthDataService';
+
+export interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    borderColor?: string;
+    backgroundColor?: string;
+    fill?: boolean;
+  }[];
+}
+
+export interface TrendData {
+  trend: 'up' | 'down' | 'stable';
+  change: number;
+  percentage: number;
+  period: string;
+}
+
+export interface HealthMetrics {
+  weight: {
+    current: number;
+    average: number;
+    min: number;
+    max: number;
+    trend: TrendData;
+  };
+  bloodPressure: {
+    systolic: {
+      current: number;
+      average: number;
+      trend: TrendData;
+    };
+    diastolic: {
+      current: number;
+      average: number;
+      trend: TrendData;
+    };
+  };
+  bloodSugar: {
+    current: number;
+    average: number;
+    trend: TrendData;
+  };
+  medications: {
+    total: number;
+    today: number;
+    adherence: number;
+  };
+}
+
+export class DataVisualizationService {
+  private static instance: DataVisualizationService;
+
+  private constructor() {}
+
+  static getInstance(): DataVisualizationService {
+    if (!DataVisualizationService.instance) {
+      DataVisualizationService.instance = new DataVisualizationService();
+    }
+    return DataVisualizationService.instance;
+  }
+
+  /**
+   * 生成體重趨勢圖表數據
+   */
+  generateWeightChartData(records: WeightRecord[], days: number = 30): ChartData {
+    const sortedRecords = records
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-days);
+
+    const labels = sortedRecords.map(record => 
+      new Date(record.date).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
+    );
+
+    const data = sortedRecords.map(record => record.weight);
+
+    return {
+      labels,
+      datasets: [{
+        label: '體重 (kg)',
+        data,
+        borderColor: '#3880ff',
+        backgroundColor: 'rgba(56, 128, 255, 0.1)',
+        fill: true
+      }]
+    };
+  }
+
+  /**
+   * 生成血壓趨勢圖表數據
+   */
+  generateBloodPressureChartData(records: BloodPressureRecord[], days: number = 30): ChartData {
+    const sortedRecords = records
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-days);
+
+    const labels = sortedRecords.map(record => 
+      new Date(record.date).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
+    );
+
+    const systolicData = sortedRecords.map(record => record.systolic);
+    const diastolicData = sortedRecords.map(record => record.diastolic);
+
+    return {
+      labels,
+      datasets: [
+        {
+          label: '收縮壓 (mmHg)',
+          data: systolicData,
+          borderColor: '#ff4961',
+          backgroundColor: 'rgba(255, 73, 97, 0.1)',
+          fill: false
+        },
+        {
+          label: '舒張壓 (mmHg)',
+          data: diastolicData,
+          borderColor: '#ffc409',
+          backgroundColor: 'rgba(255, 196, 9, 0.1)',
+          fill: false
+        }
+      ]
+    };
+  }
+
+  /**
+   * 生成血糖趨勢圖表數據
+   */
+  generateBloodSugarChartData(records: BloodSugarRecord[], days: number = 30): ChartData {
+    const sortedRecords = records
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-days);
+
+    const labels = sortedRecords.map(record => 
+      new Date(record.date).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
+    );
+
+    const data = sortedRecords.map(record => record.value);
+
+    return {
+      labels,
+      datasets: [{
+        label: '血糖 (mmol/L)',
+        data,
+        borderColor: '#2dd36f',
+        backgroundColor: 'rgba(45, 211, 111, 0.1)',
+        fill: true
+      }]
+    };
+  }
+
+  /**
+   * 生成用藥依從性圖表數據
+   */
+  generateMedicationAdherenceData(records: MedicationRecord[], days: number = 30): ChartData {
+    const sortedRecords = records
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-days);
+
+    const labels = sortedRecords.map(record => 
+      new Date(record.date).toLocaleDateString('zh-TW', { month: 'short', day: 'numeric' })
+    );
+
+    const adherenceData = sortedRecords.map(record => 
+      record.taken ? 100 : 0
+    );
+
+    return {
+      labels,
+      datasets: [{
+        label: '用藥依從性 (%)',
+        data: adherenceData,
+        borderColor: '#eb445a',
+        backgroundColor: 'rgba(235, 68, 90, 0.1)',
+        fill: true
+      }]
+    };
+  }
+
+  /**
+   * 計算趨勢數據
+   */
+  calculateTrend(records: any[], valueKey: string, days: number = 7): TrendData {
+    if (records.length < 2) {
+      return { trend: 'stable', change: 0, percentage: 0, period: `${days}天` };
+    }
+
+    const recentRecords = records
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, days);
+
+    if (recentRecords.length < 2) {
+      return { trend: 'stable', change: 0, percentage: 0, period: `${days}天` };
+    }
+
+    const latest = recentRecords[0][valueKey];
+    const previous = recentRecords[recentRecords.length - 1][valueKey];
+    const change = latest - previous;
+    const percentage = previous !== 0 ? (change / previous) * 100 : 0;
+
+    let trend: 'up' | 'down' | 'stable' = 'stable';
+    if (Math.abs(change) > 0.1) {
+      trend = change > 0 ? 'up' : 'down';
+    }
+
+    return {
+      trend,
+      change: Math.abs(change),
+      percentage: Math.abs(percentage),
+      period: `${days}天`
+    };
+  }
+
+  /**
+   * 生成健康指標摘要
+   */
+  generateHealthMetrics(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[]
+  ): HealthMetrics {
+    const currentWeight = weightRecords.length > 0 ? weightRecords[weightRecords.length - 1].weight : 0;
+    const currentSystolic = bloodPressureRecords.length > 0 ? bloodPressureRecords[bloodPressureRecords.length - 1].systolic : 0;
+    const currentDiastolic = bloodPressureRecords.length > 0 ? bloodPressureRecords[bloodPressureRecords.length - 1].diastolic : 0;
+    const currentBloodSugar = bloodSugarRecords.length > 0 ? bloodSugarRecords[bloodSugarRecords.length - 1].value : 0;
+
+    const weightTrend = this.calculateTrend(weightRecords, 'weight');
+    const systolicTrend = this.calculateTrend(bloodPressureRecords, 'systolic');
+    const diastolicTrend = this.calculateTrend(bloodPressureRecords, 'diastolic');
+    const bloodSugarTrend = this.calculateTrend(bloodSugarRecords, 'value');
+
+    const weightValues = weightRecords.map(r => r.weight);
+    const systolicValues = bloodPressureRecords.map(r => r.systolic);
+    const diastolicValues = bloodPressureRecords.map(r => r.diastolic);
+    const bloodSugarValues = bloodSugarRecords.map(r => r.value);
+
+    const today = new Date().toDateString();
+    const todayMedications = medicationRecords.filter(r => 
+      new Date(r.date).toDateString() === today
+    );
+
+    const adherence = medicationRecords.length > 0 
+      ? (medicationRecords.filter(r => r.taken).length / medicationRecords.length) * 100 
+      : 0;
+
+    return {
+      weight: {
+        current: currentWeight,
+        average: this.calculateAverage(weightValues),
+        min: Math.min(...weightValues),
+        max: Math.max(...weightValues),
+        trend: weightTrend
+      },
+      bloodPressure: {
+        systolic: {
+          current: currentSystolic,
+          average: this.calculateAverage(systolicValues),
+          trend: systolicTrend
+        },
+        diastolic: {
+          current: currentDiastolic,
+          average: this.calculateAverage(diastolicValues),
+          trend: diastolicTrend
+        }
+      },
+      bloodSugar: {
+        current: currentBloodSugar,
+        average: this.calculateAverage(bloodSugarValues),
+        trend: bloodSugarTrend
+      },
+      medications: {
+        total: medicationRecords.length,
+        today: todayMedications.length,
+        adherence: Math.round(adherence)
+      }
+    };
+  }
+
+  /**
+   * 計算平均值
+   */
+  private calculateAverage(values: number[]): number {
+    if (values.length === 0) return 0;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
+
+  /**
+   * 生成健康評分
+   */
+  generateHealthScore(metrics: HealthMetrics): number {
+    let score = 100;
+
+    // 體重評分 (20分)
+    const weightScore = this.calculateWeightScore(metrics.weight);
+    score += weightScore;
+
+    // 血壓評分 (30分)
+    const bloodPressureScore = this.calculateBloodPressureScore(metrics.bloodPressure);
+    score += bloodPressureScore;
+
+    // 血糖評分 (25分)
+    const bloodSugarScore = this.calculateBloodSugarScore(metrics.bloodSugar);
+    score += bloodSugarScore;
+
+    // 用藥依從性評分 (25分)
+    const medicationScore = this.calculateMedicationScore(metrics.medications);
+    score += medicationScore;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  /**
+   * 計算體重評分
+   */
+  private calculateWeightScore(weight: any): number {
+    // 簡化的體重評分邏輯
+    if (weight.current === 0) return 0;
+    
+    const bmi = weight.current / Math.pow(1.7, 2); // 假設身高1.7m
+    if (bmi >= 18.5 && bmi <= 24.9) return 20;
+    if (bmi >= 17 && bmi <= 29) return 15;
+    if (bmi >= 16 && bmi <= 30) return 10;
+    return 5;
+  }
+
+  /**
+   * 計算血壓評分
+   */
+  private calculateBloodPressureScore(bp: any): number {
+    if (bp.systolic.current === 0 || bp.diastolic.current === 0) return 0;
+    
+    const systolic = bp.systolic.current;
+    const diastolic = bp.diastolic.current;
+    
+    if (systolic < 120 && diastolic < 80) return 30;
+    if (systolic < 130 && diastolic < 85) return 25;
+    if (systolic < 140 && diastolic < 90) return 20;
+    if (systolic < 160 && diastolic < 100) return 15;
+    return 10;
+  }
+
+  /**
+   * 計算血糖評分
+   */
+  private calculateBloodSugarScore(bs: any): number {
+    if (bs.current === 0) return 0;
+    
+    if (bs.current >= 3.9 && bs.current <= 6.1) return 25;
+    if (bs.current >= 3.5 && bs.current <= 7.0) return 20;
+    if (bs.current >= 3.0 && bs.current <= 8.0) return 15;
+    return 10;
+  }
+
+  /**
+   * 計算用藥評分
+   */
+  private calculateMedicationScore(med: any): number {
+    if (med.total === 0) return 25;
+    
+    const adherence = med.adherence;
+    if (adherence >= 90) return 25;
+    if (adherence >= 80) return 20;
+    if (adherence >= 70) return 15;
+    if (adherence >= 60) return 10;
+    return 5;
+  }
+
+  /**
+   * 生成健康建議
+   */
+  generateHealthAdvice(metrics: HealthMetrics): string[] {
+    const advice: string[] = [];
+
+    // 體重建議
+    if (metrics.weight.trend.trend === 'up' && metrics.weight.trend.percentage > 5) {
+      advice.push('體重有上升趨勢，建議適當控制飲食和增加運動');
+    }
+
+    // 血壓建議
+    if (metrics.bloodPressure.systolic.current > 140 || metrics.bloodPressure.diastolic.current > 90) {
+      advice.push('血壓偏高，建議減少鹽分攝入，保持規律運動');
+    }
+
+    // 血糖建議
+    if (metrics.bloodSugar.current > 6.1) {
+      advice.push('血糖偏高，建議控制碳水化合物攝入，定期監測');
+    }
+
+    // 用藥建議
+    if (metrics.medications.adherence < 80) {
+      advice.push('用藥依從性較低，建議按時服藥，設置提醒');
+    }
+
+    if (advice.length === 0) {
+      advice.push('您的健康狀況良好，請保持現有的健康習慣');
+    }
+
+    return advice;
+  }
+}
+
+export default DataVisualizationService.getInstance();

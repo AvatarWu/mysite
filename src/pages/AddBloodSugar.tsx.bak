@@ -1,0 +1,125 @@
+import React, { useState } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonDatetime,
+  IonTextarea,
+  IonList,
+  IonBackButton,
+  IonButtons,
+  IonSelect,
+  IonSelectOption
+} from '@ionic/react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const AddBloodSugar: React.FC = () => {
+  const navigate = useNavigate();
+  const [value, setValue] = useState('');
+  const [unit, setUnit] = useState('mg/dL');
+  const [type, setType] = useState('飯前');
+  const [date, setDate] = useState(new Date().toISOString());
+  const [time, setTime] = useState(new Date().toISOString());
+  const [note, setNote] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/health/blood-sugar', {
+        value: parseFloat(value),
+        unit,
+        type,
+        date: new Date(date).toISOString().split('T')[0],
+        time: new Date(time).toISOString().split('T')[1].substring(0, 5),
+        note
+      }, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+
+      navigate('/tab3');
+    } catch (error) {
+      console.error('新增血糖記錄失敗:', error);
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/tab3" />
+          </IonButtons>
+          <IonTitle>新增血糖記錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <form onSubmit={handleSubmit}>
+          <IonList>
+            <IonItem>
+              <IonLabel position="stacked">血糖值</IonLabel>
+              <IonInput
+                type="number"
+                value={value}
+                onIonChange={e => setValue(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">單位</IonLabel>
+              <IonSelect value={unit} onIonChange={e => setUnit(e.detail.value)}>
+                <IonSelectOption value="mg/dL">mg/dL</IonSelectOption>
+                <IonSelectOption value="mmol/L">mmol/L</IonSelectOption>
+              </IonSelect>
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">測量類型</IonLabel>
+              <IonSelect value={type} onIonChange={e => setType(e.detail.value)}>
+                <IonSelectOption value="飯前">飯前</IonSelectOption>
+                <IonSelectOption value="飯後">飯後</IonSelectOption>
+                <IonSelectOption value="睡前">睡前</IonSelectOption>
+              </IonSelect>
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">日期</IonLabel>
+              <IonDatetime
+                value={date}
+                onIonChange={e => setDate(e.detail.value!)}
+                presentation="date"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">時間</IonLabel>
+              <IonDatetime
+                value={time}
+                onIonChange={e => setTime(e.detail.value!)}
+                presentation="time"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">備註</IonLabel>
+              <IonTextarea
+                value={note}
+                onIonChange={e => setNote(e.detail.value!)}
+                rows={3}
+              />
+            </IonItem>
+          </IonList>
+          <div style={{ padding: '16px' }}>
+            <IonButton expand="block" type="submit">
+              儲存
+            </IonButton>
+          </div>
+        </form>
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default AddBloodSugar; 

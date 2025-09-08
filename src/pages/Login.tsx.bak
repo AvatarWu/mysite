@@ -1,0 +1,295 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonText,
+  IonLoading,
+  IonAlert,
+  IonIcon,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonBackButton,
+  IonButtons
+} from '@ionic/react';
+import { 
+  personOutline, 
+  lockClosedOutline, 
+  mailOutline,
+  eyeOutline,
+  eyeOffOutline
+} from 'ionicons/icons';
+import { useNavigate } from 'react-router-dom';
+import AuthService, { LoginCredentials } from '../services/AuthService';
+import './Login.css';
+
+const Login: React.FC = () => {
+  const navigate = useNavigate();
+  const [credentials, setCredentials] = useState<LoginCredentials>({
+    email: '',
+    password: ''
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+
+  useEffect(() => {
+    // 檢查是否已經登錄
+    if (AuthService.isAuthenticated()) {
+      history.push('/tabs/tab1');
+    }
+  }, [history]);
+
+  const handleInputChange = (field: keyof LoginCredentials, value: string) => {
+    setCredentials(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // 清除錯誤信息
+    if (error) {
+      setError(null);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    if (!credentials.email.trim()) {
+      setError('請輸入電子郵箱');
+      return false;
+    }
+    if (!credentials.password.trim()) {
+      setError('請輸入密碼');
+      return false;
+    }
+    if (credentials.password.length < 6) {
+      setError('密碼長度至少6位');
+      return false;
+    }
+    return true;
+  };
+
+  const handleLogin = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await AuthService.login(credentials);
+      
+      if (response.success) {
+        // 登錄成功，跳轉到主頁
+        navigate('/tabs/tab1');
+      } else {
+        setError(response.message || '登錄失敗');
+        setShowAlert(true);
+      }
+    } catch (error) {
+      console.error('登錄錯誤:', error);
+      setError('登錄失敗，請檢查網絡連接');
+      setShowAlert(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
+  const handleRegister = () => {
+    navigate('/register');
+  };
+
+  const handleDemoLogin = async () => {
+    // 演示登錄（使用測試賬戶）
+    setCredentials({
+      email: 'demo@careold.com',
+      password: 'demo123'
+    });
+    
+    setLoading(true);
+    try {
+      const response = await AuthService.login({
+        email: 'demo@careold.com',
+        password: 'demo123'
+      });
+      
+      if (response.success) {
+        navigate('/tabs/tab1');
+      } else {
+        setError('演示登錄失敗，請使用真實賬戶');
+        setShowAlert(true);
+      }
+    } catch (error) {
+      setError('演示登錄失敗');
+      setShowAlert(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/" />
+          </IonButtons>
+          <IonTitle>登錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent className="ion-padding">
+        <IonGrid>
+          <IonRow className="ion-justify-content-center">
+            <IonCol size="12" sizeMd="8" sizeLg="6">
+              {/* Logo 和標題 */}
+              <div className="login-header">
+                <div className="logo-container">
+                  <IonIcon icon={personOutline} className="logo-icon" />
+                </div>
+                <h1 className="app-title">CareOld Health</h1>
+                <p className="app-subtitle">您的健康管理夥伴</p>
+              </div>
+
+              {/* 登錄表單 */}
+              <IonCard className="login-card">
+                <IonCardContent>
+                  <form onSubmit={(e) => { e.preventDefault(); handleLogin(); }}>
+                    {/* 電子郵箱輸入 */}
+                    <IonItem className="input-item">
+                      <IonIcon icon={mailOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">電子郵箱</IonLabel>
+                      <IonInput
+                        type="email"
+                        value={credentials.email}
+                        onIonChange={(e) => handleInputChange('email', e.detail.value!)}
+                        placeholder="請輸入您的電子郵箱"
+                        required
+                        clearInput
+                      />
+                    </IonItem>
+
+                    {/* 密碼輸入 */}
+                    <IonItem className="input-item">
+                      <IonIcon icon={lockClosedOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">密碼</IonLabel>
+                      <IonInput
+                        type={showPassword ? 'text' : 'password'}
+                        value={credentials.password}
+                        onIonChange={(e) => handleInputChange('password', e.detail.value!)}
+                        placeholder="請輸入您的密碼"
+                        required
+                        clearInput
+                      />
+                      <IonButton
+                        fill="clear"
+                        slot="end"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="password-toggle"
+                      >
+                        <IonIcon icon={showPassword ? eyeOffOutline : eyeOutline} />
+                      </IonButton>
+                    </IonItem>
+
+                    {/* 錯誤信息顯示 */}
+                    {error && (
+                      <div className="error-message">
+                        <IonText color="danger">
+                          <small>{error}</small>
+                        </IonText>
+                      </div>
+                    )}
+
+                    {/* 登錄按鈕 */}
+                    <IonButton
+                      expand="block"
+                      type="submit"
+                      className="login-button"
+                      disabled={loading}
+                    >
+                      {loading ? '登錄中...' : '登錄'}
+                    </IonButton>
+
+                    {/* 忘記密碼鏈接 */}
+                    <div className="forgot-password">
+                      <IonButton
+                        fill="clear"
+                        size="small"
+                        onClick={handleForgotPassword}
+                        className="link-button"
+                      >
+                        忘記密碼？
+                      </IonButton>
+                    </div>
+                  </form>
+                </IonCardContent>
+              </IonCard>
+
+              {/* 註冊鏈接 */}
+              <div className="register-section">
+                <p className="register-text">
+                  還沒有賬戶？
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={handleRegister}
+                    className="link-button"
+                  >
+                    立即註冊
+                  </IonButton>
+                </p>
+              </div>
+
+              {/* 演示登錄 */}
+              <div className="demo-section">
+                <IonButton
+                  fill="outline"
+                  expand="block"
+                  onClick={handleDemoLogin}
+                  className="demo-button"
+                  disabled={loading}
+                >
+                  演示登錄
+                </IonButton>
+                <p className="demo-note">
+                  使用演示賬戶體驗應用功能
+                </p>
+              </div>
+            </IonCol>
+          </IonRow>
+        </IonGrid>
+
+        {/* 加載指示器 */}
+        <IonLoading
+          isOpen={loading}
+          message="正在登錄..."
+          duration={0}
+        />
+
+        {/* 錯誤提示框 */}
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header="登錄失敗"
+          message={error || '請檢查您的登錄信息'}
+          buttons={['確定']}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default Login;

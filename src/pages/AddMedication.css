@@ -1,0 +1,1322 @@
+/* 新增用藥頁面樣式 - Apple 美學標準 */
+
+.add-medication-page {
+  min-height: 100vh;
+  background: #f2f2f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  /* 防止頁面縮放和滾動問題 */
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* 自定義導航欄 - Apple 風格 */
+.custom-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  /* 使用更精確的系統狀態欄高度 */
+  padding-top: max(env(safe-area-inset-top), 60px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 44px;
+  /* 確保 header 內容有足夠的頂部間距 */
+  margin-top: 0;
+}
+
+.back-button {
+  background: transparent;
+  border: none;
+  color: #007aff;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 500;
+  /* 確保按鈕可以正確接收觸控事件 */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  /* 確保按鈕在文字之上 */
+  z-index: 1001;
+  background-color: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.back-button:hover {
+  background: rgba(0, 122, 255, 0.08);
+  transform: scale(1.02);
+}
+
+.back-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+.save-button {
+  background: transparent;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 60px;
+  /* 確保按鈕可以正確接收觸控事件 */
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.save-button.active {
+  color: #007aff;
+}
+
+.save-button.active:hover {
+  background: rgba(0, 122, 255, 0.08);
+  transform: scale(1.02);
+}
+
+.save-button.disabled {
+  color: #8e8e93;
+  cursor: not-allowed;
+}
+
+.save-button.disabled:hover {
+  background: transparent;
+  transform: none;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding: 16px 16px;
+  max-width: 100%;
+  width: 100%;
+  margin: 0 auto;
+  /* 為固定導航欄留出空間 */
+  padding-top: calc(max(env(safe-area-inset-top), 60px) + 80px);
+  padding-bottom: 100px;
+  /* 確保內容不被截斷 */
+  box-sizing: border-box;
+  overflow-x: hidden;
+}
+
+/* 表單區域 */
+.form-section {
+  background: white;
+  border-radius: 16px;
+  padding: 20px 16px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+  /* 確保表單區域不被截斷 */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.form-section h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0 0 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.form-section h3 svg {
+  width: 20px;
+  height: 20px;
+  color: #007aff;
+}
+
+/* 輸入框組 */
+.input-group {
+  margin-bottom: 20px;
+  /* 確保輸入組不被截斷 */
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: visible;
+}
+
+.input-group:last-child {
+  margin-bottom: 0;
+}
+
+.input-label {
+  display: block;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1d1d1f;
+  margin-bottom: 8px;
+}
+
+.input-label.required::after {
+  content: ' *';
+  color: #ff3b30;
+}
+
+/* 輸入框樣式 */
+.input-field {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  padding: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  box-sizing: border-box !important;
+  /* 強制確保輸入框完整顯示 */
+  min-height: 56px !important;
+  height: 56px !important;
+  max-height: none !important;
+  display: block !important;
+  /* 防止 iOS 縮放 */
+  font-size: 16px !important;
+  /* 優化觸控體驗 */
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  /* 強制顯示完整輸入框 */
+  overflow: visible !important;
+  resize: none !important;
+  /* 確保輸入框不被壓縮 */
+  flex-shrink: 0 !important;
+  /* 強制顯示 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* 防止被父元素影響 */
+  position: relative !important;
+  z-index: 1 !important;
+  /* 強制邊框盒模型 */
+  box-sizing: border-box !important;
+  /* 防止溢出 */
+  overflow: visible !important;
+  /* 強制背景 */
+  background-color: #ffffff !important;
+  /* 強制顏色 */
+  color: #1d1d1f !important;
+}
+
+.input-field:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+.input-field.error {
+  border-color: #ff3b30 !important;
+}
+
+.input-field.error:focus {
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1) !important;
+}
+
+.input-field::placeholder {
+  color: #8e8e93 !important;
+}
+
+/* 下拉選擇框 */
+.select-field {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  padding: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 16px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px !important;
+  padding-right: 48px !important;
+  cursor: pointer !important;
+  /* 強制確保下拉框完整顯示 */
+  min-height: 56px !important;
+  height: 56px !important;
+  max-height: none !important;
+  display: block !important;
+  /* 防止 iOS 縮放 */
+  font-size: 16px !important;
+  /* 優化觸控體驗 */
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  /* 強制顯示完整下拉框 */
+  overflow: visible !important;
+  /* 確保下拉框不被壓縮 */
+  flex-shrink: 0 !important;
+  /* 強制顯示 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  /* 防止被父元素影響 */
+  position: relative !important;
+  z-index: 1 !important;
+  /* 強制邊框盒模型 */
+  box-sizing: border-box !important;
+  /* 防止溢出 */
+  overflow: visible !important;
+}
+
+.select-field:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 錯誤提示 */
+.error-message {
+  color: #ff3b30;
+  font-size: 14px;
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.error-message svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 提醒時間區域 */
+.reminder-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+}
+
+.reminder-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.reminder-header svg {
+  width: 20px;
+  height: 20px;
+  color: #007aff;
+}
+
+.reminder-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+/* 時間槽 */
+.time-slot {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background-color: #f9fafb;
+  border-radius: 12px;
+  margin-bottom: 12px;
+  border: 1px solid #e5e7eb;
+}
+
+.time-slot:last-child {
+  margin-bottom: 0;
+}
+
+.time-input {
+  flex: 1;
+  padding: 12px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 16px;
+  color: #1d1d1f;
+  background-color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  -webkit-appearance: none;
+}
+
+.time-input:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+/* 開關樣式 */
+.toggle-switch {
+  position: relative;
+  width: 51px;
+  height: 31px;
+  background-color: #e5e7eb;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.toggle-switch.active {
+  background-color: #34c759;
+}
+
+.toggle-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 27px;
+  height: 27px;
+  background-color: #ffffff;
+  border-radius: 50%;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.toggle-switch.active::after {
+  transform: translateX(20px);
+}
+
+/* 新增提醒時間按鈕 */
+.add-reminder-button {
+  width: 100%;
+  padding: 16px;
+  border: 2px dashed #007aff;
+  border-radius: 12px;
+  background-color: transparent;
+  color: #007aff;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.add-reminder-button:hover {
+  background-color: rgba(0, 122, 255, 0.05);
+  border-color: #0056cc;
+  color: #0056cc;
+}
+
+.add-reminder-button svg {
+  width: 20px;
+  height: 20px;
+}
+
+/* 備註區域 */
+.notes-section {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  border: 0.5px solid rgba(0, 0, 0, 0.04);
+}
+
+.notes-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.notes-header svg {
+  width: 20px;
+  height: 20px;
+  color: #007aff;
+}
+
+.notes-header h3 {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.notes-textarea {
+  width: 100%;
+  min-height: 100px;
+  padding: 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1d1d1f;
+  background-color: #ffffff;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  resize: vertical;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.notes-textarea:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.notes-textarea::placeholder {
+  color: #8e8e93;
+}
+
+/* 成功模態框 */
+.success-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.modal-content {
+  background: white;
+  border-radius: 20px;
+  padding: 32px;
+  text-align: center;
+  max-width: 300px;
+  width: 90%;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  animation: modalSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.success-icon {
+  width: 64px;
+  height: 64px;
+  background-color: #34c759;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+  font-size: 32px;
+}
+
+.modal-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0 0 12px 0;
+}
+
+.modal-message {
+  font-size: 16px;
+  color: #6b7280;
+  margin: 0 0 24px 0;
+  line-height: 1.5;
+}
+
+.ok-button {
+  background-color: #007aff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+}
+
+.ok-button:hover {
+  background-color: #0056cc;
+  transform: translateY(-1px);
+}
+
+.ok-button:active {
+  transform: translateY(0);
+}
+
+/* 響應式設計 */
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px 12px;
+  }
+  
+  .form-section {
+    padding: 16px 12px;
+  }
+  
+  .input-field,
+  .select-field {
+    padding: 14px !important;
+    font-size: 16px !important; /* 防止 iOS 縮放 */
+    /* 強制完整顯示 */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+  
+  .header-content {
+    padding: 16px 18px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+}
+
+/* 針對超小屏幕的特殊修復 */
+@media (max-width: 375px) {
+  .main-content {
+    padding: 8px 8px;
+  }
+  
+  .form-section {
+    padding: 12px 8px;
+  }
+  
+  .input-field,
+  .select-field {
+    padding: 12px !important;
+    /* 強制完整顯示 */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+}
+
+/* 針對橫屏模式的修復 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .main-content {
+    padding: 8px 16px;
+  }
+  
+  .form-section {
+    padding: 16px 16px;
+  }
+  
+  .input-field,
+  .select-field {
+    /* 強制完整顯示 */
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    height: 56px !important;
+    min-height: 56px !important;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .add-medication-page {
+    background: #000000;
+  }
+  
+  .custom-header {
+    background: rgba(28, 28, 30, 0.8);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .form-section,
+  .reminder-section,
+  .notes-section {
+    background: #1c1c1e;
+    border-color: rgba(255, 255, 255, 0.04);
+  }
+  
+  .form-section h3,
+  .reminder-header h3,
+  .notes-header h3,
+  .input-label,
+  .modal-title {
+    color: #ffffff;
+  }
+  
+  .input-field,
+  .select-field,
+  .time-input,
+  .notes-textarea {
+    background-color: #2c2c2e;
+    border-color: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+  }
+  
+  .input-field:focus,
+  .select-field:focus,
+  .time-input:focus,
+  .notes-textarea:focus {
+    border-color: #0a84ff;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1);
+  }
+  
+  .time-slot {
+    background-color: #2c2c2e;
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  .modal-content {
+    background: #1c1c1e;
+  }
+  
+  .modal-message {
+    color: #8e8e93;
+  }
+}
+
+/* ========================================
+   強制修復輸入框顯示問題 - 全新方法
+   ======================================== */
+
+/* 重置所有可能的樣式衝突 */
+.main-content *,
+.form-section *,
+.input-group * {
+  box-sizing: border-box !important;
+}
+
+/* 主要內容區域 - 強制修復 */
+.main-content {
+  padding: 16px 16px !important;
+  max-width: 100% !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  padding-top: calc(max(env(safe-area-inset-top), 60px) + 80px) !important;
+  padding-bottom: 100px !important;
+  box-sizing: border-box !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+/* 表單區域 - 強制修復 */
+.form-section {
+  background: white !important;
+  border-radius: 16px !important;
+  padding: 20px 16px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  border: 0.5px solid rgba(0, 0, 0, 0.04) !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+/* 輸入框組 - 強制修復 */
+.input-group {
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  position: relative !important;
+}
+
+.input-group:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 輸入標籤 - 強制修復 */
+.input-label {
+  display: block !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  color: #1d1d1f !important;
+  margin-bottom: 8px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.input-label.required::after {
+  content: ' *' !important;
+  color: #ff3b30 !important;
+}
+
+/* 輸入框 - 強制修復 */
+.input-field {
+  /* 尺寸強制 */
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: none !important;
+  
+  /* 樣式強制 */
+  padding: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  
+  /* 顯示強制 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999 !important;
+  
+  /* 盒模型強制 */
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  resize: none !important;
+  
+  /* 防止壓縮 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 系統樣式禁用 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  
+  /* 字體強制 */
+  font-family: inherit !important;
+  text-align: left !important;
+}
+
+/* 輸入框焦點狀態 */
+.input-field:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 輸入框錯誤狀態 */
+.input-field.error {
+  border-color: #ff3b30 !important;
+}
+
+.input-field.error:focus {
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1) !important;
+}
+
+/* 輸入框佔位符 */
+.input-field::placeholder {
+  color: #8e8e93 !important;
+  opacity: 1 !important;
+}
+
+/* 下拉選擇框 - 強制修復 */
+.select-field {
+  /* 尺寸強制 */
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: none !important;
+  
+  /* 樣式強制 */
+  padding: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  
+  /* 顯示強制 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999 !important;
+  
+  /* 盒模型強制 */
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  
+  /* 防止壓縮 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 系統樣式禁用 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  
+  /* 字體強制 */
+  font-family: inherit !important;
+  text-align: left !important;
+  
+  /* 下拉箭頭 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 16px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 16px !important;
+  padding-right: 48px !important;
+  cursor: pointer !important;
+}
+
+/* 下拉選擇框焦點狀態 */
+.select-field:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 針對藥物名稱輸入框的特殊強制修復 */
+#medication-name,
+input[id="medication-name"],
+input[placeholder="請輸入藥物名稱"] {
+  /* 超強制修復 */
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 100% !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: none !important;
+  
+  /* 樣式超強制 */
+  padding: 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  line-height: 1.5 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  
+  /* 顯示超強制 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 9999 !important;
+  
+  /* 盒模型超強制 */
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  resize: none !important;
+  
+  /* 防止壓縮超強制 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 系統樣式禁用超強制 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  
+  /* 字體超強制 */
+  font-family: inherit !important;
+  text-align: left !important;
+  
+  /* 強制可見性 */
+  clip: auto !important;
+  clip-path: none !important;
+  transform: none !important;
+  filter: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 全局強制修復所有輸入元素 */
+input,
+select,
+textarea {
+  /* 基礎強制 */
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  
+  /* 防止被隱藏 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  display: block !important;
+  
+  /* 防止被壓縮 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 防止被截斷 */
+  overflow: visible !important;
+  clip: auto !important;
+  clip-path: none !important;
+}
+
+/* 針對 iOS 的超強制修復 */
+@supports (-webkit-touch-callout: none) {
+  input,
+  select,
+  textarea {
+    /* iOS 特定超強制 */
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    -webkit-text-size-adjust: 100% !important;
+    text-size-adjust: 100% !important;
+    
+    /* 強制顯示 */
+    display: block !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    
+    /* 強制尺寸 */
+    width: 100% !important;
+    height: 56px !important;
+    
+    /* 強制樣式 */
+    background-color: #ffffff !important;
+    color: #1d1d1f !important;
+    border: 2px solid #e5e7eb !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* ========================================
+   提醒時間樣式修復 - 強制一致性和排列
+   ======================================== */
+
+/* 提醒時間區域 */
+.reminder-section {
+  background: white !important;
+  border-radius: 16px !important;
+  padding: 20px 16px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+  border: 0.5px solid rgba(0, 0, 0, 0.04) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  overflow: visible !important;
+}
+
+/* 提醒時間標題 */
+.reminder-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 20px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.reminder-header h3 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1d1d1f !important;
+  flex: 1 !important;
+}
+
+.reminder-header svg {
+  flex-shrink: 0 !important;
+  color: #007aff !important;
+}
+
+/* 時間槽容器 - 強制網格排列 */
+.time-slot {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  margin-bottom: 16px !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 12px 16px !important;
+  background: #f8f9fa !important;
+  border-radius: 12px !important;
+  border: 1px solid #e9ecef !important;
+}
+
+.time-slot:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* 時間輸入框 - 強制一致樣式 */
+.time-input {
+  /* 尺寸強制 */
+  width: 120px !important;
+  min-width: 120px !important;
+  max-width: 120px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  max-height: 44px !important;
+  
+  /* 樣式強制 */
+  padding: 8px 12px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  line-height: 1.4 !important;
+  color: #1d1d1f !important;
+  background-color: #ffffff !important;
+  
+  /* 顯示強制 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 999 !important;
+  
+  /* 盒模型強制 */
+  box-sizing: border-box !important;
+  overflow: visible !important;
+  
+  /* 防止壓縮 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 系統樣式禁用 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  
+  /* 字體強制 */
+  font-family: inherit !important;
+  text-align: center !important;
+  
+  /* 時間輸入框特殊樣式 */
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e") !important;
+  background-position: right 8px center !important;
+  background-repeat: no-repeat !important;
+  background-size: 12px !important;
+  padding-right: 28px !important;
+}
+
+/* 時間輸入框焦點狀態 */
+.time-input:focus {
+  outline: none !important;
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 開關按鈕 - 強制一致樣式 */
+.toggle-switch {
+  width: 44px !important;
+  height: 24px !important;
+  min-width: 44px !important;
+  min-height: 24px !important;
+  max-width: 44px !important;
+  max-height: 24px !important;
+  
+  background-color: #e5e7eb !important;
+  border-radius: 12px !important;
+  position: relative !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s ease !important;
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 強制顯示 */
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999 !important;
+}
+
+/* 開關按鈕激活狀態 */
+.toggle-switch.active {
+  background-color: #34c759 !important;
+}
+
+/* 開關按鈕的圓點 */
+.toggle-switch::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 2px !important;
+  left: 2px !important;
+  width: 20px !important;
+  height: 20px !important;
+  background-color: white !important;
+  border-radius: 50% !important;
+  transition: transform 0.2s ease !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* 開關按鈕激活狀態的圓點位置 */
+.toggle-switch.active::after {
+  transform: translateX(20px) !important;
+}
+
+/* 新增提醒時間按鈕 */
+.add-reminder-button {
+  width: 100% !important;
+  height: 56px !important;
+  min-height: 56px !important;
+  max-height: 56px !important;
+  
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  
+  background-color: transparent !important;
+  border: 2px dashed #007aff !important;
+  border-radius: 12px !important;
+  color: #007aff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  
+  /* 強制顯示 */
+  visibility: visible !important;
+  opacity: 1 !important;
+  z-index: 999 !important;
+  
+  /* 防止壓縮 */
+  flex-shrink: 0 !important;
+  flex-grow: 0 !important;
+  
+  /* 系統樣式禁用 */
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+/* 新增提醒時間按鈕懸停狀態 */
+.add-reminder-button:hover {
+  background-color: rgba(0, 122, 255, 0.05) !important;
+  border-color: #0056cc !important;
+  color: #0056cc !important;
+}
+
+/* 新增提醒時間按鈕焦點狀態 */
+.add-reminder-button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1) !important;
+}
+
+/* 新增提醒時間按鈕圖標 */
+.add-reminder-button svg {
+  flex-shrink: 0 !important;
+  width: 20px !important;
+  height: 20px !important;
+  stroke: currentColor !important;
+  stroke-width: 2 !important;
+}
+
+/* 響應式修復 - 小螢幕 */
+@media (max-width: 480px) {
+  .time-slot {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+  
+  .time-input {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: 100% !important;
+    text-align: center !important;
+  }
+  
+  .toggle-switch {
+    align-self: center !important;
+  }
+}
+
+/* 響應式修復 - 超小螢幕 */
+@media (max-width: 375px) {
+  .reminder-section {
+    padding: 16px 12px !important;
+  }
+  
+  .time-slot {
+    padding: 12px !important;
+  }
+  
+  .time-input {
+    height: 40px !important;
+    min-height: 40px !important;
+    max-height: 40px !important;
+    font-size: 14px !important;
+  }
+}
+
+/* 橫向模式修復 */
+@media (orientation: landscape) and (max-height: 500px) {
+  .reminder-section {
+    padding: 16px !important;
+  }
+  
+  .time-slot {
+    margin-bottom: 12px !important;
+    padding: 10px 12px !important;
+  }
+  
+  .time-input {
+    height: 36px !important;
+    min-height: 36px !important;
+    max-height: 36px !important;
+  }
+  
+  .toggle-switch {
+    width: 40px !important;
+    height: 22px !important;
+    min-width: 40px !important;
+    min-height: 22px !important;
+    max-width: 40px !important;
+    max-height: 22px !important;
+  }
+  
+  .toggle-switch::after {
+    width: 18px !important;
+    height: 18px !important;
+  }
+  
+  .toggle-switch.active::after {
+    transform: translateX(18px) !important;
+  }
+}

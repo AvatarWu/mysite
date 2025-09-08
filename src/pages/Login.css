@@ -1,0 +1,275 @@
+/* 登錄頁面樣式 */
+.login-header {
+  text-align: center;
+  margin: 2rem 0 3rem 0;
+}
+
+.logo-container {
+  margin-bottom: 1rem;
+}
+
+.logo-icon {
+  font-size: 4rem;
+  color: var(--ion-color-primary);
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  border-radius: 50%;
+  padding: 1rem;
+  box-shadow: 0 4px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+}
+
+.app-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--ion-color-primary);
+  margin: 0 0 0.5rem 0;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.app-subtitle {
+  font-size: 1rem;
+  color: var(--ion-color-medium);
+  margin: 0;
+  font-weight: 400;
+}
+
+.login-card {
+  border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+.input-item {
+  --border-radius: 12px;
+  --border-width: 2px;
+  --border-color: var(--ion-color-light);
+  --border-color-focused: var(--ion-color-primary);
+  margin-bottom: 1rem;
+  --background: var(--ion-color-light-tint);
+  --padding-start: 1rem;
+  --padding-end: 1rem;
+  --min-height: 60px;
+}
+
+.input-item:focus-within {
+  --border-color: var(--ion-color-primary);
+  --background: var(--ion-color-light);
+  transform: translateY(-2px);
+  transition: all 0.3s ease;
+}
+
+.input-icon {
+  color: var(--ion-color-primary);
+  font-size: 1.2rem;
+  margin-right: 0.5rem;
+}
+
+.password-toggle {
+  --color: var(--ion-color-medium);
+  --color-hover: var(--ion-color-primary);
+  margin: 0;
+  padding: 0;
+}
+
+.password-toggle:hover {
+  --color: var(--ion-color-primary);
+}
+
+.error-message {
+  text-align: center;
+  margin: 1rem 0;
+  padding: 0.5rem;
+  background: rgba(var(--ion-color-danger-rgb), 0.1);
+  border-radius: 8px;
+  border-left: 4px solid var(--ion-color-danger);
+}
+
+.login-button {
+  --border-radius: 12px;
+  --padding-top: 1rem;
+  --padding-bottom: 1rem;
+  --min-height: 56px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 1.5rem 0 1rem 0;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  box-shadow: 0 4px 20px rgba(var(--ion-color-primary-rgb), 0.3);
+  transition: all 0.3s ease;
+}
+
+.login-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 25px rgba(var(--ion-color-primary-rgb), 0.4);
+}
+
+.login-button:active {
+  transform: translateY(0);
+}
+
+.forgot-password {
+  text-align: center;
+  margin: 1rem 0;
+}
+
+.link-button {
+  --color: var(--ion-color-primary);
+  --color-hover: var(--ion-color-primary-shade);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  --color: var(--ion-color-primary-shade);
+}
+
+.register-section {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: var(--ion-color-light-tint);
+  border-radius: 16px;
+}
+
+.register-text {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 0.9rem;
+}
+
+.demo-section {
+  text-align: center;
+  margin: 2rem 0;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.05), rgba(var(--ion-color-primary-rgb), 0.1));
+  border-radius: 16px;
+  border: 2px dashed var(--ion-color-primary-tint);
+}
+
+.demo-button {
+  --border-radius: 12px;
+  --border-width: 2px;
+  --border-color: var(--ion-color-primary);
+  --color: var(--ion-color-primary);
+  --background: transparent;
+  font-weight: 600;
+  margin-bottom: 1rem;
+  transition: all 0.3s ease;
+}
+
+.demo-button:hover {
+  --background: var(--ion-color-primary);
+  --color: white;
+  transform: translateY(-2px);
+}
+
+.demo-note {
+  margin: 0;
+  color: var(--ion-color-medium);
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .login-header {
+    margin: 1rem 0 2rem 0;
+  }
+  
+  .logo-icon {
+    font-size: 3rem;
+    padding: 0.8rem;
+  }
+  
+  .app-title {
+    font-size: 1.5rem;
+  }
+  
+  .app-subtitle {
+    font-size: 0.9rem;
+  }
+  
+  .input-item {
+    --min-height: 50px;
+  }
+  
+  .login-button {
+    --min-height: 50px;
+    font-size: 1rem;
+  }
+}
+
+/* 動畫效果 */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.login-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.login-header {
+  animation: fadeInUp 0.8s ease-out;
+}
+
+.demo-section {
+  animation: fadeInUp 1s ease-out;
+}
+
+/* 深色模式適配 */
+@media (prefers-color-scheme: dark) {
+  .login-card {
+    --background: var(--ion-color-dark);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  .input-item {
+    --background: var(--ion-color-dark-tint);
+    --border-color: var(--ion-color-medium);
+  }
+  
+  .register-section {
+    --background: var(--ion-color-dark-tint);
+  }
+  
+  .demo-section {
+    --background: linear-gradient(135deg, rgba(var(--ion-color-primary-rgb), 0.1), rgba(var(--ion-color-primary-rgb), 0.2));
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .input-item {
+    --border-width: 3px;
+  }
+  
+  .login-button {
+    --border-width: 3px;
+    --border-color: var(--ion-color-primary-shade);
+  }
+}
+
+/* 減少動畫模式 */
+@media (prefers-reduced-motion: reduce) {
+  .login-card,
+  .login-header,
+  .demo-section {
+    animation: none;
+  }
+  
+  .input-item:focus-within,
+  .login-button:hover,
+  .demo-button:hover {
+    transform: none;
+    transition: none;
+  }
+}

@@ -1,0 +1,127 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonToast,
+  IonBadge
+} from '@ionic/react';
+import { add, trash, create } from 'ionicons/icons';
+import axios from 'axios';
+
+interface BloodSugar {
+  _id: string;
+  value: number;      // 血糖值
+  unit: string;       // 單位 (mg/dL 或 mmol/L)
+  type: string;       // 測量類型 (飯前/飯後/睡前)
+  date: string;
+  time: string;
+  note?: string;
+}
+
+const BloodSugar: React.FC = () => {
+  const [records, setRecords] = useState<BloodSugar[]>([]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  const fetchRecords = async () => {
+    try {
+      const response = await axios.get('/api/health/blood-sugar', {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+      setRecords(response.data.records);
+    } catch (error) {
+      console.error('獲取血糖記錄失敗:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`/api/health/blood-sugar/${id}`, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+      setToastMessage('已刪除血糖記錄');
+      setShowToast(true);
+      fetchRecords();
+    } catch (error) {
+      console.error('刪除血糖記錄失敗:', error);
+    }
+  };
+
+  const getStatusColor = (value: number, type: string) => {
+    // 根據不同測量類型和血糖值判斷狀態
+    if (type === '飯前') {
+      if (value < 70) return 'danger';
+      if (value > 130) return 'warning';
+      return 'success';
+    } else if (type === '飯後') {
+      if (value < 70) return 'danger';
+      if (value > 180) return 'warning';
+      return 'success';
+    } else { // 睡前
+      if (value < 70) return 'danger';
+      if (value > 150) return 'warning';
+      return 'success';
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>血糖記錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList>
+          {records.map(record => (
+            <IonItem key={record._id}>
+              <IonLabel>
+                <h2>
+                  {record.value} {record.unit}
+                  <IonBadge color={getStatusColor(record.value, record.type)}>
+                    {record.type}
+                  </IonBadge>
+                </h2>
+                <p>{record.date} {record.time}</p>
+                {record.note && <p>{record.note}</p>}
+              </IonLabel>
+              <IonButton fill="clear" color="primary" routerLink={`/blood-sugar/edit/${record._id}`}>
+                <IonIcon icon={create} />
+              </IonButton>
+              <IonButton fill="clear" color="danger" onClick={() => handleDelete(record._id)}>
+                <IonIcon icon={trash} />
+              </IonButton>
+            </IonItem>
+          ))}
+        </IonList>
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton routerLink="/blood-sugar/add">
+            <IonIcon icon={add} />
+          </IonFabButton>
+        </IonFab>
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message={toastMessage}
+          duration={1500}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default BloodSugar; 

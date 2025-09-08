@@ -1,0 +1,150 @@
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { IonLoading, IonContent, IonAlert } from '@ionic/react';
+import AuthService, { User } from '../services/AuthService';
+
+interface AuthGuardProps {
+  children: React.ReactNode;
+  requiredRole?: string;
+  requiredPermissions?: string[];
+  fallbackPath?: string;
+}
+
+const AuthGuard: React.FC<AuthGuardProps> = ({
+  children,
+  requiredRole,
+  requiredPermissions = [],
+  fallbackPath = '/login'
+}) => {
+  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkAuthorization = async () => {
+      try {
+        setIsLoading(true);
+        
+        // 檢查基本認證
+        const authService = AuthService.getInstance();
+        if (!authService.isAuthenticated()) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        // 驗證令牌
+        const isTokenValid = await authService.validateToken();
+        if (!isTokenValid) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        // 獲取當前用戶
+        const currentUser = authService.getCurrentUser();
+        if (!currentUser) {
+          setIsAuthorized(false);
+          return;
+        }
+
+        // 檢查角色權限
+        if (requiredRole && currentUser.role !== requiredRole) {
+          setError(`需要 ${requiredRole} 角色權限`);
+          setIsAuthorized(false);
+          return;
+        }
+
+        // 檢查具體權限
+        if (requiredPermissions.length > 0) {
+          const userPermissions = getUserPermissions(currentUser);
+          const hasAllPermissions = requiredPermissions.every(permission =>
+            userPermissions.includes(permission)
+          );
+          
+          if (!hasAllPermissions) {
+            setError('權限不足');
+            setIsAuthorized(false);
+            return;
+          }
+        }
+
+        setIsAuthorized(true);
+      } catch (error) {
+        console.error('權限檢查失敗:', error);
+        setError('權限檢查失敗');
+        setIsAuthorized(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthorization();
+  }, [requiredRole, requiredPermissions]);
+
+  // 獲取用戶權限（模擬實現）
+  const getUserPermissions = (user: User): string[] => {
+    const basePermissions = ['read:own_data', 'write:own_data'];
+    
+    switch (user.role) {
+      case 'admin':
+        return [...basePermissions, 'read:all_data', 'write:all_data', 'manage:users'];
+      case 'doctor':
+        return [...basePermissions, 'read:patient_data', 'write:patient_data'];
+      case 'caregiver':
+        return [...basePermissions, 'read:patient_data'];
+      case 'patient':
+      default:
+        return basePermissions;
+    }
+  };
+
+  // 顯示加載狀態
+  if (isLoading) {
+    return (
+      <IonContent>
+        <IonLoading
+          isOpen={true}
+          message="正在檢查權限..."
+          duration={0}
+        />
+      </IonContent>
+    );
+  }
+
+  // 顯示權限錯誤
+  if (error) {
+    return (
+      <IonContent>
+        <IonAlert
+          isOpen={true}
+          header="權限不足"
+          message={error}
+          buttons={[
+            {
+              text: '返回',
+              handler: () => navigate(fallbackPath)
+            }
+          ]}
+        />
+      </IonContent>
+    );
+  }
+
+  // 如果未授權，重定向
+  if (!isAuthorized) {
+    navigate(fallbackPath, { 
+      state: { 
+        from: location,
+        message: '請先登錄以訪問此頁面'
+      },
+      replace: true 
+    });
+    return null;
+  }
+
+  // 如果已授權，渲染子組件
+  return <>{children}</>;
+};
+
+export default AuthGuard;

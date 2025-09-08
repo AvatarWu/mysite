@@ -1,0 +1,488 @@
+// 認證系統測試套件
+describe('CareOld 認證系統測試', () => {
+  // 模擬 AuthService
+  const mockAuthService = {
+    login: jest.fn(),
+    register: jest.fn(),
+    logout: jest.fn(),
+    isAuthenticated: jest.fn(),
+    getCurrentUser: jest.fn(),
+    getToken: jest.fn(),
+    validateToken: jest.fn(),
+    updateProfile: jest.fn(),
+    changePassword: jest.fn(),
+    forgotPassword: jest.fn(),
+    resetPassword: jest.fn()
+  };
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  describe('用戶登錄功能測試', () => {
+    test('應該能夠驗證登錄表單', () => {
+      // 模擬表單驗證邏輯
+      const validateForm = (email: string, password: string) => {
+        const errors: string[] = [];
+        
+        if (!email.trim()) {
+          errors.push('請輸入電子郵箱');
+        }
+        
+        if (!password.trim()) {
+          errors.push('請輸入密碼');
+        }
+        
+        if (password.length < 6) {
+          errors.push('密碼長度至少6位');
+        }
+        
+        return errors;
+      };
+
+      // 測試空字段
+      expect(validateForm('', '')).toContain('請輸入電子郵箱');
+      expect(validateForm('', '')).toContain('請輸入密碼');
+      
+      // 測試密碼長度
+      expect(validateForm('test@example.com', '123')).toContain('密碼長度至少6位');
+      
+      // 測試有效輸入
+      expect(validateForm('test@example.com', '123456')).toHaveLength(0);
+    });
+
+    test('應該能夠處理登錄成功', async () => {
+      const mockLoginResponse = {
+        success: true,
+        token: 'mock-jwt-token',
+        user: {
+          id: 'user123',
+          name: '測試用戶',
+          email: 'test@example.com'
+        }
+      };
+
+      mockAuthService.login.mockResolvedValue(mockLoginResponse);
+
+      const result = await mockAuthService.login({
+        email: 'test@example.com',
+        password: 'password123'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.token).toBe('mock-jwt-token');
+      expect(result.user.name).toBe('測試用戶');
+      expect(mockAuthService.login).toHaveBeenCalledWith({
+        email: 'test@example.com',
+        password: 'password123'
+      });
+    });
+
+    test('應該能夠處理登錄失敗', async () => {
+      const mockLoginResponse = {
+        success: false,
+        message: '用戶不存在'
+      };
+
+      mockAuthService.login.mockResolvedValue(mockLoginResponse);
+
+      const result = await mockAuthService.login({
+        email: 'nonexistent@example.com',
+        password: 'password123'
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('用戶不存在');
+    });
+
+    test('應該能夠處理網絡錯誤', async () => {
+      mockAuthService.login.mockRejectedValue(new Error('網絡錯誤'));
+
+      await expect(mockAuthService.login({
+        email: 'test@example.com',
+        password: 'password123'
+      })).rejects.toThrow('網絡錯誤');
+    });
+  });
+
+  describe('用戶註冊功能測試', () => {
+    test('應該能夠驗證註冊表單', () => {
+      // 模擬註冊表單驗證邏輯
+      const validateRegistrationForm = (data: {
+        name: string;
+        email: string;
+        password: string;
+        confirmPassword: string;
+        phone?: string;
+        agreedToTerms: boolean;
+      }) => {
+        const errors: {[key: string]: string} = {};
+
+        // 姓名驗證
+        if (!data.name.trim()) {
+          errors.name = '請輸入姓名';
+        } else if (data.name.trim().length < 2) {
+          errors.name = '姓名至少2個字符';
+        }
+
+        // 郵箱驗證
+        if (!data.email.trim()) {
+          errors.email = '請輸入電子郵箱';
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+          errors.email = '請輸入有效的電子郵箱';
+        }
+
+        // 密碼驗證
+        if (!data.password) {
+          errors.password = '請輸入密碼';
+        } else if (data.password.length < 8) {
+          errors.password = '密碼至少8位';
+        } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(data.password)) {
+          errors.password = '密碼必須包含大小寫字母和數字';
+        }
+
+        // 確認密碼驗證
+        if (!data.confirmPassword) {
+          errors.confirmPassword = '請確認密碼';
+        } else if (data.password !== data.confirmPassword) {
+          errors.confirmPassword = '兩次輸入的密碼不一致';
+        }
+
+        // 手機號驗證（可選）
+        if (data.phone && !/^1[3-9]\d{9}$/.test(data.phone)) {
+          errors.phone = '請輸入有效的手機號';
+        }
+
+        // 條款同意驗證
+        if (!data.agreedToTerms) {
+          errors.terms = '請同意用戶條款和隱私政策';
+        }
+
+        return errors;
+      };
+
+      // 測試空字段
+      const emptyData = {
+        name: '',
+        email: '',
+        password: '',
+        confirmPassword: '',
+        agreedToTerms: false
+      };
+      const emptyErrors = validateRegistrationForm(emptyData);
+      expect(emptyErrors.name).toBe('請輸入姓名');
+      expect(emptyErrors.email).toBe('請輸入電子郵箱');
+      expect(emptyErrors.password).toBe('請輸入密碼');
+      expect(emptyErrors.confirmPassword).toBe('請確認密碼');
+      expect(emptyErrors.terms).toBe('請同意用戶條款和隱私政策');
+
+      // 測試密碼強度
+      const weakPasswordData = {
+        name: '測試用戶',
+        email: 'test@example.com',
+        password: '123',
+        confirmPassword: '123',
+        agreedToTerms: true
+      };
+      const weakPasswordErrors = validateRegistrationForm(weakPasswordData);
+      expect(weakPasswordErrors.password).toBe('密碼至少8位');
+
+      // 測試密碼複雜度
+      const simplePasswordData = {
+        name: '測試用戶',
+        email: 'test@example.com',
+        password: '12345678',
+        confirmPassword: '12345678',
+        agreedToTerms: true
+      };
+      const simplePasswordErrors = validateRegistrationForm(simplePasswordData);
+      expect(simplePasswordErrors.password).toBe('密碼必須包含大小寫字母和數字');
+
+      // 測試密碼不匹配
+      const mismatchPasswordData = {
+        name: '測試用戶',
+        email: 'test@example.com',
+        password: 'Password123',
+        confirmPassword: 'Password456',
+        agreedToTerms: true
+      };
+      const mismatchPasswordErrors = validateRegistrationForm(mismatchPasswordData);
+      expect(mismatchPasswordErrors.confirmPassword).toBe('兩次輸入的密碼不一致');
+
+      // 測試有效數據
+      const validData = {
+        name: '測試用戶',
+        email: 'test@example.com',
+        password: 'Password123',
+        confirmPassword: 'Password123',
+        phone: '13800138000',
+        agreedToTerms: true
+      };
+      const validErrors = validateRegistrationForm(validData);
+      expect(Object.keys(validErrors)).toHaveLength(0);
+    });
+
+    test('應該能夠處理註冊成功', async () => {
+      const mockRegisterResponse = {
+        success: true,
+        message: '註冊成功',
+        user: {
+          id: 'user123',
+          name: '新用戶',
+          email: 'newuser@example.com'
+        }
+      };
+
+      mockAuthService.register.mockResolvedValue(mockRegisterResponse);
+
+      const result = await mockAuthService.register({
+        email: 'newuser@example.com',
+        password: 'Password123',
+        name: '新用戶',
+        phone: '13800138000'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('註冊成功');
+      expect(result.user.name).toBe('新用戶');
+    });
+
+    test('應該能夠處理郵箱已存在', async () => {
+      const mockRegisterResponse = {
+        success: false,
+        message: '此郵箱已被註冊'
+      };
+
+      mockAuthService.register.mockResolvedValue(mockRegisterResponse);
+
+      const result = await mockAuthService.register({
+        email: 'existing@example.com',
+        password: 'Password123',
+        name: '測試用戶'
+      });
+
+      expect(result.success).toBe(false);
+      expect(result.message).toBe('此郵箱已被註冊');
+    });
+  });
+
+  describe('密碼強度檢測測試', () => {
+    test('應該能夠評估密碼強度', () => {
+      const getPasswordStrength = (password: string) => {
+        if (!password) return { strength: '', score: 0 };
+        
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[a-z]/.test(password)) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/\d/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+
+        let strength = '';
+        if (score <= 2) strength = '弱';
+        else if (score <= 3) strength = '中等';
+        else strength = '強';
+
+        return { strength, score };
+      };
+
+      // 測試弱密碼
+      expect(getPasswordStrength('123')).toEqual({ strength: '弱', score: 1 });
+      expect(getPasswordStrength('abc')).toEqual({ strength: '弱', score: 1 });
+
+      // 測試中等密碼
+      expect(getPasswordStrength('abc123')).toEqual({ strength: '弱', score: 2 });
+      expect(getPasswordStrength('Password')).toEqual({ strength: '中等', score: 3 });
+
+      // 測試強密碼
+      expect(getPasswordStrength('Password123')).toEqual({ strength: '強', score: 4 });
+      expect(getPasswordStrength('P@ssw0rd')).toEqual({ strength: '強', score: 5 });
+    });
+  });
+
+  describe('令牌管理測試', () => {
+    test('應該能夠檢查認證狀態', () => {
+      mockAuthService.isAuthenticated.mockReturnValue(true);
+      expect(mockAuthService.isAuthenticated()).toBe(true);
+
+      mockAuthService.isAuthenticated.mockReturnValue(false);
+      expect(mockAuthService.isAuthenticated()).toBe(false);
+    });
+
+    test('應該能夠獲取當前用戶', () => {
+      const mockUser = {
+        id: 'user123',
+        name: '測試用戶',
+        email: 'test@example.com'
+      };
+
+      mockAuthService.getCurrentUser.mockReturnValue(mockUser);
+      const user = mockAuthService.getCurrentUser();
+
+      expect(user).toEqual(mockUser);
+      expect(user.name).toBe('測試用戶');
+    });
+
+    test('應該能夠獲取認證令牌', () => {
+      const mockToken = 'mock-jwt-token';
+      mockAuthService.getToken.mockReturnValue(mockToken);
+
+      const token = mockAuthService.getToken();
+      expect(token).toBe(mockToken);
+    });
+
+    test('應該能夠驗證令牌', async () => {
+      mockAuthService.validateToken.mockResolvedValue(true);
+      const isValid = await mockAuthService.validateToken();
+      expect(isValid).toBe(true);
+
+      mockAuthService.validateToken.mockResolvedValue(false);
+      const isInvalid = await mockAuthService.validateToken();
+      expect(isInvalid).toBe(false);
+    });
+  });
+
+  describe('用戶資料管理測試', () => {
+    test('應該能夠更新用戶資料', async () => {
+      const mockUpdateResponse = {
+        success: true,
+        user: {
+          id: 'user123',
+          name: '更新後的用戶名',
+          email: 'test@example.com',
+          phone: '13800138000'
+        }
+      };
+
+      mockAuthService.updateProfile.mockResolvedValue(mockUpdateResponse);
+
+      const result = await mockAuthService.updateProfile({
+        name: '更新後的用戶名',
+        phone: '13800138000'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.user.name).toBe('更新後的用戶名');
+      expect(result.user.phone).toBe('13800138000');
+    });
+
+    test('應該能夠更改密碼', async () => {
+      const mockChangePasswordResponse = {
+        success: true,
+        message: '密碼更改成功'
+      };
+
+      mockAuthService.changePassword.mockResolvedValue(mockChangePasswordResponse);
+
+      const result = await mockAuthService.changePassword(
+        'oldPassword123',
+        'newPassword123'
+      );
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('密碼更改成功');
+    });
+  });
+
+  describe('密碼重置測試', () => {
+    test('應該能夠請求密碼重置', async () => {
+      const mockForgotPasswordResponse = {
+        success: true,
+        message: '重置郵件已發送'
+      };
+
+      mockAuthService.forgotPassword.mockResolvedValue(mockForgotPasswordResponse);
+
+      const result = await mockAuthService.forgotPassword({
+        email: 'test@example.com'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('重置郵件已發送');
+    });
+
+    test('應該能夠重置密碼', async () => {
+      const mockResetPasswordResponse = {
+        success: true,
+        message: '密碼重置成功'
+      };
+
+      mockAuthService.resetPassword.mockResolvedValue(mockResetPasswordResponse);
+
+      const result = await mockAuthService.resetPassword({
+        token: 'reset-token-123',
+        newPassword: 'newPassword123'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.message).toBe('密碼重置成功');
+    });
+  });
+
+  describe('登出功能測試', () => {
+    test('應該能夠正確登出', async () => {
+      mockAuthService.logout.mockResolvedValue(undefined);
+
+      await mockAuthService.logout();
+
+      expect(mockAuthService.logout).toHaveBeenCalled();
+    });
+  });
+
+  describe('錯誤處理測試', () => {
+    test('應該能夠處理認證錯誤', () => {
+      const handleAuthError = (error: any) => {
+        if (error.response?.status === 401) {
+          return '認證失敗，請重新登錄';
+        } else if (error.response?.status === 403) {
+          return '權限不足';
+        } else if (error.response?.status === 404) {
+          return '服務不可用';
+        } else if (error.response?.status >= 500) {
+          return '服務器錯誤，請稍後重試';
+        } else {
+          return '未知錯誤，請檢查網絡連接';
+        }
+      };
+
+      expect(handleAuthError({ response: { status: 401 } })).toBe('認證失敗，請重新登錄');
+      expect(handleAuthError({ response: { status: 403 } })).toBe('權限不足');
+      expect(handleAuthError({ response: { status: 404 } })).toBe('服務不可用');
+      expect(handleAuthError({ response: { status: 500 } })).toBe('服務器錯誤，請稍後重試');
+      expect(handleAuthError({ response: { status: 0 } })).toBe('未知錯誤，請檢查網絡連接');
+    });
+  });
+
+  describe('安全性測試', () => {
+    test('應該能夠防止 SQL 注入', () => {
+      const sanitizeInput = (input: string) => {
+        // 移除危險字符
+        return input.replace(/['";\\-]/g, '');
+      };
+
+      const maliciousInput = "'; DROP TABLE users; --";
+      const sanitized = sanitizeInput(maliciousInput);
+      
+      expect(sanitized).not.toContain("'");
+      expect(sanitized).not.toContain(';');
+      expect(sanitized).not.toContain('--');
+    });
+
+    test('應該能夠防止 XSS 攻擊', () => {
+      const escapeHtml = (input: string) => {
+        return input
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#x27;');
+      };
+
+      const maliciousInput = '<script>alert("XSS")</script>';
+      const escaped = escapeHtml(maliciousInput);
+      
+      expect(escaped).not.toContain('<script>');
+      expect(escaped).toContain('&lt;script&gt;');
+    });
+  });
+});

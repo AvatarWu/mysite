@@ -1,0 +1,898 @@
+/* 血壓管理頁面樣式 - Apple 美學標準 */
+
+.blood-pressure-page {
+  min-height: 100vh;
+  background: #f2f2f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* 自定義導航欄 - Apple 風格 */
+.custom-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding-top: max(env(safe-area-inset-top), 60px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 44px;
+  margin-top: 0;
+  position: relative;
+}
+
+.blood-pressure-page .back-button {
+  background: transparent !important;
+  border: none !important;
+  color: #007aff !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  position: absolute !important;
+  left: 20px !important;
+  z-index: 1001 !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+.blood-pressure-page .back-button span {
+  color: #007aff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.blood-pressure-page .back-button:hover {
+  background: rgba(0, 122, 255, 0.08) !important;
+  transform: scale(1.02) !important;
+}
+
+.blood-pressure-page .back-button svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  letter-spacing: -0.3px;
+  width: 100%;
+  z-index: 1000;
+}
+
+.add-button {
+  background: #007aff !important;
+  color: white !important;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute;
+  right: 20px;
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 60px;
+  min-height: 44px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.add-button span {
+  color: white !important;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.add-button:hover {
+  background: #0056b3;
+  transform: scale(1.02);
+}
+
+.add-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding: 24px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-bottom: 120px;
+  padding-top: calc(max(env(safe-area-inset-top), 60px) + 80px);
+}
+
+/* 統計概況區域 */
+.stats-overview {
+  margin-bottom: 32px;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 強制深色模式樣式 */
+@media (prefers-color-scheme: dark) {
+  .stat-card {
+    background: #000000 !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.stat-icon {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: #f2f2f7;
+  font-size: 20px;
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0 0 4px 0;
+  letter-spacing: -0.5px;
+}
+
+.stat-label {
+  font-size: 12px;
+  color: #8e8e93;
+  margin: 0;
+  font-weight: 500;
+}
+
+.stat-unit {
+  font-size: 10px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+/* 狀態卡片 */
+.status-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* 強制深色模式樣式 */
+@media (prefers-color-scheme: dark) {
+  .status-card {
+    background: #000000 !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+}
+
+.status-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  color: white;
+}
+
+.status-content {
+  flex: 1;
+}
+
+.status-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0 0 4px 0;
+}
+
+.status-subtitle {
+  font-size: 14px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+/* 篩選器 */
+.filter-section {
+  margin-bottom: 24px;
+}
+
+.filter-buttons {
+  display: flex;
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.filter-button {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  background: transparent;
+  color: #8e8e93;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+}
+
+.filter-button.active {
+  background: #007aff;
+  color: white;
+}
+
+.filter-button:hover:not(.active) {
+  background: #f2f2f7;
+  color: #1d1d1f;
+}
+
+/* 記錄列表 */
+.records-section {
+  margin-bottom: 24px;
+}
+
+.records-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.records-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.records-count {
+  font-size: 14px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.record-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.record-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.record-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.record-date {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.date {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.time {
+  font-size: 14px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.record-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.edit-button,
+.delete-button {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #8e8e93;
+}
+
+.edit-button:hover {
+  background: #f2f2f7;
+  color: #007aff;
+}
+
+.delete-button:hover {
+  background: #f2f2f7;
+  color: #ff3b30;
+}
+
+.record-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.blood-pressure-values {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bp-value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.bp-label {
+  font-size: 12px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.bp-number {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.bp-unit {
+  font-size: 12px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.bp-separator {
+  font-size: 20px;
+  font-weight: 600;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.pulse-value {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pulse-label {
+  font-size: 14px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.pulse-number {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+.pulse-unit {
+  font-size: 12px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.record-status {
+  display: flex;
+  justify-content: center;
+}
+
+.status-badge {
+  background: #34C759;
+  color: white;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.record-note {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #f2f2f7;
+}
+
+.note-label {
+  font-size: 12px;
+  color: #8e8e93;
+  margin: 0;
+}
+
+.note-text {
+  font-size: 14px;
+  color: #1d1d1f;
+  margin: 0;
+}
+
+/* 空狀態 */
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.empty-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 32px;
+  background: #f2f2f7;
+  font-size: 32px;
+  color: #8e8e93;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0 0 8px 0;
+}
+
+.empty-message {
+  font-size: 14px;
+  color: #8e8e93;
+  margin: 0 0 24px 0;
+  line-height: 1.4;
+}
+
+.primary-button {
+  background: #007aff;
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.primary-button:hover {
+  background: #0056b3;
+  transform: scale(1.02);
+}
+
+/* 載入狀態 */
+.loading-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.loading-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #f2f2f7;
+  border-top: 3px solid #007aff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 浮動新增按鈕 */
+.floating-add-button {
+  position: fixed;
+  bottom: 30px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  background: #007aff;
+  border: none;
+  border-radius: 28px;
+  color: white;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.3);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+.floating-add-button:hover {
+  background: #0056b3;
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 122, 255, 0.4);
+}
+
+.floating-add-button:active {
+  transform: scale(0.95);
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 12px 16px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  
+  .filter-buttons {
+    flex-direction: column;
+  }
+  
+  .filter-button {
+    text-align: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  
+  .stat-card {
+    padding: 16px 12px;
+  }
+  
+  .status-card {
+    padding: 16px;
+  }
+  
+  .floating-add-button {
+    bottom: 20px;
+    right: 16px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+/* 全域深色模式強制樣式 */
+@media (prefers-color-scheme: dark) {
+  .blood-pressure-page * {
+    color: #ffffff !important;
+  }
+  
+  .blood-pressure-page .stat-value,
+  .blood-pressure-page .date,
+  .blood-pressure-page .bp-number,
+  .blood-pressure-page .pulse-number {
+    color: #ffffff !important;
+  }
+  
+  .blood-pressure-page .stat-label,
+  .blood-pressure-page .stat-unit,
+  .blood-pressure-page .time,
+  .blood-pressure-page .bp-label,
+  .blood-pressure-page .bp-unit,
+  .blood-pressure-page .pulse-label,
+  .blood-pressure-page .pulse-unit {
+    color: #8e8e93 !important;
+  }
+}
+
+/* 新的自定義按鈕樣式 */
+.custom-back-btn {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  position: absolute !important;
+  left: 20px !important;
+  z-index: 1001 !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.custom-back-btn span {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.custom-title {
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  flex: 1 !important;
+  background-color: transparent !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+}
+
+/* 強制覆蓋所有可能的樣式 */
+.custom-title * {
+  color: #ffffff !important;
+}
+
+/* 最強力的樣式覆蓋 */
+.custom-title,
+.custom-title *,
+.custom-title::before,
+.custom-title::after {
+  color: #ffffff !important;
+}
+
+.custom-add-btn {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  position: absolute !important;
+  right: 20px !important;
+  z-index: 1001 !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.custom-add-btn span {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+/* 淺色模式支援 */
+@media (prefers-color-scheme: light) {
+  .custom-header {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .custom-back-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #007aff !important;
+  }
+  
+  .custom-back-btn span {
+    color: #007aff !important;
+  }
+  
+  .custom-title {
+    color: #1d1d1f !important;
+    background-color: transparent !important;
+  }
+  
+  .custom-title * {
+    color: #1d1d1f !important;
+  }
+  
+  .custom-add-btn {
+    background: #007aff !important;
+    border: none !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-add-btn span {
+    color: #ffffff !important;
+  }
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+  .blood-pressure-page {
+    background: #000000 !important;
+  }
+  
+  .custom-header {
+    background: #000000 !important;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .custom-back-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-back-btn span {
+    color: #ffffff !important;
+  }
+  
+  .custom-title {
+    color: #ffffff !important;
+    background-color: transparent !important;
+  }
+  
+  .custom-title * {
+    color: #ffffff !important;
+  }
+  
+  .custom-add-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-add-btn span {
+    color: #ffffff !important;
+  }
+  
+  .stat-card,
+  .status-card,
+  .record-card,
+  .empty-state,
+  .loading-state {
+    background: #000000;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .stats-title,
+  .stat-value,
+  .status-title,
+  .date,
+  .bp-number,
+  .pulse-number,
+  .note-text,
+  .empty-title {
+    color: #ffffff !important;
+  }
+  
+  .stats-subtitle,
+  .stat-label,
+  .stat-unit,
+  .status-subtitle,
+  .time,
+  .bp-label,
+  .bp-unit,
+  .pulse-label,
+  .pulse-unit,
+  .note-label,
+  .empty-message {
+    color: #8e8e93 !important;
+  }
+  
+  .filter-buttons {
+    background: #1c1c1e;
+    border: 0.5px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .filter-button {
+    color: #8e8e93 !important;
+  }
+  
+  .filter-button.active {
+    background: #0a84ff !important;
+    color: white !important;
+  }
+  
+  .filter-button:hover:not(.active) {
+    background: #2c2c2e !important;
+    color: #ffffff !important;
+  }
+  
+  .floating-add-button {
+    background: #0a84ff;
+    box-shadow: 0 4px 12px rgba(10, 132, 255, 0.3);
+  }
+  
+  .floating-add-button:hover {
+    background: #0056b3;
+    box-shadow: 0 6px 16px rgba(10, 132, 255, 0.4);
+  }
+}

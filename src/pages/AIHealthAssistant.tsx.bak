@@ -1,0 +1,643 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButton,
+  IonIcon,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonBadge,
+  IonChip,
+  IonAvatar,
+  IonText,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonProgressBar,
+  IonFab,
+  IonFabButton,
+  IonModal,
+  IonButtons,
+  IonRefresher,
+  IonRefresherContent,
+  IonSpinner,
+  IonAlert,
+  IonToast
+} from '@ionic/react';
+import {
+  chatbubbleEllipses,
+  analytics,
+  bulb,
+  warning,
+  trendingUp,
+  trendingDown,
+  remove,
+  checkmarkCircle,
+  close,
+  refresh,
+  informationCircle,
+  medical,
+  fitness,
+  nutrition,
+  heart,
+  pulse
+} from 'ionicons/icons';
+// import AIHealthChat from '../components/AIHealthChat';
+import AIHealthAssistantService, { 
+  HealthInsight, 
+  HealthPrediction, 
+  AIRecommendation, 
+  HealthRiskAssessment 
+} from '../services/AIHealthAssistantService';
+import DataVisualizationService from '../services/DataVisualizationService';
+import './AIHealthAssistant.css';
+
+const AIHealthAssistant: React.FC = () => {
+  const [insights, setInsights] = useState<HealthInsight[]>([]);
+  const [predictions, setPredictions] = useState<HealthPrediction[]>([]);
+  const [recommendations, setRecommendations] = useState<AIRecommendation[]>([]);
+  const [riskAssessment, setRiskAssessment] = useState<HealthRiskAssessment | null>(null);
+  const [showChat, setShowChat] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [healthData, setHealthData] = useState<any>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  useEffect(() => {
+    initializeAIHealthAssistant();
+  }, []);
+
+  /**
+   * 初始化AI健康助手
+   */
+  const initializeAIHealthAssistant = async () => {
+    try {
+      setIsLoading(true);
+
+      // 獲取模擬健康數據
+      const mockHealthData = await getMockHealthData();
+      setHealthData(mockHealthData);
+
+      // 分析健康數據
+      const healthInsights = await AIHealthAssistantService.analyzeHealthData(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+
+      // 生成健康預測
+      const healthPredictions = await AIHealthAssistantService.generateHealthPredictions(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+
+      // 生成個性化建議
+      const aiRecommendations = await AIHealthAssistantService.generatePersonalizedRecommendations(
+        healthInsights,
+        healthPredictions,
+        { userId: 'user_001' }
+      );
+
+      // 進行健康風險評估
+      const riskAssessment = await AIHealthAssistantService.performHealthRiskAssessment(
+        mockHealthData.metrics,
+        { userId: 'user_001' }
+      );
+
+      setInsights(healthInsights);
+      setPredictions(healthPredictions);
+      setRecommendations(aiRecommendations);
+      setRiskAssessment(riskAssessment);
+
+      setToastMessage('AI健康助手已準備就緒！');
+      setShowToast(true);
+    } catch (error) {
+      console.error('初始化AI健康助手失敗:', error);
+      setAlertMessage('初始化AI健康助手時發生錯誤，請稍後再試。');
+      setShowAlert(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * 獲取模擬健康數據
+   */
+  const getMockHealthData = async () => {
+    // 這裡應該從實際的健康數據服務獲取數據
+    // 目前使用模擬數據進行演示
+    return {
+      metrics: {
+        weight: {
+          current: 70.5,
+          average: 71.2,
+          min: 68.0,
+          max: 74.0,
+          trend: { trend: 'stable', change: -0.5, percentage: -0.7, period: '7天' }
+        },
+        bloodPressure: {
+          systolic: {
+            current: 135,
+            average: 132,
+            trend: { trend: 'up', change: 3, percentage: 2.3, period: '7天' }
+          },
+          diastolic: {
+            current: 88,
+            average: 85,
+            trend: { trend: 'up', change: 3, percentage: 3.5, period: '7天' }
+          }
+        },
+        bloodSugar: {
+          current: 5.8,
+          average: 5.6,
+          trend: { trend: 'up', change: 0.2, percentage: 3.6, period: '7天' }
+        },
+        medications: {
+          total: 15,
+          today: 3,
+          adherence: 87
+        }
+      },
+      trends: {
+        weight: { trend: 'stable', change: -0.5, percentage: -0.7, period: '7天' },
+        bloodPressure: { trend: 'up', change: 3, percentage: 2.3, period: '7天' },
+        bloodSugar: { trend: 'up', change: 0.2, percentage: 3.6, period: '7天' },
+        medications: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+      },
+      recentRecords: [
+        { weight: 70.5, date: '2024-01-15' },
+        { weight: 71.0, date: '2024-01-14' },
+        { weight: 70.8, date: '2024-01-13' }
+      ]
+    };
+  };
+
+  /**
+   * 刷新數據
+   */
+  const handleRefresh = async (event: CustomEvent) => {
+    try {
+      await initializeAIHealthAssistant();
+      event.detail.complete();
+    } catch (error) {
+      console.error('刷新失敗:', error);
+      event.detail.complete();
+    }
+  };
+
+  /**
+   * 標記建議為完成
+   */
+  const markRecommendationCompleted = async (recommendationId: string) => {
+    try {
+      await AIHealthAssistantService.markRecommendationCompleted(recommendationId);
+      setRecommendations(prev => 
+        prev.map(rec => 
+          rec.id === recommendationId 
+            ? { ...rec, isCompleted: true, completedAt: new Date() }
+            : rec
+        )
+      );
+      setToastMessage('建議已標記為完成！');
+      setShowToast(true);
+    } catch (error) {
+      console.error('標記建議完成失敗:', error);
+    }
+  };
+
+  /**
+   * 獲取趨勢圖標
+   */
+  const getTrendIcon = (trend: string) => {
+    switch (trend) {
+      case 'up':
+        return <IonIcon icon={trendingUp} color="danger" />;
+      case 'down':
+        return <IonIcon icon={trendingDown} color="success" />;
+      default:
+        return <IonIcon icon={remove} color="medium" />;
+    }
+  };
+
+  /**
+   * 獲取風險等級顏色
+   */
+  const getRiskColor = (riskLevel: string) => {
+    switch (riskLevel) {
+      case 'critical':
+        return 'danger';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'primary';
+      default:
+        return 'success';
+    }
+  };
+
+  /**
+   * 獲取嚴重程度顏色
+   */
+  const getSeverityColor = (severity: string) => {
+    switch (severity) {
+      case 'critical':
+        return 'danger';
+      case 'high':
+        return 'warning';
+      case 'medium':
+        return 'primary';
+      default:
+        return 'success';
+    }
+  };
+
+  /**
+   * 獲取建議類別圖標
+   */
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'lifestyle':
+        return <IonIcon icon={fitness} />;
+      case 'diet':
+        return <IonIcon icon={nutrition} />;
+      case 'exercise':
+        return <IonIcon icon={fitness} />;
+      case 'medication':
+        return <IonIcon icon={medical} />;
+      case 'monitoring':
+        return <IonIcon icon={pulse} />;
+      case 'prevention':
+        return <IonIcon icon={heart} />;
+      default:
+        return <IonIcon icon={bulb} />;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <IonSpinner name="crescent" />
+        <IonText>正在初始化AI健康助手...</IonText>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <IonContent>
+        <IonRefresher slot="fixed" onIonRefresh={handleRefresh}>
+          <IonRefresherContent />
+        </IonRefresher>
+
+        <IonHeader>
+          <IonToolbar>
+            <IonTitle>AI健康助手</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={() => setShowChat(true)}>
+                <IonIcon icon={chatbubbleEllipses} />
+                聊天
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+
+        <div className="ai-assistant-container">
+          {/* 健康概覽卡片 */}
+          <IonCard className="overview-card">
+            <IonCardHeader>
+              <IonTitle>
+                <IonIcon icon={analytics} />
+                健康概覽
+              </IonTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonGrid>
+                <IonRow>
+                  <IonCol size="6">
+                    <div className="metric-item">
+                      <IonText className="metric-label">體重</IonText>
+                      <IonText className="metric-value">{healthData?.metrics?.weight?.current} kg</IonText>
+                      <div className="metric-trend">
+                        {getTrendIcon(healthData?.trends?.weight?.trend)}
+                        <IonText className="trend-text">
+                          {healthData?.trends?.weight?.change > 0 ? '+' : ''}
+                          {healthData?.trends?.weight?.change} kg
+                        </IonText>
+                      </div>
+                    </div>
+                  </IonCol>
+                  <IonCol size="6">
+                    <div className="metric-item">
+                      <IonText className="metric-label">血壓</IonText>
+                      <IonText className="metric-value">
+                        {healthData?.metrics?.bloodPressure?.systolic?.current}/
+                        {healthData?.metrics?.bloodPressure?.diastolic?.current}
+                      </IonText>
+                      <div className="metric-trend">
+                        {getTrendIcon(healthData?.trends?.bloodPressure?.trend)}
+                        <IonText className="trend-text">
+                          {healthData?.trends?.bloodPressure?.change > 0 ? '+' : ''}
+                          {healthData?.trends?.bloodPressure?.change} mmHg
+                        </IonText>
+                      </div>
+                    </div>
+                  </IonCol>
+                </IonRow>
+                <IonRow>
+                  <IonCol size="6">
+                    <div className="metric-item">
+                      <IonText className="metric-label">血糖</IonText>
+                      <IonText className="metric-value">{healthData?.metrics?.bloodSugar?.current} mmol/L</IonText>
+                      <div className="metric-trend">
+                        {getTrendIcon(healthData?.trends?.bloodSugar?.trend)}
+                        <IonText className="trend-text">
+                          {healthData?.trends?.bloodSugar?.change > 0 ? '+' : ''}
+                          {healthData?.trends?.bloodSugar?.change} mmol/L
+                        </IonText>
+                      </div>
+                    </div>
+                  </IonCol>
+                  <IonCol size="6">
+                    <div className="metric-item">
+                      <IonText className="metric-label">用藥依從性</IonText>
+                      <IonText className="metric-value">{healthData?.metrics?.medications?.adherence}%</IonText>
+                      <IonProgressBar 
+                        value={healthData?.metrics?.medications?.adherence / 100} 
+                        color={healthData?.metrics?.medications?.adherence >= 80 ? 'success' : 'warning'}
+                      />
+                    </div>
+                  </IonCol>
+                </IonRow>
+              </IonGrid>
+            </IonCardContent>
+          </IonCard>
+
+          {/* 風險評估卡片 */}
+          {riskAssessment && (
+            <IonCard className="risk-assessment-card">
+              <IonCardHeader>
+                <IonTitle>
+                  <IonIcon icon={warning} />
+                  健康風險評估
+                </IonTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <div className="risk-assessment-content">
+                  <div className="risk-score">
+                    <IonText className="risk-score-label">風險評分</IonText>
+                    <IonText className="risk-score-value">{riskAssessment.score}/100</IonText>
+                    <IonBadge color={getRiskColor(riskAssessment.riskLevel)}>
+                      {riskAssessment.riskLevel}
+                    </IonBadge>
+                  </div>
+                  
+                  <div className="risk-factors">
+                    <IonText className="risk-factors-title">主要風險因素:</IonText>
+                    {riskAssessment.factors.map((factor, index) => (
+                      <div key={index} className="risk-factor">
+                        <IonText>{factor.factor}</IonText>
+                        <IonBadge color="medium">{factor.contribution}分</IonBadge>
+                        <IonChip color={factor.modifiable ? 'success' : 'warning'} size="small">
+                          {factor.modifiable ? '可改善' : '需關注'}
+                        </IonChip>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="risk-recommendations">
+                    <IonText className="risk-recommendations-title">建議:</IonText>
+                    {riskAssessment.recommendations.map((rec, index) => (
+                      <div key={index} className="risk-recommendation">
+                        <IonIcon icon={checkmarkCircle} color="success" />
+                        <IonText>{rec}</IonText>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </IonCardContent>
+            </IonCard>
+          )}
+
+          {/* 健康洞察卡片 */}
+          {insights.length > 0 && (
+            <IonCard className="insights-card">
+              <IonCardHeader>
+                <IonTitle>
+                  <IonIcon icon={analytics} />
+                  健康洞察 ({insights.length})
+                </IonTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <IonList>
+                  {insights.slice(0, 3).map((insight) => (
+                    <IonItem key={insight.id} className="insight-item">
+                      <div className="insight-content">
+                        <div className="insight-header">
+                          <IonText className="insight-title">{insight.title}</IonText>
+                          <IonBadge color={getSeverityColor(insight.severity)}>
+                            {insight.severity}
+                          </IonBadge>
+                        </div>
+                        <IonText className="insight-description">{insight.description}</IonText>
+                        <div className="insight-confidence">
+                          <IonText>置信度: {insight.confidence}%</IonText>
+                          <IonProgressBar 
+                            value={insight.confidence / 100} 
+                            color="primary"
+                          />
+                        </div>
+                      </div>
+                    </IonItem>
+                  ))}
+                </IonList>
+                {insights.length > 3 && (
+                  <IonButton 
+                    fill="clear" 
+                    expand="block"
+                    onClick={() => setShowChat(true)}
+                  >
+                    查看全部洞察
+                  </IonButton>
+                )}
+              </IonCardContent>
+            </IonCard>
+          )}
+
+          {/* AI建議卡片 */}
+          {recommendations.length > 0 && (
+            <IonCard className="recommendations-card">
+              <IonCardHeader>
+                <IonTitle>
+                  <IonIcon icon={bulb} />
+                  AI建議 ({recommendations.filter(r => !r.isCompleted).length})
+                </IonTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <IonList>
+                  {recommendations
+                    .filter(r => !r.isCompleted)
+                    .slice(0, 3)
+                    .map((recommendation) => (
+                    <IonItem key={recommendation.id} className="recommendation-item">
+                      <div className="recommendation-content">
+                        <div className="recommendation-header">
+                          <div className="recommendation-title-section">
+                            {getCategoryIcon(recommendation.category)}
+                            <IonText className="recommendation-title">{recommendation.title}</IonText>
+                          </div>
+                          <IonBadge color={getRiskColor(recommendation.priority)}>
+                            {recommendation.priority}
+                          </IonBadge>
+                        </div>
+                        <IonText className="recommendation-description">{recommendation.description}</IonText>
+                        <div className="recommendation-meta">
+                          <IonChip color="medium" size="small">
+                            <IonIcon icon={fitness} />
+                            <IonLabel>難度: {recommendation.difficulty}</IonLabel>
+                          </IonChip>
+                          <IonChip color="medium" size="small">
+                            <IonIcon icon={trendingUp} />
+                            <IonLabel>影響: {recommendation.estimatedImpact}</IonLabel>
+                          </IonChip>
+                          <IonChip color="medium" size="small">
+                            <IonIcon icon={informationCircle} />
+                            <IonLabel>時間: {recommendation.timeToImplement}</IonLabel>
+                          </IonChip>
+                        </div>
+                        <div className="recommendation-actions">
+                          <IonButton 
+                            size="small" 
+                            fill="outline"
+                            onClick={() => markRecommendationCompleted(recommendation.id)}
+                          >
+                            <IonIcon icon={checkmarkCircle} slot="start" />
+                            標記完成
+                          </IonButton>
+                        </div>
+                      </div>
+                    </IonItem>
+                  ))}
+                </IonList>
+                {recommendations.filter(r => !r.isCompleted).length > 3 && (
+                  <IonButton 
+                    fill="clear" 
+                    expand="block"
+                    onClick={() => setShowChat(true)}
+                  >
+                    查看全部建議
+                  </IonButton>
+                )}
+              </IonCardContent>
+            </IonCard>
+          )}
+
+          {/* 健康預測卡片 */}
+          {predictions.length > 0 && (
+            <IonCard className="predictions-card">
+              <IonCardHeader>
+                <IonTitle>
+                  <IonIcon icon={trendingUp} />
+                  健康預測
+                </IonTitle>
+              </IonCardHeader>
+              <IonCardContent>
+                <IonList>
+                  {predictions.slice(0, 2).map((prediction) => (
+                    <IonItem key={prediction.id} className="prediction-item">
+                      <div className="prediction-content">
+                        <div className="prediction-header">
+                          <IonText className="prediction-title">{prediction.metric}預測</IonText>
+                          <IonBadge color={getRiskColor(prediction.riskLevel)}>
+                            {prediction.riskLevel}
+                          </IonBadge>
+                        </div>
+                        <div className="prediction-values">
+                          <IonText className="prediction-current">
+                            當前: {prediction.currentValue}
+                          </IonText>
+                          <IonIcon icon={trendingUp} color="primary" />
+                          <IonText className="prediction-predicted">
+                            預測: {prediction.predictedValue}
+                          </IonText>
+                        </div>
+                        <div className="prediction-confidence">
+                          <IonText>預測置信度: {prediction.confidence}%</IonText>
+                          <IonProgressBar 
+                            value={prediction.confidence / 100} 
+                            color="primary"
+                          />
+                        </div>
+                        <div className="prediction-factors">
+                          <IonText className="factors-title">影響因素:</IonText>
+                          {prediction.factors.map((factor, index) => (
+                            <IonChip key={index} color="medium" size="small">
+                              {factor}
+                            </IonChip>
+                          ))}
+                        </div>
+                      </div>
+                    </IonItem>
+                  ))}
+                </IonList>
+              </IonCardContent>
+            </IonCard>
+          )}
+        </div>
+
+        {/* 浮動聊天按鈕 */}
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton 
+            onClick={() => setShowChat(true)}
+            color="primary"
+          >
+            <IonIcon icon={chatbubbleEllipses} />
+          </IonFabButton>
+        </IonFab>
+      </IonContent>
+
+      {/* AI聊天模態框 */}
+      {/* <IonModal 
+        isOpen={showChat} 
+        onDidDismiss={() => setShowChat(false)}
+        breakpoints={[0, 1]}
+        initialBreakpoint={1}
+      >
+        <AIHealthChat
+          userId="user_001"
+          healthData={healthData}
+          onClose={() => setShowChat(false)}
+        />
+      </IonModal> */}
+
+      {/* 錯誤提示 */}
+      <IonAlert
+        isOpen={showAlert}
+        onDidDismiss={() => setShowAlert(false)}
+        header="錯誤"
+        message={alertMessage}
+        buttons={['確定']}
+      />
+
+      {/* 成功提示 */}
+      <IonToast
+        isOpen={showToast}
+        onDidDismiss={() => setShowToast(false)}
+        message={toastMessage}
+        duration={3000}
+        position="top"
+        color="success"
+      />
+    </>
+  );
+};
+
+export default AIHealthAssistant;

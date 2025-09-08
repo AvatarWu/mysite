@@ -1,0 +1,174 @@
+import React, { useEffect, useState } from 'react';
+import { 
+  IonPage, 
+  IonHeader, 
+  IonToolbar, 
+  IonTitle, 
+  IonContent, 
+  IonButton, 
+  IonList, 
+  IonItem, 
+  IonLabel, 
+  IonNote, 
+  IonFab, 
+  IonFabButton, 
+  IonIcon,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonAlert,
+  IonToast,
+  IonBadge
+} from '@ionic/react';
+import { add, create, trash } from 'ionicons/icons';
+import { useNavigate } from 'react-router-dom';
+import { healthDataService, WeightRecord } from '../services/HealthDataService';
+import SyncStatusIndicator from '../components/SyncStatusIndicator';
+
+const WeightList: React.FC = () => {
+  const [weights, setWeights] = useState<WeightRecord[]>([]);
+  const [showDeleteAlert, setShowDeleteAlert] = useState(false);
+  const [recordToDelete, setRecordToDelete] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    loadWeights();
+  }, []);
+
+  const loadWeights = async () => {
+    try {
+      setIsLoading(true);
+      const records = await healthDataService.getWeightRecords();
+      setWeights(records);
+    } catch (error) {
+      console.error('載入體重記錄失敗:', error);
+      setToastMessage('載入體重記錄失敗');
+      setShowToast(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    setRecordToDelete(id);
+    setShowDeleteAlert(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!recordToDelete) return;
+    
+    try {
+      await healthDataService.deleteWeightRecord(recordToDelete);
+      setWeights(prev => prev.filter(record => record._id !== recordToDelete));
+      setToastMessage('已刪除體重記錄');
+      setShowToast(true);
+    } catch (error) {
+      console.error('刪除體重記錄失敗:', error);
+      setToastMessage('刪除體重記錄失敗');
+      setShowToast(true);
+    }
+    
+    setShowDeleteAlert(false);
+    setRecordToDelete(null);
+  };
+
+  const getBMIStatus = (bmi: number) => {
+    if (bmi < 18.5) return { text: '過輕', color: 'primary' };
+    if (bmi < 24) return { text: '正常', color: 'success' };
+    if (bmi < 27) return { text: '過重', color: 'warning' };
+    return { text: '肥胖', color: 'danger' };
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>體重記錄</IonTitle>
+          <div slot="end">
+            <SyncStatusIndicator />
+          </div>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList>
+          {weights.length === 0 && (
+            <IonItem>
+              <IonLabel>尚無體重記錄</IonLabel>
+            </IonItem>
+          )}
+          {weights.map((rec) => {
+            const bmiStatus = getBMIStatus(rec.bmi);
+            return (
+              <IonItemSliding key={rec._id}>
+                <IonItem>
+                  <IonLabel>
+                    <h2>{rec.date}</h2>
+                    <p>體重：{rec.weight} kg | 身高：{rec.height} cm</p>
+                    <p>
+                      BMI：{rec.bmi} 
+                      <IonNote color={bmiStatus.color} style={{ marginLeft: '8px' }}>
+                        ({bmiStatus.text})
+                      </IonNote>
+                    </p>
+                    {rec.note && <IonNote color="medium">{rec.note}</IonNote>}
+                  </IonLabel>
+                </IonItem>
+                <IonItemOptions side="end">
+                  <IonItemOption 
+                    color="primary" 
+                    onClick={() => navigate(`/edit-weight/${rec._id}`)}
+                  >
+                    <IonIcon slot="icon-only" icon={create} />
+                  </IonItemOption>
+                  <IonItemOption 
+                    color="danger" 
+                    onClick={() => rec._id && handleDelete(rec._id)}
+                  >
+                    <IonIcon slot="icon-only" icon={trash} />
+                  </IonItemOption>
+                </IonItemOptions>
+              </IonItemSliding>
+            );
+          })}
+        </IonList>
+        
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton onClick={() => navigate('/add-weight')}>
+            <IonIcon icon={add} />
+          </IonFabButton>
+        </IonFab>
+
+        <IonAlert
+          isOpen={showDeleteAlert}
+          onDidDismiss={() => setShowDeleteAlert(false)}
+          header="確認刪除"
+          message="確定要刪除這筆體重記錄嗎？"
+          buttons={[
+            {
+              text: '取消',
+              role: 'cancel'
+            },
+            {
+              text: '刪除',
+              role: 'destructive',
+              handler: confirmDelete
+            }
+          ]}
+        />
+
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message={toastMessage}
+          duration={2000}
+          color="success"
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default WeightList; 

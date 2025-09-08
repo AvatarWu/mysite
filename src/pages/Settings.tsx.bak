@@ -1,0 +1,552 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonToggle,
+  IonButton,
+  IonIcon,
+  IonInput,
+  IonSelect,
+  IonSelectOption,
+  IonText,
+  IonAlert,
+  IonLoading,
+  IonButtons,
+  IonBackButton,
+  IonItemDivider,
+  IonNote,
+  IonBadge
+} from '@ionic/react';
+import {
+  notificationsOutline,
+  shieldCheckmarkOutline,
+  colorPaletteOutline,
+  languageOutline,
+  cloudUploadOutline,
+  trashOutline,
+  informationCircleOutline,
+  helpCircleOutline,
+  logOutOutline,
+  personOutline,
+  settingsOutline,
+  timeOutline
+} from 'ionicons/icons';
+import { useNavigate } from 'react-router-dom';
+import AuthService from '../services/AuthService';
+import NotificationService, { NotificationSettings } from '../services/NotificationService';
+import './Settings.css';
+
+interface AppSettings {
+  theme: 'light' | 'dark' | 'system';
+  language: 'zh-TW' | 'en-US';
+  autoSync: boolean;
+  dataRetention: number; // 天數
+  privacyMode: boolean;
+}
+
+const Settings: React.FC = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+
+  // 通知設置
+  const [notificationSettings, setNotificationSettings] = useState<NotificationSettings>({
+    enabled: true,
+    medicationReminders: true,
+    healthCheckReminders: true,
+    appointmentReminders: true,
+    soundEnabled: true,
+    vibrationEnabled: true,
+    quietHours: {
+      enabled: false,
+      start: '22:00',
+      end: '08:00'
+    }
+  });
+
+  // 應用設置
+  const [appSettings, setAppSettings] = useState<AppSettings>({
+    theme: 'system',
+    language: 'zh-TW',
+    autoSync: true,
+    dataRetention: 365,
+    privacyMode: false
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      setLoading(true);
+      
+      // 載入通知設置
+      const notifSettings = NotificationService.getSettings();
+      setNotificationSettings(notifSettings);
+
+      // 載入應用設置（從本地存儲）
+      const savedAppSettings = localStorage.getItem('app_settings');
+      if (savedAppSettings) {
+        setAppSettings(JSON.parse(savedAppSettings));
+      }
+    } catch (error) {
+      console.error('載入設置失敗:', error);
+      showMessage('載入設置失敗', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleNotificationSettingChange = async (key: keyof NotificationSettings, value: any) => {
+    try {
+      const newSettings = { ...notificationSettings, [key]: value };
+      setNotificationSettings(newSettings);
+      
+      await NotificationService.updateSettings(newSettings);
+      showMessage('通知設置已更新', 'success');
+    } catch (error) {
+      console.error('更新通知設置失敗:', error);
+      showMessage('更新通知設置失敗', 'error');
+    }
+  };
+
+  const handleAppSettingChange = (key: keyof AppSettings, value: any) => {
+    const newSettings = { ...appSettings, [key]: value };
+    setAppSettings(newSettings);
+    
+    // 保存到本地存儲
+    localStorage.setItem('app_settings', JSON.stringify(newSettings));
+    
+    // 應用主題設置
+    if (key === 'theme') {
+      applyTheme(value);
+    }
+  };
+
+  const applyTheme = (theme: string) => {
+    const body = document.body;
+    
+    if (theme === 'dark') {
+      body.classList.add('dark-theme');
+      body.classList.remove('light-theme');
+    } else if (theme === 'light') {
+      body.classList.add('light-theme');
+      body.classList.remove('dark-theme');
+    } else {
+      // 系統主題
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (prefersDark) {
+        body.classList.add('dark-theme');
+        body.classList.remove('light-theme');
+      } else {
+        body.classList.add('light-theme');
+        body.classList.remove('dark-theme');
+      }
+    }
+  };
+
+  const handleQuietHoursChange = (enabled: boolean) => {
+    const newSettings = {
+      ...notificationSettings,
+      quietHours: { ...notificationSettings.quietHours, enabled }
+    };
+    setNotificationSettings(newSettings);
+    NotificationService.updateSettings(newSettings);
+  };
+
+  const handleQuietHoursTimeChange = (type: 'start' | 'end', value: string) => {
+    const newSettings = {
+      ...notificationSettings,
+      quietHours: { ...notificationSettings.quietHours, [type]: value }
+    };
+    setNotificationSettings(newSettings);
+    NotificationService.updateSettings(newSettings);
+  };
+
+  const handleDataExport = async () => {
+    try {
+      setSaving(true);
+      // 這裡應該實現數據導出功能
+      await new Promise(resolve => setTimeout(resolve, 2000)); // 模擬導出過程
+      showMessage('數據導出成功', 'success');
+    } catch (error) {
+      console.error('數據導出失敗:', error);
+      showMessage('數據導出失敗', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDataClear = async () => {
+    try {
+      setSaving(true);
+      // 這裡應該實現數據清理功能
+      await new Promise(resolve => setTimeout(resolve, 1000)); // 模擬清理過程
+      showMessage('數據清理成功', 'success');
+    } catch (error) {
+      console.error('數據清理失敗:', error);
+      showMessage('數據清理失敗', 'error');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await AuthService.logout();
+      navigate('/login');
+    } catch (error) {
+      console.error('登出失敗:', error);
+      showMessage('登出失敗', 'error');
+    }
+  };
+
+  const showMessage = (message: string, type: 'success' | 'error') => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+
+  if (loading) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonBackButton defaultHref="/home" />
+            </IonButtons>
+            <IonTitle>設置</IonTitle>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <div className="loading-container">
+            <IonLoading isOpen={true} message="正在加載設置..." duration={0} />
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/home" />
+          </IonButtons>
+          <IonTitle>設置</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent>
+        {/* 通知設置 */}
+        <div className="settings-section">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>
+                <IonIcon icon={notificationsOutline} />
+                通知設置
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                <IonItem>
+                  <IonIcon icon={notificationsOutline} slot="start" />
+                  <IonLabel>啟用通知</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.enabled}
+                    onIonChange={(e) => handleNotificationSettingChange('enabled', e.detail.checked)}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>用藥提醒</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.medicationReminders}
+                    onIonChange={(e) => handleNotificationSettingChange('medicationReminders', e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>健康檢查提醒</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.healthCheckReminders}
+                    onIonChange={(e) => handleNotificationSettingChange('healthCheckReminders', e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>預約提醒</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.appointmentReminders}
+                    onIonChange={(e) => handleNotificationSettingChange('appointmentReminders', e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>聲音提醒</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.soundEnabled}
+                    onIonChange={(e) => handleNotificationSettingChange('soundEnabled', e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>震動提醒</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.vibrationEnabled}
+                    onIonChange={(e) => handleNotificationSettingChange('vibrationEnabled', e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                <IonItemDivider>
+                  <IonLabel>靜音時間</IonLabel>
+                </IonItemDivider>
+
+                <IonItem>
+                  <IonIcon icon={timeOutline} slot="start" />
+                  <IonLabel>啟用靜音時間</IonLabel>
+                  <IonToggle
+                    checked={notificationSettings.quietHours.enabled}
+                    onIonChange={(e) => handleQuietHoursChange(e.detail.checked)}
+                    disabled={!notificationSettings.enabled}
+                  />
+                </IonItem>
+
+                {notificationSettings.quietHours.enabled && (
+                  <>
+                    <IonItem>
+                      <IonLabel>開始時間</IonLabel>
+                      <IonInput
+                        type="time"
+                        value={notificationSettings.quietHours.start}
+                        onIonChange={(e) => handleQuietHoursTimeChange('start', e.detail.value!)}
+                      />
+                    </IonItem>
+
+                    <IonItem>
+                      <IonLabel>結束時間</IonLabel>
+                      <IonInput
+                        type="time"
+                        value={notificationSettings.quietHours.end}
+                        onIonChange={(e) => handleQuietHoursTimeChange('end', e.detail.value!)}
+                      />
+                    </IonItem>
+                  </>
+                )}
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 應用設置 */}
+        <div className="settings-section">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>
+                <IonIcon icon={settingsOutline} />
+                應用設置
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                <IonItem>
+                  <IonIcon icon={colorPaletteOutline} slot="start" />
+                  <IonLabel>主題</IonLabel>
+                  <IonSelect
+                    value={appSettings.theme}
+                    onIonChange={(e) => handleAppSettingChange('theme', e.detail.value)}
+                  >
+                    <IonSelectOption value="light">淺色</IonSelectOption>
+                    <IonSelectOption value="dark">深色</IonSelectOption>
+                    <IonSelectOption value="system">跟隨系統</IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={languageOutline} slot="start" />
+                  <IonLabel>語言</IonLabel>
+                  <IonSelect
+                    value={appSettings.language}
+                    onIonChange={(e) => handleAppSettingChange('language', e.detail.value)}
+                  >
+                    <IonSelectOption value="zh-TW">繁體中文</IonSelectOption>
+                    <IonSelectOption value="en-US">English</IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={cloudUploadOutline} slot="start" />
+                  <IonLabel>自動同步</IonLabel>
+                  <IonToggle
+                    checked={appSettings.autoSync}
+                    onIonChange={(e) => handleAppSettingChange('autoSync', e.detail.checked)}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" />
+                  <IonLabel>隱私模式</IonLabel>
+                  <IonToggle
+                    checked={appSettings.privacyMode}
+                    onIonChange={(e) => handleAppSettingChange('privacyMode', e.detail.checked)}
+                  />
+                </IonItem>
+
+                <IonItem>
+                  <IonIcon icon={trashOutline} slot="start" />
+                  <IonLabel>數據保留期限</IonLabel>
+                  <IonSelect
+                    value={appSettings.dataRetention}
+                    onIonChange={(e) => handleAppSettingChange('dataRetention', e.detail.value)}
+                  >
+                    <IonSelectOption value={30}>30天</IonSelectOption>
+                    <IonSelectOption value={90}>90天</IonSelectOption>
+                    <IonSelectOption value={180}>180天</IonSelectOption>
+                    <IonSelectOption value={365}>1年</IonSelectOption>
+                    <IonSelectOption value={0}>永久</IonSelectOption>
+                  </IonSelect>
+                </IonItem>
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 數據管理 */}
+        <div className="settings-section">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>
+                <IonIcon icon={cloudUploadOutline} />
+                數據管理
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                <IonItem button onClick={handleDataExport}>
+                  <IonIcon icon={cloudUploadOutline} slot="start" color="primary" />
+                  <IonLabel>導出數據</IonLabel>
+                  <IonNote slot="end">備份健康數據</IonNote>
+                </IonItem>
+
+                <IonItem button onClick={handleDataClear}>
+                  <IonIcon icon={trashOutline} slot="start" color="danger" />
+                  <IonLabel>清理數據</IonLabel>
+                  <IonNote slot="end">刪除過期數據</IonNote>
+                </IonItem>
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 賬戶設置 */}
+        <div className="settings-section">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>
+                <IonIcon icon={personOutline} />
+                賬戶設置
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                <IonItem button onClick={() => navigate('/profile')}>
+                  <IonIcon icon={personOutline} slot="start" color="primary" />
+                  <IonLabel>個人資料</IonLabel>
+                  <IonNote slot="end">編輯個人信息</IonNote>
+                </IonItem>
+
+                <IonItem button onClick={() => navigate('/change-password')}>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" color="warning" />
+                  <IonLabel>更改密碼</IonLabel>
+                  <IonNote slot="end">修改登錄密碼</IonNote>
+                </IonItem>
+
+                <IonItem button onClick={handleLogout}>
+                  <IonIcon icon={logOutOutline} slot="start" color="danger" />
+                  <IonLabel>登出</IonLabel>
+                  <IonNote slot="end">退出當前賬戶</IonNote>
+                </IonItem>
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 關於 */}
+        <div className="settings-section">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>
+                <IonIcon icon={informationCircleOutline} />
+                關於
+              </IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                <IonItem>
+                  <IonIcon icon={informationCircleOutline} slot="start" />
+                  <IonLabel>版本</IonLabel>
+                  <IonNote slot="end">1.0.0</IonNote>
+                </IonItem>
+
+                <IonItem button onClick={() => navigate('/help')}>
+                  <IonIcon icon={helpCircleOutline} slot="start" color="primary" />
+                  <IonLabel>幫助與支持</IonLabel>
+                  <IonNote slot="end">使用說明</IonNote>
+                </IonItem>
+
+                <IonItem button onClick={() => navigate('/privacy-policy')}>
+                  <IonIcon icon={shieldCheckmarkOutline} slot="start" color="success" />
+                  <IonLabel>隱私政策</IonLabel>
+                  <IonNote slot="end">查看隱私條款</IonNote>
+                </IonItem>
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 提示框 */}
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={alertType === 'success' ? '成功' : '錯誤'}
+          message={alertMessage}
+          buttons={['確定']}
+        />
+
+        {/* 加載指示器 */}
+        <IonLoading
+          isOpen={saving}
+          message="正在處理..."
+          duration={0}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default Settings;

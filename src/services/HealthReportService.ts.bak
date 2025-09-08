@@ -1,0 +1,563 @@
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
+import { HealthMetrics, TrendData } from './DataVisualizationService';
+import { WeightRecord, BloodPressureRecord, BloodSugarRecord, MedicationRecord } from './HealthDataService';
+
+export interface HealthReport {
+  id: string;
+  title: string;
+  generatedAt: Date;
+  period: {
+    start: Date;
+    end: Date;
+  };
+  summary: {
+    overallScore: number;
+    status: 'excellent' | 'good' | 'fair' | 'poor';
+    recommendations: string[];
+  };
+  metrics: HealthMetrics;
+  trends: {
+    weight: TrendData;
+    bloodPressure: TrendData;
+    bloodSugar: TrendData;
+    medications: TrendData;
+  };
+  charts: {
+    weightChart: string; // Base64 encoded chart image
+    bloodPressureChart: string;
+    bloodSugarChart: string;
+    medicationChart: string;
+  };
+}
+
+export interface ReportTemplate {
+  id: string;
+  name: string;
+  description: string;
+  sections: string[];
+  customFields?: string[];
+}
+
+export class HealthReportService {
+  private static instance: HealthReportService;
+  private templates: ReportTemplate[] = [];
+
+  private constructor() {
+    this.initializeTemplates();
+  }
+
+  static getInstance(): HealthReportService {
+    if (!HealthReportService.instance) {
+      HealthReportService.instance = new HealthReportService();
+    }
+    return HealthReportService.instance;
+  }
+
+  /**
+   * 初始化報告模板
+   */
+  private initializeTemplates(): void {
+    this.templates = [
+      {
+        id: 'comprehensive',
+        name: '綜合健康報告',
+        description: '包含所有健康指標的完整報告',
+        sections: ['summary', 'metrics', 'trends', 'charts', 'recommendations']
+      },
+      {
+        id: 'weight-focus',
+        name: '體重管理報告',
+        description: '專注於體重變化和管理的報告',
+        sections: ['summary', 'weight', 'trends', 'recommendations']
+      },
+      {
+        id: 'cardiovascular',
+        name: '心血管健康報告',
+        description: '血壓和血糖相關的健康報告',
+        sections: ['summary', 'bloodPressure', 'bloodSugar', 'trends', 'recommendations']
+      },
+      {
+        id: 'medication',
+        name: '用藥依從性報告',
+        description: '用藥記錄和依從性分析報告',
+        sections: ['summary', 'medications', 'trends', 'recommendations']
+      }
+    ];
+  }
+
+  /**
+   * 生成健康報告
+   */
+  async generateHealthReport(
+    templateId: string,
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[],
+    period: { start: Date; end: Date }
+  ): Promise<HealthReport> {
+    try {
+      const template = this.templates.find(t => t.id === templateId);
+      if (!template) {
+        throw new Error(`報告模板 ${templateId} 不存在`);
+      }
+
+      // 生成報告ID
+      const reportId = `report_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+      // 計算健康指標
+      const metrics = await this.calculateHealthMetrics(
+        weightRecords,
+        bloodPressureRecords,
+        bloodSugarRecords,
+        medicationRecords
+      );
+
+      // 計算趨勢
+      const trends = await this.calculateTrends(
+        weightRecords,
+        bloodPressureRecords,
+        bloodSugarRecords,
+        medicationRecords
+      );
+
+      // 生成圖表
+      const charts = await this.generateChartImages(
+        weightRecords,
+        bloodPressureRecords,
+        bloodSugarRecords,
+        medicationRecords
+      );
+
+      // 生成摘要和建議
+      const summary = this.generateSummary(metrics, trends);
+
+      const report: HealthReport = {
+        id: reportId,
+        title: `${template.name} - ${period.start.toLocaleDateString('zh-TW')} 至 ${period.end.toLocaleDateString('zh-TW')}`,
+        generatedAt: new Date(),
+        period,
+        summary,
+        metrics,
+        trends,
+        charts
+      };
+
+      return report;
+    } catch (error) {
+      console.error('生成健康報告失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 計算健康指標
+   */
+  private async calculateHealthMetrics(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[]
+  ): Promise<HealthMetrics> {
+    // 這裡應該調用 DataVisualizationService 的方法
+    // 目前返回模擬數據
+    return {
+      weight: {
+        current: weightRecords.length > 0 ? weightRecords[weightRecords.length - 1].weight : 0,
+        average: this.calculateAverage(weightRecords.map(r => r.weight)),
+        min: Math.min(...weightRecords.map(r => r.weight)),
+        max: Math.max(...weightRecords.map(r => r.weight)),
+        trend: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+      },
+      bloodPressure: {
+        systolic: {
+          current: bloodPressureRecords.length > 0 ? bloodPressureRecords[bloodPressureRecords.length - 1].systolic : 0,
+          average: this.calculateAverage(bloodPressureRecords.map(r => r.systolic)),
+          trend: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+        },
+        diastolic: {
+          current: bloodPressureRecords.length > 0 ? bloodPressureRecords[bloodPressureRecords.length - 1].diastolic : 0,
+          average: this.calculateAverage(bloodPressureRecords.map(r => r.diastolic)),
+          trend: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+        }
+      },
+      bloodSugar: {
+        current: bloodSugarRecords.length > 0 ? bloodSugarRecords[bloodSugarRecords.length - 1].value : 0,
+        average: this.calculateAverage(bloodSugarRecords.map(r => r.value)),
+        trend: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+      },
+      medications: {
+        total: medicationRecords.length,
+        today: medicationRecords.filter(r => 
+          new Date(r.date).toDateString() === new Date().toDateString()
+        ).length,
+        adherence: medicationRecords.length > 0 
+          ? (medicationRecords.filter(r => r.taken).length / medicationRecords.length) * 100 
+          : 0
+      }
+    };
+  }
+
+  /**
+   * 計算趨勢
+   */
+  private async calculateTrends(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[]
+  ): Promise<any> {
+    return {
+      weight: { trend: 'stable', change: 0, percentage: 0, period: '7天' },
+      bloodPressure: { trend: 'stable', change: 0, percentage: 0, period: '7天' },
+      bloodSugar: { trend: 'stable', change: 0, percentage: 0, period: '7天' },
+      medications: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+    };
+  }
+
+  /**
+   * 生成圖表圖片
+   */
+  private async generateChartImages(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[]
+  ): Promise<any> {
+    // 這裡應該生成實際的圖表圖片
+    // 目前返回空字符串
+    return {
+      weightChart: '',
+      bloodPressureChart: '',
+      bloodSugarChart: '',
+      medicationChart: ''
+    };
+  }
+
+  /**
+   * 生成摘要和建議
+   */
+  private generateSummary(metrics: HealthMetrics, trends: any): any {
+    const overallScore = this.calculateOverallScore(metrics);
+    const status = this.getHealthStatus(overallScore);
+    const recommendations = this.generateRecommendations(metrics, trends);
+
+    return {
+      overallScore,
+      status,
+      recommendations
+    };
+  }
+
+  /**
+   * 計算總體健康評分
+   */
+  private calculateOverallScore(metrics: HealthMetrics): number {
+    let score = 100;
+
+    // 體重評分 (25分)
+    const weightScore = this.calculateWeightScore(metrics.weight);
+    score += weightScore;
+
+    // 血壓評分 (30分)
+    const bloodPressureScore = this.calculateBloodPressureScore(metrics.bloodPressure);
+    score += bloodPressureScore;
+
+    // 血糖評分 (25分)
+    const bloodSugarScore = this.calculateBloodSugarScore(metrics.bloodSugar);
+    score += bloodSugarScore;
+
+    // 用藥依從性評分 (20分)
+    const medicationScore = this.calculateMedicationScore(metrics.medications);
+    score += medicationScore;
+
+    return Math.max(0, Math.min(100, score));
+  }
+
+  /**
+   * 獲取健康狀態
+   */
+  private getHealthStatus(score: number): 'excellent' | 'good' | 'fair' | 'poor' {
+    if (score >= 90) return 'excellent';
+    if (score >= 75) return 'good';
+    if (score >= 60) return 'fair';
+    return 'poor';
+  }
+
+  /**
+   * 生成健康建議
+   */
+  private generateRecommendations(metrics: HealthMetrics, trends: any): string[] {
+    const recommendations: string[] = [];
+
+    // 體重建議
+    if (metrics.weight.trend.trend === 'up' && metrics.weight.trend.percentage > 5) {
+      recommendations.push('體重有上升趨勢，建議適當控制飲食和增加運動');
+    }
+
+    // 血壓建議
+    if (metrics.bloodPressure.systolic.current > 140 || metrics.bloodPressure.diastolic.current > 90) {
+      recommendations.push('血壓偏高，建議減少鹽分攝入，保持規律運動');
+    }
+
+    // 血糖建議
+    if (metrics.bloodSugar.current > 6.1) {
+      recommendations.push('血糖偏高，建議控制碳水化合物攝入，定期監測');
+    }
+
+    // 用藥建議
+    if (metrics.medications.adherence < 80) {
+      recommendations.push('用藥依從性較低，建議按時服藥，設置提醒');
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push('您的健康狀況良好，請保持現有的健康習慣');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 計算體重評分
+   */
+  private calculateWeightScore(weight: any): number {
+    if (weight.current === 0) return 0;
+    
+    const bmi = weight.current / Math.pow(1.7, 2); // 假設身高1.7m
+    if (bmi >= 18.5 && bmi <= 24.9) return 25;
+    if (bmi >= 17 && bmi <= 29) return 20;
+    if (bmi >= 16 && bmi <= 30) return 15;
+    return 10;
+  }
+
+  /**
+   * 計算血壓評分
+   */
+  private calculateBloodPressureScore(bp: any): number {
+    if (bp.systolic.current === 0 || bp.diastolic.current === 0) return 0;
+    
+    const systolic = bp.systolic.current;
+    const diastolic = bp.diastolic.current;
+    
+    if (systolic < 120 && diastolic < 80) return 30;
+    if (systolic < 130 && diastolic < 85) return 25;
+    if (systolic < 140 && diastolic < 90) return 20;
+    if (systolic < 160 && diastolic < 100) return 15;
+    return 10;
+  }
+
+  /**
+   * 計算血糖評分
+   */
+  private calculateBloodSugarScore(bs: any): number {
+    if (bs.current === 0) return 0;
+    
+    if (bs.current >= 3.9 && bs.current <= 6.1) return 25;
+    if (bs.current >= 3.5 && bs.current <= 7.0) return 20;
+    if (bs.current >= 3.0 && bs.current <= 8.0) return 15;
+    return 10;
+  }
+
+  /**
+   * 計算用藥評分
+   */
+  private calculateMedicationScore(med: any): number {
+    if (med.total === 0) return 20;
+    
+    const adherence = med.adherence;
+    if (adherence >= 90) return 20;
+    if (adherence >= 80) return 15;
+    if (adherence >= 70) return 10;
+    if (adherence >= 60) return 5;
+    return 0;
+  }
+
+  /**
+   * 計算平均值
+   */
+  private calculateAverage(values: number[]): number {
+    if (values.length === 0) return 0;
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
+
+  /**
+   * 生成PDF報告
+   */
+  async generatePDFReport(report: HealthReport): Promise<Blob> {
+    try {
+      const doc = new jsPDF();
+      
+      // 設置中文字體支持
+      doc.setFont('helvetica');
+      
+      // 標題頁
+      this.addTitlePage(doc, report);
+      
+      // 摘要頁
+      this.addSummaryPage(doc, report);
+      
+      // 詳細指標頁
+      this.addMetricsPage(doc, report);
+      
+      // 趨勢分析頁
+      this.addTrendsPage(doc, report);
+      
+      // 建議頁
+      this.addRecommendationsPage(doc, report);
+      
+      // 生成PDF Blob
+      const pdfBlob = doc.output('blob');
+      return pdfBlob;
+    } catch (error) {
+      console.error('生成PDF報告失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 添加標題頁
+   */
+  private addTitlePage(doc: jsPDF, report: HealthReport): void {
+    doc.setFontSize(24);
+    doc.text('CareOld 健康報告', 105, 40, { align: 'center' });
+    
+    doc.setFontSize(16);
+    doc.text(report.title, 105, 60, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.text(`生成時間: ${report.generatedAt.toLocaleString('zh-TW')}`, 105, 80, { align: 'center' });
+    doc.text(`報告期間: ${report.period.start.toLocaleDateString('zh-TW')} - ${report.period.end.toLocaleDateString('zh-TW')}`, 105, 90, { align: 'center' });
+    
+    doc.setFontSize(14);
+    doc.text(`總體健康評分: ${report.summary.overallScore}/100`, 105, 110, { align: 'center' });
+    
+    const statusText = this.getStatusText(report.summary.status);
+    doc.text(`健康狀態: ${statusText}`, 105, 120, { align: 'center' });
+  }
+
+  /**
+   * 添加摘要頁
+   */
+  private addSummaryPage(doc: jsPDF, report: HealthReport): void {
+    doc.addPage();
+    
+    doc.setFontSize(18);
+    doc.text('健康摘要', 20, 30);
+    
+    doc.setFontSize(12);
+    doc.text(`體重: ${report.metrics.weight.current} kg (平均: ${report.metrics.weight.average.toFixed(1)} kg)`, 20, 50);
+    doc.text(`血壓: ${report.metrics.bloodPressure.systolic.current}/${report.metrics.bloodPressure.diastolic.current} mmHg`, 20, 60);
+    doc.text(`血糖: ${report.metrics.bloodSugar.current} mmol/L`, 20, 70);
+    doc.text(`用藥依從性: ${report.metrics.medications.adherence.toFixed(1)}%`, 20, 80);
+    
+    doc.setFontSize(14);
+    doc.text('主要趨勢:', 20, 100);
+    
+    doc.setFontSize(12);
+    doc.text(`體重: ${this.getTrendText(report.trends.weight)}`, 20, 115);
+    doc.text(`血壓: ${this.getTrendText(report.trends.bloodPressure)}`, 20, 125);
+    doc.text(`血糖: ${this.getTrendText(report.trends.bloodSugar)}`, 20, 135);
+  }
+
+  /**
+   * 添加詳細指標頁
+   */
+  private addMetricsPage(doc: jsPDF, report: HealthReport): void {
+    doc.addPage();
+    
+    doc.setFontSize(18);
+    doc.text('詳細健康指標', 20, 30);
+    
+    // 體重數據表格
+    const weightData = [
+      ['指標', '當前值', '平均值', '最小值', '最大值'],
+      ['體重 (kg)', report.metrics.weight.current.toString(), report.metrics.weight.average.toFixed(1), report.metrics.weight.min.toString(), report.metrics.weight.max.toString()],
+      ['血壓收縮壓 (mmHg)', report.metrics.bloodPressure.systolic.current.toString(), report.metrics.bloodPressure.systolic.average.toFixed(1), '', ''],
+      ['血壓舒張壓 (mmHg)', report.metrics.bloodPressure.diastolic.current.toString(), report.metrics.bloodPressure.diastolic.average.toFixed(1), '', ''],
+      ['血糖 (mmol/L)', report.metrics.bloodSugar.current.toString(), report.metrics.bloodSugar.average.toFixed(1), '', '']
+    ];
+    
+    autoTable(doc, {
+      head: [weightData[0]],
+      body: weightData.slice(1),
+      startY: 50,
+      theme: 'grid'
+    });
+  }
+
+  /**
+   * 添加趨勢分析頁
+   */
+  private addTrendsPage(doc: jsPDF, report: HealthReport): void {
+    doc.addPage();
+    
+    doc.setFontSize(18);
+    doc.text('趨勢分析', 20, 30);
+    
+    doc.setFontSize(12);
+    doc.text(`體重趨勢: ${this.getTrendText(report.trends.weight)}`, 20, 50);
+    doc.text(`血壓趨勢: ${this.getTrendText(report.trends.bloodPressure)}`, 20, 70);
+    doc.text(`血糖趨勢: ${this.getTrendText(report.trends.bloodSugar)}`, 20, 90);
+    doc.text(`用藥趨勢: ${this.getTrendText(report.trends.medications)}`, 20, 110);
+  }
+
+  /**
+   * 添加建議頁
+   */
+  private addRecommendationsPage(doc: jsPDF, report: HealthReport): void {
+    doc.addPage();
+    
+    doc.setFontSize(18);
+    doc.text('健康建議', 20, 30);
+    
+    doc.setFontSize(12);
+    report.summary.recommendations.forEach((recommendation, index) => {
+      const y = 50 + (index * 15);
+      if (y < 280) { // 避免超出頁面
+        doc.text(`${index + 1}. ${recommendation}`, 20, y);
+      }
+    });
+  }
+
+  /**
+   * 獲取狀態文本
+   */
+  private getStatusText(status: string): string {
+    const statusMap: { [key: string]: string } = {
+      'excellent': '優秀',
+      'good': '良好',
+      'fair': '一般',
+      'poor': '需要改善'
+    };
+    return statusMap[status] || status;
+  }
+
+  /**
+   * 獲取趨勢文本
+   */
+  private getTrendText(trend: any): string {
+    const trendMap: { [key: string]: string } = {
+      'up': '上升',
+      'down': '下降',
+      'stable': '穩定'
+    };
+    return `${trendMap[trend.trend] || trend.trend} (${trend.change.toFixed(1)} ${trend.period})`;
+  }
+
+  /**
+   * 獲取報告模板
+   */
+  getReportTemplates(): ReportTemplate[] {
+    return [...this.templates];
+  }
+
+  /**
+   * 獲取報告模板
+   */
+  getReportTemplate(id: string): ReportTemplate | undefined {
+    return this.templates.find(t => t.id === id);
+  }
+}
+
+export default HealthReportService.getInstance();

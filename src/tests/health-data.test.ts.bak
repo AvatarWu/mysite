@@ -1,0 +1,83 @@
+// 健康數據處理測試
+describe('健康數據處理', () => {
+  test('應該能計算 BMI', () => {
+    const calculateBMI = (weight: number, height: number) => {
+      const heightInMeters = height / 100;
+      return (weight / (heightInMeters * heightInMeters)).toFixed(1);
+    };
+    
+    expect(calculateBMI(70, 170)).toBe('24.2');
+    expect(calculateBMI(60, 160)).toBe('23.4');
+    expect(calculateBMI(80, 180)).toBe('24.7');
+  });
+
+  test('應該能判斷血壓等級', () => {
+    const getBloodPressureLevel = (systolic: number, diastolic: number) => {
+      if (systolic < 120 && diastolic < 80) return '正常';
+      if (systolic < 130 && diastolic < 80) return '正常偏高';
+      if (systolic < 140 && diastolic < 90) return '高血壓前期';
+      if (systolic >= 140 || diastolic >= 90) return '高血壓';
+      return '異常';
+    };
+    
+    expect(getBloodPressureLevel(110, 70)).toBe('正常');
+    expect(getBloodPressureLevel(125, 75)).toBe('正常偏高');
+    expect(getBloodPressureLevel(135, 85)).toBe('高血壓前期');
+    expect(getBloodPressureLevel(150, 95)).toBe('高血壓');
+  });
+
+  test('應該能計算血糖平均值', () => {
+    const calculateAverageBloodSugar = (readings: number[]) => {
+      if (readings.length === 0) return 0;
+      const sum = readings.reduce((acc, reading) => acc + reading, 0);
+      return Math.round(sum / readings.length);
+    };
+    
+    expect(calculateAverageBloodSugar([120, 130, 125, 135])).toBe(128);
+    expect(calculateAverageBloodSugar([100, 110, 105])).toBe(105);
+    expect(calculateAverageBloodSugar([])).toBe(0);
+  });
+
+  test('應該能驗證健康數據範圍', () => {
+    const validateHealthData = (type: string, value: number) => {
+      const ranges: Record<string, { min: number; max: number }> = {
+        'bloodPressure_systolic': { min: 70, max: 200 },
+        'bloodPressure_diastolic': { min: 40, max: 130 },
+        'bloodSugar': { min: 50, max: 500 },
+        'weight': { min: 20, max: 200 },
+        'height': { min: 100, max: 250 }
+      };
+      
+      const range = ranges[type];
+      if (!range) return false;
+      
+      return value >= range.min && value <= range.max;
+    };
+    
+    expect(validateHealthData('bloodPressure_systolic', 120)).toBe(true);
+    expect(validateHealthData('bloodPressure_systolic', 300)).toBe(false);
+    expect(validateHealthData('bloodSugar', 150)).toBe(true);
+    expect(validateHealthData('weight', 75)).toBe(true);
+    expect(validateHealthData('height', 170)).toBe(true);
+  });
+
+  test('應該能格式化健康數據', () => {
+    const formatHealthData = (type: string, value: number) => {
+      const formatters: Record<string, (val: number) => string> = {
+        'bloodPressure_systolic': (val) => `${val} mmHg`,
+        'bloodPressure_diastolic': (val) => `${val} mmHg`,
+        'bloodSugar': (val) => `${val} mg/dL`,
+        'weight': (val) => `${val} kg`,
+        'height': (val) => `${val} cm`
+      };
+      
+      const formatter = formatters[type];
+      return formatter ? formatter(value) : `${value}`;
+    };
+    
+    expect(formatHealthData('bloodPressure_systolic', 120)).toBe('120 mmHg');
+    expect(formatHealthData('bloodSugar', 150)).toBe('150 mg/dL');
+    expect(formatHealthData('weight', 70)).toBe('70 kg');
+    expect(formatHealthData('height', 170)).toBe('170 cm');
+  });
+}); 

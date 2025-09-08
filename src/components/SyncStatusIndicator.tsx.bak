@@ -1,0 +1,12 @@
+import React from 'react';
+
+const SyncStatusIndicator: React.FC = () => {
+  return (
+    <div className="sync-status-badge success">
+      <span className="wifi-icon">📶</span>
+      已連接
+    </div>
+  );
+};
+
+export default SyncStatusIndicator;

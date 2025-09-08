@@ -1,0 +1,119 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
+import AddMedication from '../AddMedication';
+
+// Mock axios
+jest.mock('axios', () => ({
+  post: jest.fn()
+}));
+
+// Mock react-router-dom
+jest.mock('react-router-dom', () => ({
+  BrowserRouter: ({ children }: any) => <div>{children}</div>,
+  useNavigate: () => jest.fn()
+}));
+
+// Mock @ionic/react
+jest.mock('@ionic/react', () => ({
+  IonContent: ({ children }: any) => <div>{children}</div>,
+  IonHeader: ({ children }: any) => <div>{children}</div>,
+  IonToolbar: ({ children }: any) => <div>{children}</div>,
+  IonTitle: ({ children }: any) => <div>{children}</div>,
+  IonItem: ({ children }: any) => <div>{children}</div>,
+  IonLabel: ({ children }: any) => <div>{children}</div>,
+  IonInput: ({ onIonChange, placeholder, value }: any) => (
+    <input 
+      placeholder={placeholder}
+      value={value}
+      onChange={(e) => onIonChange && onIonChange({ detail: { value: e.target.value } })}
+    />
+  ),
+  IonButton: ({ children, onClick }: any) => (
+    <button onClick={onClick}>{children}</button>
+  ),
+  IonCheckbox: ({ checked, onIonChange }: any) => (
+    <input 
+      type="checkbox"
+      checked={checked}
+      onChange={(e) => onIonChange && onIonChange({ detail: { checked: e.target.checked } })}
+    />
+  ),
+  IonToast: ({ isOpen, message, onDidDismiss }: any) => (
+    isOpen ? <div data-testid="toast">{message}</div> : null
+  )
+}));
+
+describe('AddMedication Component', () => {
+  const mockPost = jest.fn();
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockPost.mockResolvedValue({ data: { success: true } });
+    // 重新設定 axios mock
+    const axios = require('axios');
+    axios.post.mockImplementation(mockPost);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('submits new medication', async () => {
+    render(
+      <BrowserRouter>
+        <AddMedication />
+      </BrowserRouter>
+    );
+
+    // 等待組件渲染完成
+    await waitFor(() => {
+      expect(screen.getByText(/新增用藥/i)).toBeInTheDocument();
+    });
+
+    // 使用更精確的選擇器
+    const inputs = screen.getAllByRole('textbox');
+    const nameInput = inputs[0];
+    const dosageInput = inputs[1];
+
+    // 模擬 IonInput 的 onIonChange 事件
+    fireEvent.change(nameInput, { target: { value: 'New Medication' } });
+    fireEvent.change(dosageInput, { target: { value: '2 pills' } });
+
+    // 提交表單
+    const submitButton = screen.getByRole('button', { name: /儲存/i });
+    fireEvent.click(submitButton);
+
+    // 等待異步操作完成
+    await waitFor(() => {
+      expect(mockPost).toHaveBeenCalledWith(
+        '/api/health/medications',
+        expect.any(Object),
+        expect.any(Object)
+      );
+    });
+  });
+
+  test('應該驗證必填欄位', async () => {
+    render(
+      <BrowserRouter>
+        <AddMedication />
+      </BrowserRouter>
+    );
+
+    // 等待組件渲染完成
+    await waitFor(() => {
+      expect(screen.getByText(/新增用藥/i)).toBeInTheDocument();
+    });
+
+    // 直接點擊提交按鈕
+    const submitButton = screen.getByRole('button', { name: /儲存/i });
+    fireEvent.click(submitButton);
+
+    // 等待異步操作完成並檢查錯誤消息
+    await waitFor(() => {
+      expect(screen.getByText('請輸入藥物名稱')).toBeInTheDocument();
+      expect(screen.getByText('請輸入劑量')).toBeInTheDocument();
+    });
+  });
+}); 

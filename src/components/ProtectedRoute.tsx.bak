@@ -1,0 +1,66 @@
+import React, { useEffect, useState } from 'react';
+import { Outlet, Navigate, useLocation } from 'react-router-dom';
+import AuthService from '../services/AuthService';
+
+interface ProtectedRouteProps {
+  children?: React.ReactNode;
+}
+
+const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const location = useLocation();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        // 檢查本地認證狀態
+        const authService = AuthService.getInstance();
+  const authenticated = authService.isAuthenticated();
+        
+        if (authenticated) {
+          // 驗證令牌有效性
+          const isValid = await authService.validateToken();
+          setIsAuthenticated(isValid);
+        } else {
+          setIsAuthenticated(false);
+        }
+      } catch (error) {
+        console.error('認證檢查失敗:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, []);
+
+  // 顯示加載狀態
+  if (isLoading) {
+    return (
+      <div className="loading-container">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>正在驗證身份...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // 如果未認證，重定向到登錄頁面
+  if (!isAuthenticated) {
+    return (
+      <Navigate
+        to="/login"
+        state={{ from: location }}
+        replace
+      />
+    );
+  }
+
+  // 如果已認證，渲染子組件
+  return children ? <>{children}</> : <Outlet />;
+};
+
+export default ProtectedRoute;

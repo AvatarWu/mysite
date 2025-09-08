@@ -1,0 +1,637 @@
+import React, { useState, useRef, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonButton,
+  IonIcon,
+  IonInput,
+  IonItem,
+  IonList,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonBadge,
+  IonSpinner,
+  IonText,
+  IonFab,
+  IonFabButton,
+  IonModal,
+  IonButtons
+} from '@ionic/react';
+import {
+  send,
+  mic,
+  micOff,
+  close,
+  chatbubbleEllipses,
+  analytics,
+  bulb,
+  warning,
+  checkmarkCircle
+} from 'ionicons/icons';
+import AIHealthAssistantService, { ConversationContext } from '../services/AIHealthAssistantService';
+import './AIHealthChat.css';
+
+interface Message {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  type: 'text' | 'insight' | 'recommendation' | 'prediction';
+  data?: any;
+}
+
+interface AIHealthChatProps {
+  userId: string;
+  healthData?: any;
+  onClose?: () => void;
+}
+
+const AIHealthChat: React.FC<AIHealthChatProps> = ({ userId, healthData, onClose }) => {
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  const [showInsights, setShowInsights] = useState(false);
+  const [insights, setInsights] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [predictions, setPredictions] = useState<any[]>([]);
+  const [conversationContext, setConversationContext] = useState<ConversationContext | null>(null);
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLIonInputElement>(null);
+
+  useEffect(() => {
+    initializeChat();
+    scrollToBottom();
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  /**
+   * 初始化聊天
+   */
+  const initializeChat = async () => {
+    try {
+      // 創建對話上下文
+      const context: ConversationContext = {
+        userId,
+        sessionId: `session_${Date.now()}`,
+        healthData: {
+          metrics: healthData?.metrics || {},
+          trends: healthData?.trends || {},
+          recentRecords: healthData?.recentRecords || []
+        },
+        conversationHistory: [],
+        currentFocus: 'general',
+        lastInteraction: new Date()
+      };
+
+      setConversationContext(context);
+
+      // 添加歡迎消息
+      const welcomeMessage: Message = {
+        id: `msg_${Date.now()}`,
+        role: 'assistant',
+        content: '您好！我是您的AI健康助手。我可以幫助您分析健康數據、提供個性化建議、預測健康趨勢，並回答您的健康問題。請告訴我您需要什麼幫助？',
+        timestamp: new Date(),
+        type: 'text'
+      };
+
+      setMessages([welcomeMessage]);
+
+      // 如果有健康數據，生成初始洞察
+      if (healthData?.metrics) {
+        await generateInitialInsights();
+      }
+    } catch (error) {
+      console.error('初始化聊天失敗:', error);
+    }
+  };
+
+  /**
+   * 生成初始洞察
+   */
+  const generateInitialInsights = async () => {
+    try {
+      setIsLoading(true);
+
+      // 分析健康數據
+      const healthInsights = await AIHealthAssistantService.analyzeHealthData(
+        healthData.metrics,
+        healthData.trends,
+        healthData.recentRecords || []
+      );
+
+      // 生成健康預測
+      const healthPredictions = await AIHealthAssistantService.generateHealthPredictions(
+        healthData.metrics,
+        healthData.trends,
+        healthData.recentRecords || []
+      );
+
+      // 生成個性化建議
+      const aiRecommendations = await AIHealthAssistantService.generatePersonalizedRecommendations(
+        healthInsights,
+        healthPredictions,
+        { userId }
+      );
+
+      setInsights(healthInsights);
+      setRecommendations(aiRecommendations);
+      setPredictions(healthPredictions);
+
+      // 如果有重要洞察，添加到對話中
+      if (healthInsights.length > 0) {
+        const insightMessage: Message = {
+          id: `msg_${Date.now()}_insight`,
+          role: 'assistant',
+          content: `我發現了${healthInsights.length}個健康洞察，包括${healthInsights.slice(0, 2).map(i => i.title).join('、')}等。點擊下方按鈕查看詳細信息。`,
+          timestamp: new Date(),
+          type: 'insight',
+          data: healthInsights
+        };
+
+        setMessages(prev => [...prev, insightMessage]);
+      }
+    } catch (error) {
+      console.error('生成初始洞察失敗:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * 發送消息
+   */
+  const sendMessage = async () => {
+    if (!inputValue.trim() || isLoading) return;
+
+    const userMessage: Message = {
+      id: `msg_${Date.now()}`,
+      role: 'user',
+      content: inputValue,
+      timestamp: new Date(),
+      type: 'text'
+    };
+
+    setMessages(prev => [...prev, userMessage]);
+    setInputValue('');
+    setIsLoading(true);
+
+    try {
+      // 更新對話上下文
+      if (conversationContext) {
+        conversationContext.conversationHistory.push({
+          role: 'user',
+          content: inputValue,
+          timestamp: new Date()
+        });
+        conversationContext.lastInteraction = new Date();
+      }
+
+      // 生成AI回覆
+      const aiResponse = await generateAIResponse(inputValue);
+      
+      const assistantMessage: Message = {
+        id: `msg_${Date.now()}_ai`,
+        role: 'assistant',
+        content: aiResponse.content,
+        timestamp: new Date(),
+        type: aiResponse.type as 'text' | 'insight' | 'recommendation' | 'prediction',
+        data: aiResponse.data
+      };
+
+      setMessages(prev => [...prev, assistantMessage]);
+
+      // 更新對話上下文
+      if (conversationContext) {
+        conversationContext.conversationHistory.push({
+          role: 'assistant',
+          content: aiResponse.content,
+          timestamp: new Date()
+        });
+      }
+    } catch (error) {
+      console.error('生成AI回覆失敗:', error);
+      
+      const errorMessage: Message = {
+        id: `msg_${Date.now()}_error`,
+        role: 'assistant',
+        content: '抱歉，我遇到了一些問題。請稍後再試，或者重新描述您的問題。',
+        timestamp: new Date(),
+        type: 'text'
+      };
+
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * 生成AI回覆
+   */
+  const generateAIResponse = async (userInput: string): Promise<{ content: string; type: string; data?: any }> => {
+    const input = userInput.toLowerCase();
+
+    // 健康數據查詢
+    if (input.includes('體重') || input.includes('weight')) {
+      if (healthData?.metrics?.weight) {
+        const weight = healthData.metrics.weight;
+        const bmi = weight.current / Math.pow(1.7, 2);
+        return {
+          content: `您目前的體重是${weight.current}公斤，BMI為${bmi.toFixed(1)}。${bmi < 18.5 ? '體重偏低，建議適當增加營養攝入。' : bmi > 24.9 ? '體重偏高，建議進行體重管理。' : '體重在正常範圍內，請保持。'}`,
+          type: 'text'
+        };
+      }
+    }
+
+    // 血壓查詢
+    if (input.includes('血壓') || input.includes('blood pressure')) {
+      if (healthData?.metrics?.bloodPressure) {
+        const bp = healthData.metrics.bloodPressure;
+        const status = bp.systolic.current >= 140 || bp.diastolic.current >= 90 ? '偏高' : 
+                      bp.systolic.current >= 130 || bp.diastolic.current >= 85 ? '臨界' : '正常';
+        return {
+          content: `您目前的血壓是${bp.systolic.current}/${bp.diastolic.current} mmHg，屬於${status}範圍。${status !== '正常' ? '建議減少鹽分攝入，保持規律運動。' : '請繼續保持健康的生活方式。'}`,
+          type: 'text'
+        };
+      }
+    }
+
+    // 血糖查詢
+    if (input.includes('血糖') || input.includes('blood sugar')) {
+      if (healthData?.metrics?.bloodSugar) {
+        const bs = healthData.metrics.bloodSugar;
+        const status = bs.current > 6.1 ? '偏高' : '正常';
+        return {
+          content: `您目前的血糖是${bs.current} mmol/L，屬於${status}範圍。${status !== '正常' ? '建議控制碳水化合物攝入，增加運動量。' : '請繼續保持健康的飲食習慣。'}`,
+          type: 'text'
+        };
+      }
+    }
+
+    // 建議查詢
+    if (input.includes('建議') || input.includes('建議') || input.includes('advice')) {
+      if (recommendations.length > 0) {
+        const topRecommendations = recommendations.slice(0, 3);
+        return {
+          content: `根據您的健康狀況，我建議您：\n${topRecommendations.map((rec, index) => `${index + 1}. ${rec.title}`).join('\n')}`,
+          type: 'recommendation',
+          data: topRecommendations
+        };
+      }
+    }
+
+    // 預測查詢
+    if (input.includes('預測') || input.includes('趨勢') || input.includes('prediction')) {
+      if (predictions.length > 0) {
+        const topPredictions = predictions.slice(0, 2);
+        return {
+          content: `基於您的健康數據，我預測：\n${topPredictions.map((pred, index) => `${index + 1}. ${pred.metric}可能在未來1個月內${pred.riskLevel === 'high' ? '需要特別關注' : '保持穩定'}`).join('\n')}`,
+          type: 'prediction',
+          data: topPredictions
+        };
+    }
+  }
+
+  // 一般健康建議
+  if (input.includes('運動') || input.includes('exercise')) {
+    return {
+      content: '建議您每週進行至少150分鐘的中等強度有氧運動，如快走、游泳或騎自行車。同時每週進行2-3次力量訓練，幫助增強肌肉和骨骼健康。',
+      type: 'text'
+    };
+  }
+
+  if (input.includes('飲食') || input.includes('diet') || input.includes('營養')) {
+    return {
+      content: '建議您遵循均衡飲食原則：多攝入蔬菜水果、全穀物、優質蛋白質，減少飽和脂肪、反式脂肪和添加糖的攝入。每天喝足夠的水，控制總熱量攝入。',
+      type: 'text'
+    };
+  }
+
+  if (input.includes('睡眠') || input.includes('sleep')) {
+    return {
+      content: '建議您每晚保持7-9小時的優質睡眠。建立規律的睡眠時間表，睡前避免使用電子設備，保持安靜舒適的睡眠環境。',
+      type: 'text'
+    };
+  }
+
+  // 默認回覆
+  return {
+    content: '我理解您的問題。為了給您更準確的健康建議，請告訴我您具體想了解哪個方面的健康信息，比如體重、血壓、血糖、運動、飲食等。',
+    type: 'text'
+  };
+};
+
+/**
+ * 滾動到底部
+ */
+const scrollToBottom = () => {
+  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+};
+
+/**
+ * 處理鍵盤事件
+ */
+const handleKeyPress = (event: React.KeyboardEvent) => {
+  if (event.key === 'Enter' && !event.shiftKey) {
+    event.preventDefault();
+    sendMessage();
+  }
+};
+
+/**
+ * 開始語音輸入
+ */
+const startVoiceInput = () => {
+  setIsRecording(true);
+  // 這裡可以集成語音識別功能
+  setTimeout(() => {
+    setIsRecording(false);
+    setInputValue('語音輸入功能開發中...');
+  }, 2000);
+};
+
+/**
+ * 渲染消息
+ */
+const renderMessage = (message: Message) => {
+  const isUser = message.role === 'user';
+  
+  return (
+    <div key={message.id} className={`message ${isUser ? 'user' : 'assistant'}`}>
+      <div className="message-avatar">
+        {isUser ? (
+          <div className="user-avatar">
+            <img src="/assets/user-avatar.png" alt="用戶" />
+          </div>
+        ) : (
+          <div className="ai-avatar">
+            <span className="ai-icon">🤖</span>
+          </div>
+        )}
+      </div>
+      
+      <div className="message-content">
+        <div className="message-bubble">
+          <IonText>{message.content}</IonText>
+          
+          {message.type === 'insight' && message.data && (
+            <div className="message-insights">
+              <IonButton 
+                size="small" 
+                fill="clear"
+                onClick={() => setShowInsights(true)}
+              >
+                <IonIcon icon={analytics} slot="start" />
+                查看洞察
+              </IonButton>
+            </div>
+          )}
+          
+          {message.type === 'recommendation' && message.data && (
+            <div className="message-recommendations">
+              <IonButton 
+                size="small" 
+                fill="clear"
+                onClick={() => setShowInsights(true)}
+              >
+                <IonIcon icon={bulb} slot="start" />
+                查看建議
+              </IonButton>
+            </div>
+          )}
+        </div>
+        
+        <div className="message-time">
+          {message.timestamp.toLocaleTimeString('zh-TW', { 
+            hour: '2-digit', 
+            minute: '2-digit' 
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+return (
+  <>
+    <IonContent className="ai-health-chat">
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>AI健康助手</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={onClose}>
+              <IonIcon icon={close} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+
+      <div className="chat-container">
+        <div className="messages-container">
+          {messages.map(renderMessage)}
+          
+          {isLoading && (
+            <div className="message assistant">
+              <div className="message-avatar">
+                <div className="ai-avatar">
+                  <IonIcon icon={chatbubbleEllipses} />
+                </div>
+              </div>
+              <div className="message-content">
+                <div className="message-bubble">
+                  <IonSpinner name="dots" />
+                  <IonText>正在思考...</IonText>
+                </div>
+              </div>
+            </div>
+          )}
+          
+          <div ref={messagesEndRef} />
+        </div>
+
+        <div className="input-container">
+          <IonItem className="input-item">
+            <IonInput
+              ref={inputRef}
+              value={inputValue}
+              onIonInput={(e) => setInputValue(e.detail.value || '')}
+              onKeyPress={handleKeyPress}
+              placeholder="輸入您的健康問題..."
+              className="chat-input"
+            />
+            <IonButton
+              slot="end"
+              fill="clear"
+              onClick={startVoiceInput}
+              disabled={isRecording}
+            >
+              <IonIcon icon={isRecording ? micOff : mic} />
+            </IonButton>
+            <IonButton
+              slot="end"
+              fill="clear"
+              onClick={sendMessage}
+              disabled={!inputValue.trim() || isLoading}
+            >
+              <IonIcon icon={send} />
+            </IonButton>
+          </IonItem>
+        </div>
+      </div>
+
+      <IonFab vertical="bottom" horizontal="end" slot="fixed">
+        <IonFabButton 
+          size="small"
+          onClick={() => setShowInsights(true)}
+          color="primary"
+        >
+          <IonIcon icon={analytics} />
+        </IonFabButton>
+      </IonFab>
+    </IonContent>
+
+    <IonModal isOpen={showInsights} onDidDismiss={() => setShowInsights(false)}>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>健康洞察與建議</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={() => setShowInsights(false)}>
+              <IonIcon icon={close} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent>
+        {insights.length > 0 && (
+          <IonCard>
+            <IonCardHeader>
+              <IonTitle>
+                <IonIcon icon={analytics} />
+                健康洞察
+              </IonTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                {insights.map((insight) => (
+                  <IonItem key={insight.id}>
+                    <div className="insight-item">
+                      <div className="insight-header">
+                        <IonText className="insight-title">{insight.title}</IonText>
+                        <IonBadge 
+                          color={insight.severity === 'critical' ? 'danger' : 
+                                 insight.severity === 'high' ? 'warning' : 
+                                 insight.severity === 'medium' ? 'primary' : 'success'}
+                        >
+                          {insight.severity}
+                        </IonBadge>
+                      </div>
+                      <IonText className="insight-description">{insight.description}</IonText>
+                      {insight.actionItems && (
+                        <div className="insight-actions">
+                          {insight.actionItems.map((action, index) => (
+                            <div key={index} className="action-item">
+                              <IonIcon icon={checkmarkCircle} />
+                              <IonText>{action}</IonText>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </IonItem>
+                ))}
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        )}
+
+        {recommendations.length > 0 && (
+          <IonCard>
+            <IonCardHeader>
+              <IonTitle>
+                <IonIcon icon={bulb} />
+                AI建議
+              </IonTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                {recommendations.map((rec) => (
+                  <IonItem key={rec.id}>
+                    <div className="recommendation-item">
+                      <div className="recommendation-header">
+                        <IonText className="recommendation-title">{rec.title}</IonText>
+                        <IonBadge 
+                          color={rec.priority === 'urgent' ? 'danger' : 
+                                 rec.priority === 'high' ? 'warning' : 
+                                 rec.priority === 'medium' ? 'primary' : 'success'}
+                        >
+                          {rec.priority}
+                        </IonBadge>
+                      </div>
+                      <IonText className="recommendation-description">{rec.description}</IonText>
+                      <div className="recommendation-meta">
+                        <IonBadge color="medium">難度: {rec.difficulty}</IonBadge>
+                        <IonBadge color="medium">影響: {rec.estimatedImpact}</IonBadge>
+                        <IonBadge color="medium">時間: {rec.timeToImplement}</IonBadge>
+                      </div>
+                    </div>
+                  </IonItem>
+                ))}
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        )}
+
+        {predictions.length > 0 && (
+          <IonCard>
+            <IonCardHeader>
+              <IonTitle>
+                <IonIcon icon={warning} />
+                健康預測
+              </IonTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <IonList>
+                {predictions.map((pred) => (
+                  <IonItem key={pred.id}>
+                    <div className="prediction-item">
+                      <div className="prediction-header">
+                        <IonText className="prediction-title">{pred.metric}預測</IonText>
+                        <IonBadge 
+                          color={pred.riskLevel === 'high' ? 'danger' : 
+                                 pred.riskLevel === 'medium' ? 'warning' : 'success'}
+                        >
+                          {pred.riskLevel}
+                        </IonBadge>
+                      </div>
+                      <IonText className="prediction-description">
+                        當前值: {pred.currentValue} → 預測值: {pred.predictedValue}
+                      </IonText>
+                      <div className="prediction-factors">
+                        <IonText className="factors-title">影響因素:</IonText>
+                        {pred.factors.map((factor, index) => (
+                          <IonBadge key={index} color="medium">{factor}</IonBadge>
+                        ))}
+                      </div>
+                    </div>
+                  </IonItem>
+                ))}
+              </IonList>
+            </IonCardContent>
+          </IonCard>
+        )}
+      </IonContent>
+    </IonModal>
+  </>
+);
+};
+
+export default AIHealthChat;

@@ -1,0 +1,417 @@
+/* 新增血糖記錄頁面樣式 - 參考血壓管理成功模式 */
+
+.add-blood-sugar-page {
+  background: #f2f2f7;
+  min-height: 100vh;
+  color: #1d1d1f;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* Apple 風格導航欄 */
+.custom-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding-top: max(env(safe-area-inset-top), 60px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 44px;
+  position: relative;
+}
+
+/* 返回按鈕 - Apple 風格 */
+.custom-back-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #007aff !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  position: absolute !important;
+  left: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1001 !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.custom-back-btn span {
+  color: #007aff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.custom-back-btn svg {
+  stroke: #007aff !important;
+}
+
+/* 標題 - Apple 風格 */
+.custom-title {
+  color: #1d1d1f !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  background-color: transparent !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1000 !important;
+}
+
+/* 保存按鈕 - Apple 風格 */
+.custom-save-btn {
+  background: #007aff !important;
+  border: none !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1001 !important;
+  position: absolute !important;
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.custom-save-btn span {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding: 20px;
+  padding-top: 120px;
+  max-width: 600px;
+  margin: 0 auto;
+  background: #f2f2f7;
+}
+
+/* 表單區域 */
+.form-section {
+  margin-bottom: 32px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+/* 表單標籤 - Apple 風格 */
+.form-label {
+  display: block !important;
+  color: #1d1d1f !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  margin-bottom: 8px !important;
+}
+
+/* 輸入框 - Apple 風格 */
+.form-input {
+  width: 100% !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 17px !important;
+  color: #1d1d1f !important;
+  outline: none !important;
+  box-sizing: border-box !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.form-input::placeholder {
+  color: #8e8e93 !important;
+}
+
+.form-input:focus {
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+/* 文本域 - Apple 風格 */
+.form-textarea {
+  width: 100% !important;
+  background-color: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 12px !important;
+  padding: 16px !important;
+  font-size: 17px !important;
+  color: #1d1d1f !important;
+  outline: none !important;
+  resize: vertical !important;
+  min-height: 100px !important;
+  box-sizing: border-box !important;
+  font-family: inherit !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.form-textarea::placeholder {
+  color: #8e8e93 !important;
+}
+
+.form-textarea:focus {
+  border-color: #007aff !important;
+  box-shadow: 0 0 0 2px rgba(0, 122, 255, 0.2) !important;
+}
+
+/* 錯誤信息樣式 */
+.error-message {
+  color: #FF3B30 !important;
+  font-size: 14px !important;
+  margin-top: 8px !important;
+}
+
+/* 參考信息樣式 - Apple 風格 */
+.reference-section {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  border-radius: 16px !important;
+  padding: 20px !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1) !important;
+}
+
+.reference-section .title {
+  color: #1d1d1f !important;
+  font-size: 17px !important;
+  font-weight: 600 !important;
+  margin-bottom: 12px !important;
+}
+
+.reference-section .content {
+  color: #8e8e93 !important;
+  font-size: 15px !important;
+  line-height: 1.5 !important;
+}
+
+/* 全域深色模式強制樣式 */
+@media (prefers-color-scheme: dark) {
+  .add-blood-sugar-page * {
+    color: #ffffff !important;
+  }
+  
+  .add-blood-sugar-page .form-label,
+  .add-blood-sugar-page .reference-section .title {
+    color: #ffffff !important;
+  }
+  
+  .add-blood-sugar-page .form-input,
+  .add-blood-sugar-page .form-textarea {
+    color: #ffffff !important;
+  }
+  
+  .add-blood-sugar-page .reference-section .content {
+    color: #8e8e93 !important;
+  }
+}
+
+/* 深色模式支援 - 參考血壓管理成功模式 */
+@media (prefers-color-scheme: dark) {
+  .add-blood-sugar-page {
+    background: #000000 !important;
+  }
+
+  .main-content {
+    background: #000000 !important;
+  }
+
+  .custom-header {
+    background: #000000 !important;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .custom-back-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #007aff !important;
+  }
+
+  .custom-back-btn span {
+    color: #007aff !important;
+  }
+
+  .custom-back-btn svg {
+    stroke: #007aff !important;
+  }
+
+  .custom-title {
+    color: #ffffff !important;
+  }
+
+  .custom-title * {
+    color: #ffffff !important;
+  }
+
+  .custom-save-btn {
+    background: #007aff !important;
+    border: none !important;
+    color: #ffffff !important;
+  }
+
+  .custom-save-btn span {
+    color: #ffffff !important;
+  }
+
+  .form-label {
+    color: #ffffff !important;
+  }
+
+  .form-input {
+    background-color: #1c1c1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .form-input::placeholder {
+    color: #8e8e93 !important;
+  }
+
+  .form-textarea {
+    background-color: #1c1c1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    color: #ffffff !important;
+    box-shadow: none !important;
+  }
+
+  .form-textarea::placeholder {
+    color: #8e8e93 !important;
+  }
+
+  .reference-section {
+    background: #1c1c1e !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+  }
+
+  .reference-section .title {
+    color: #ffffff !important;
+  }
+
+  .reference-section .content {
+    color: #8e8e93 !important;
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 375px) {
+  .main-content {
+    padding: 16px;
+    padding-top: 100px;
+  }
+  
+  .custom-back-btn,
+  .custom-save-btn {
+    min-width: 50px !important;
+    padding: 6px 10px !important;
+  }
+  
+  .custom-title {
+    font-size: 18px !important;
+  }
+
+  .form-section {
+    margin-bottom: 24px;
+  }
+
+  .form-group {
+    margin-bottom: 12px;
+  }
+
+  .form-label {
+    font-size: 16px !important;
+  }
+
+  .form-input,
+  .form-textarea {
+    padding: 12px !important;
+    font-size: 16px !important;
+  }
+}
+
+/* 按鈕懸停效果 */
+.custom-back-btn:hover,
+.custom-save-btn:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+/* 禁用狀態 */
+.custom-save-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 網格佈局響應式 */
+@media (max-width: 480px) {
+  .form-group[style*="gridTemplateColumns"] {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .form-group div[style*="display: flex"] {
+    flex-direction: column !important;
+    gap: 8px !important;
+  }
+  
+  .form-group div[style*="display: flex"] input,
+  .form-group div[style*="display: flex"] div {
+    flex: none !important;
+    width: 100% !important;
+  }
+}
+
+/* 確保所有文字在深色模式下可見 */
+.add-blood-sugar-page * {
+  color: inherit;
+}
+
+.add-blood-sugar-page .custom-title,
+.add-blood-sugar-page .custom-back-btn,
+.add-blood-sugar-page .custom-save-btn,
+.add-blood-sugar-page .form-label,
+.add-blood-sugar-page .reference-section .title {
+  color: #1d1d1f !important;
+}
+
+.add-blood-sugar-page .form-input,
+.add-blood-sugar-page .form-textarea {
+  color: #1d1d1f !important;
+}
+
+.add-blood-sugar-page .reference-section .content {
+  color: #8e8e93 !important;
+}

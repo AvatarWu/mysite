@@ -1,0 +1,732 @@
+.ai-assistant-container {
+  padding: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* 加載容器 */
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  gap: 16px;
+}
+
+.loading-container ion-spinner {
+  width: 48px;
+  height: 48px;
+}
+
+.loading-container ion-text {
+  color: var(--ion-color-medium);
+  font-size: 16px;
+}
+
+/* 概覽卡片 */
+.overview-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.overview-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.overview-card ion-card-header ion-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.overview-card ion-card-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.metric-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 16px 8px;
+  border-radius: 12px;
+  background: var(--ion-color-light);
+  margin: 8px 0;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin-bottom: 8px;
+}
+
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.trend-text {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+}
+
+/* 風險評估卡片 */
+.risk-assessment-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.risk-assessment-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-warning), var(--ion-color-warning-shade));
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.risk-assessment-card ion-card-header ion-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.risk-assessment-card ion-card-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.risk-assessment-content {
+  padding: 16px 0;
+}
+
+.risk-score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 24px;
+  padding: 20px;
+  background: var(--ion-color-light);
+  border-radius: 12px;
+}
+
+.risk-score-label {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+  margin-bottom: 8px;
+}
+
+.risk-score-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--ion-color-dark);
+  margin-bottom: 12px;
+}
+
+.risk-score ion-badge {
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 20px;
+}
+
+.risk-factors {
+  margin-bottom: 24px;
+}
+
+.risk-factors-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.risk-factor {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.risk-factor ion-text {
+  font-weight: 500;
+}
+
+.risk-recommendations {
+  margin-bottom: 16px;
+}
+
+.risk-recommendations-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.risk-recommendation {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+
+.risk-recommendation ion-icon {
+  font-size: 20px;
+  color: var(--ion-color-success);
+}
+
+/* 洞察卡片 */
+.insights-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.insights-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.insights-card ion-card-header ion-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.insights-card ion-card-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.insight-item {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+}
+
+.insight-content {
+  width: 100%;
+  padding: 16px;
+}
+
+.insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.insight-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.insight-description {
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  display: block;
+}
+
+.insight-confidence {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insight-confidence ion-text {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
+
+/* 建議卡片 */
+.recommendations-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recommendations-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-success), var(--ion-color-success-shade));
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.recommendations-card ion-card-header ion-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.recommendations-card ion-card-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.recommendation-item {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+}
+
+.recommendation-content {
+  width: 100%;
+  padding: 16px;
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.recommendation-title-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.recommendation-title-section ion-icon {
+  font-size: 18px;
+  color: var(--ion-color-primary);
+}
+
+.recommendation-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.recommendation-description {
+  color: var(--ion-color-medium);
+  margin-bottom: 16px;
+  line-height: 1.5;
+  display: block;
+}
+
+.recommendation-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.recommendation-meta ion-chip {
+  font-size: 11px;
+}
+
+.recommendation-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 預測卡片 */
+.predictions-card {
+  margin-bottom: 20px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.predictions-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-tertiary), var(--ion-color-tertiary-shade));
+  color: white;
+  border-radius: 16px 16px 0 0;
+}
+
+.predictions-card ion-card-header ion-title {
+  color: white;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.predictions-card ion-card-header ion-icon {
+  margin-right: 8px;
+  font-size: 20px;
+}
+
+.prediction-item {
+  --padding-start: 0;
+  --padding-end: 0;
+  --inner-padding-end: 0;
+}
+
+.prediction-content {
+  width: 100%;
+  padding: 16px;
+}
+
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.prediction-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ion-color-dark);
+}
+
+.prediction-values {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding: 12px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+}
+
+.prediction-current,
+.prediction-predicted {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
+
+.prediction-confidence {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.prediction-confidence ion-text {
+  font-size: 14px;
+  color: var(--ion-color-medium);
+}
+
+.prediction-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.factors-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ion-color-dark);
+}
+
+.prediction-factors ion-chip {
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .ai-assistant-container {
+    padding: 12px;
+  }
+  
+  .metric-item {
+    padding: 12px 6px;
+  }
+  
+  .metric-value {
+    font-size: 20px;
+  }
+  
+  .risk-score-value {
+    font-size: 28px;
+  }
+  
+  .insight-content,
+  .recommendation-content,
+  .prediction-content {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ai-assistant-container {
+    padding: 8px;
+  }
+  
+  .metric-item {
+    padding: 8px 4px;
+  }
+  
+  .metric-value {
+    font-size: 18px;
+  }
+  
+  .risk-score-value {
+    font-size: 24px;
+  }
+  
+  .insight-content,
+  .recommendation-content,
+  .prediction-content {
+    padding: 8px;
+  }
+  
+  .recommendation-meta {
+    flex-direction: column;
+  }
+}
+
+/* 動畫效果 */
+.overview-card,
+.risk-assessment-card,
+.insights-card,
+.recommendations-card,
+.predictions-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.metric-item {
+  transition: all 0.3s ease;
+}
+
+.metric-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.insight-item,
+.recommendation-item,
+.prediction-item {
+  transition: all 0.2s ease;
+}
+
+.insight-item:hover,
+.recommendation-item:hover,
+.prediction-item:hover {
+  background: var(--ion-color-light-shade);
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .metric-item {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .risk-score {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .risk-factor,
+  .risk-recommendation {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .insight-content,
+  .recommendation-content,
+  .prediction-content {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .prediction-values {
+    background: var(--ion-color-dark-tint);
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .overview-card,
+  .risk-assessment-card,
+  .insights-card,
+  .recommendations-card,
+  .predictions-card {
+    border: 2px solid var(--ion-color-primary);
+  }
+  
+  .metric-item {
+    border: 1px solid var(--ion-color-medium);
+  }
+}
+
+/* 減少動畫模式 */
+@media (prefers-reduced-motion: reduce) {
+  .overview-card,
+  .risk-assessment-card,
+  .insights-card,
+  .recommendations-card,
+  .predictions-card {
+    animation: none;
+  }
+  
+  .metric-item {
+    transition: none;
+  }
+  
+  .metric-item:hover {
+    transform: none;
+    box-shadow: none;
+  }
+  
+  .insight-item,
+  .recommendation-item,
+  .prediction-item {
+    transition: none;
+  }
+  
+  .insight-item:hover,
+  .recommendation-item:hover,
+  .prediction-item:hover {
+    background: none;
+  }
+}
+
+/* 焦點狀態 */
+.overview-card:focus-within,
+.risk-assessment-card:focus-within,
+.insights-card:focus-within,
+.recommendations-card:focus-within,
+.predictions-card:focus-within {
+  outline: 2px solid var(--ion-color-primary);
+  outline-offset: 2px;
+}
+
+/* 加載狀態 */
+.loading-container ion-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 錯誤狀態 */
+.error-card {
+  border-left: 4px solid var(--ion-color-danger);
+}
+
+.error-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-danger), var(--ion-color-danger-shade));
+}
+
+/* 成功狀態 */
+.success-card {
+  border-left: 4px solid var(--ion-color-success);
+}
+
+.success-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-success), var(--ion-color-success-shade));
+}
+
+/* 警告狀態 */
+.warning-card {
+  border-left: 4px solid var(--ion-color-warning);
+}
+
+.warning-card ion-card-header {
+  background: linear-gradient(135deg, var(--ion-color-warning), var(--ion-color-warning-shade));
+}
+
+/* 滾動條樣式 */
+.ai-assistant-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.ai-assistant-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.ai-assistant-container::-webkit-scrollbar-thumb {
+  background: var(--ion-color-medium);
+  border-radius: 4px;
+}
+
+.ai-assistant-container::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-medium-shade);
+}
+
+/* 工具提示 */
+.metric-item[data-tooltip] {
+  position: relative;
+}
+
+.metric-item[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ion-color-dark);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* 選擇文本樣式 */
+.metric-item ::selection,
+.insight-content ::selection,
+.recommendation-content ::selection,
+.prediction-content ::selection {
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary-contrast);
+}
+
+/* 鏈接樣式 */
+.insight-content a,
+.recommendation-content a,
+.prediction-content a {
+  color: var(--ion-color-primary);
+  text-decoration: underline;
+}
+
+/* 代碼塊樣式 */
+.insight-content code,
+.recommendation-content code,
+.prediction-content code {
+  background: var(--ion-color-light-shade);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+/* 引用樣式 */
+.insight-content blockquote,
+.recommendation-content blockquote,
+.prediction-content blockquote {
+  border-left: 4px solid var(--ion-color-primary);
+  margin: 8px 0;
+  padding-left: 12px;
+  font-style: italic;
+  color: var(--ion-color-medium);
+}

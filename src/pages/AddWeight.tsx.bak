@@ -1,0 +1,116 @@
+import React, { useState } from 'react';
+import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonItem, IonLabel, IonInput, IonButton, IonDatetime, IonTextarea, IonList, IonNote, IonToast } from '@ionic/react';
+import { useNavigate } from 'react-router-dom';
+
+const AddWeight: React.FC = () => {
+  const [date, setDate] = useState<string>(new Date().toISOString().slice(0, 10));
+  const [weight, setWeight] = useState<string>('');
+  const [height, setHeight] = useState<string>('');
+  const [note, setNote] = useState<string>('');
+  const [error, setError] = useState<string>('');
+  const [showToast, setShowToast] = useState(false);
+  const navigate = useNavigate();
+
+  const calculateBMI = (w: number, h: number) => {
+    if (!w || !h) return 0;
+    const hM = h / 100;
+    return +(w / (hM * hM)).toFixed(1);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const w = parseFloat(weight);
+    const h = parseFloat(height);
+    if (!date || isNaN(w) || w <= 0 || isNaN(h) || h <= 0) {
+      setError('請輸入正確的體重與身高');
+      return;
+    }
+    const bmi = calculateBMI(w, h);
+    const newRecord = {
+      id: Date.now().toString(),
+      date,
+      weight: w,
+      height: h,
+      bmi,
+      note
+    };
+    const data = localStorage.getItem('weightRecords');
+    const records = data ? JSON.parse(data) : [];
+    records.unshift(newRecord);
+    localStorage.setItem('weightRecords', JSON.stringify(records));
+    setShowToast(true);
+    setTimeout(() => navigate('/weight-list'), 800);
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>新增體重記錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <form onSubmit={handleSubmit}>
+          <IonList>
+            <IonItem>
+              <IonLabel position="stacked">日期</IonLabel>
+              <IonInput
+                type="date"
+                value={date}
+                onIonChange={e => setDate(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">體重 (kg)</IonLabel>
+              <IonInput
+                type="number"
+                value={weight}
+                onIonChange={e => setWeight(e.detail.value!)}
+                required
+                min="1"
+                step="0.1"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">身高 (cm)</IonLabel>
+              <IonInput
+                type="number"
+                value={height}
+                onIonChange={e => setHeight(e.detail.value!)}
+                required
+                min="1"
+                step="0.1"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">備註</IonLabel>
+              <IonTextarea
+                value={note}
+                onIonChange={e => setNote(e.detail.value!)}
+                autoGrow
+              />
+            </IonItem>
+            {weight && height && !isNaN(parseFloat(weight)) && !isNaN(parseFloat(height)) && (
+              <IonItem>
+                <IonLabel>BMI：{calculateBMI(parseFloat(weight), parseFloat(height))}</IonLabel>
+              </IonItem>
+            )}
+            {error && (
+              <IonNote color="danger" style={{ marginLeft: 16 }}>{error}</IonNote>
+            )}
+            <IonButton expand="block" type="submit" style={{ margin: 16 }}>儲存</IonButton>
+          </IonList>
+        </form>
+        <IonToast
+          isOpen={showToast}
+          message="新增成功！"
+          duration={800}
+          color="success"
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default AddWeight; 

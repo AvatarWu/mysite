@@ -1,0 +1,281 @@
+/* ========================================
+   Home Page Specific Styles
+   ======================================== */
+
+/* 頁面特定樣式 */
+.welcome-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.features-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.quick-actions-section {
+  margin-bottom: var(--spacing-8);
+}
+
+.health-summary-section {
+  margin-bottom: var(--spacing-8);
+}
+
+/* 區段標題 */
+.section-title {
+  font-size: var(--text-xl);
+  font-weight: var(--font-bold);
+  color: var(--text-primary);
+  margin: 0 0 var(--spacing-6) 0;
+  text-align: center;
+  letter-spacing: -0.025em;
+}
+
+/* 功能卡片變體樣式 */
+.feature-card.success {
+  background: linear-gradient(135deg, var(--success) 0%, var(--success-800) 100%);
+}
+
+.feature-card.warning {
+  background: linear-gradient(135deg, var(--warning) 0%, var(--warning-800) 100%);
+}
+
+.feature-card.danger {
+  background: linear-gradient(135deg, var(--danger) 0%, var(--danger-800) 100%);
+}
+
+/* 快速操作卡片樣式 */
+.quick-actions-section .card {
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.quick-actions-section .card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.action-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto;
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-full);
+  color: var(--primary);
+}
+
+.action-icon svg {
+  width: 24px;
+  height: 24px;
+}
+
+/* 健康摘要樣式 */
+.summary-item {
+  padding: var(--spacing-4);
+  background-color: var(--background-secondary);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-secondary);
+}
+
+.summary-value {
+  margin-bottom: var(--spacing-2);
+}
+
+.summary-label {
+  color: var(--text-secondary);
+}
+
+/* 響應式設計 */
+@media (max-width: 640px) {
+  .page-container {
+    padding-top: calc(var(--safe-area-top) + var(--spacing-12));
+    padding-bottom: calc(var(--safe-area-bottom) + var(--spacing-16));
+  }
+  
+  .container {
+    padding: 0 var(--spacing-4);
+  }
+  
+  .section-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--spacing-4);
+  }
+  
+  .feature-card {
+    min-height: 140px;
+    padding: var(--spacing-6);
+  }
+  
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    margin-bottom: var(--spacing-4);
+  }
+  
+  .feature-icon svg {
+    width: 24px;
+    height: 24px;
+  }
+  
+  .feature-title {
+    font-size: var(--text-lg);
+    margin-bottom: var(--spacing-2);
+  }
+  
+  .feature-description {
+    font-size: var(--text-xs);
+  }
+  
+  .welcome-section,
+  .features-section,
+  .quick-actions-section,
+  .health-summary-section {
+    margin-bottom: var(--spacing-6);
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  .container {
+    padding: 0 var(--spacing-6);
+  }
+  
+  .grid.grid-cols-2 {
+    gap: var(--spacing-6);
+  }
+  
+  .feature-card {
+    min-height: 180px;
+    padding: var(--spacing-8);
+  }
+  
+  .feature-icon {
+    width: 72px;
+    height: 72px;
+    margin-bottom: var(--spacing-6);
+  }
+  
+  .feature-icon svg {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+@media (min-width: 1025px) {
+  .container {
+    padding: 0 var(--spacing-8);
+  }
+  
+  .grid.grid-cols-2 {
+    gap: var(--spacing-8);
+  }
+  
+  .feature-card {
+    min-height: 200px;
+    padding: var(--spacing-10);
+  }
+  
+  .feature-icon {
+    width: 80px;
+    height: 80px;
+    margin-bottom: var(--spacing-8);
+  }
+  
+  .feature-icon svg {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .feature-title {
+    font-size: var(--text-2xl);
+  }
+  
+  .feature-description {
+    font-size: var(--text-base);
+  }
+}
+
+/* 深色模式適配 */
+@media (prefers-color-scheme: dark) {
+  .summary-item {
+    background-color: var(--background-tertiary);
+    border-color: var(--border-primary);
+  }
+  
+  .action-icon {
+    background-color: var(--background-tertiary);
+  }
+}
+
+/* 動畫優化 */
+.animate-fade-in {
+  opacity: 0;
+  animation: fadeIn 0.6s ease-out forwards;
+}
+
+.animate-delay-100 { animation-delay: 0.1s; }
+.animate-delay-200 { animation-delay: 0.2s; }
+.animate-delay-300 { animation-delay: 0.3s; }
+.animate-delay-400 { animation-delay: 0.4s; }
+.animate-delay-500 { animation-delay: 0.5s; }
+
+/* 觸摸優化 */
+@media (hover: none) and (pointer: coarse) {
+  .feature-card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .quick-actions-section .card:hover {
+    transform: none;
+    box-shadow: var(--shadow-md);
+  }
+  
+  .feature-card:active {
+    transform: scale(0.98);
+    transition: all var(--transition-fast);
+  }
+  
+  .quick-actions-section .card:active {
+    transform: scale(0.98);
+    transition: all var(--transition-fast);
+  }
+}
+
+/* 無障礙支持 */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-delay-100,
+  .animate-delay-200,
+  .animate-delay-300,
+  .animate-delay-400,
+  .animate-delay-500 {
+    animation: none;
+    opacity: 1;
+  }
+  
+  .feature-card,
+  .quick-actions-section .card {
+    transition: none;
+  }
+  
+  .feature-card:hover,
+  .quick-actions-section .card:hover {
+    transform: none;
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .feature-card {
+    border: 2px solid var(--text-inverse);
+  }
+  
+  .card {
+    border: 2px solid var(--border-primary);
+  }
+  
+  .summary-item {
+    border: 2px solid var(--border-primary);
+  }
+}

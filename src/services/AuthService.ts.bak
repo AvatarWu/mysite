@@ -1,0 +1,344 @@
+import axios from 'axios';
+import { Preferences } from '@capacitor/preferences';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
+  phone?: string;
+  avatar?: string;
+  role?: string;
+  createdAt?: string;
+  lastLogin?: string;
+}
+
+export interface LoginCredentials {
+  email: string;
+  password: string;
+}
+
+export interface RegisterData {
+  email: string;
+  password: string;
+  name: string;
+  phone?: string;
+}
+
+export interface AuthResponse {
+  success: boolean;
+  token?: string;
+  user?: User;
+  message?: string;
+}
+
+export interface PasswordResetRequest {
+  email: string;
+}
+
+export interface PasswordResetConfirm {
+  token: string;
+  newPassword: string;
+}
+
+export class AuthService {
+  private static instance: AuthService;
+  private baseURL: string;
+  private token: string | null = null;
+  private user: User | null = null;
+
+  private constructor() {
+    this.baseURL = 'http://localhost:3000/api';
+    this.initializeAuth();
+  }
+
+  static getInstance(): AuthService {
+    if (!AuthService.instance) {
+      AuthService.instance = new AuthService();
+    }
+    return AuthService.instance;
+  }
+
+  /**
+   * 初始化認證狀態
+   */
+  private async initializeAuth(): Promise<void> {
+    try {
+      // 從本地存儲恢復認證狀態
+      const token = await Preferences.get({ key: 'auth_token' });
+      const userData = await Preferences.get({ key: 'user_data' });
+
+      if (token.value && userData.value) {
+        this.token = token.value;
+        this.user = JSON.parse(userData.value);
+        this.setupAxiosInterceptors();
+      }
+    } catch (error) {
+      console.error('初始化認證失敗:', error);
+    }
+  }
+
+  /**
+   * 設置 Axios 攔截器
+   */
+  private setupAxiosInterceptors(): void {
+    // 請求攔截器 - 添加認證令牌
+    axios.interceptors.request.use(
+      (config) => {
+        if (this.token) {
+          config.headers.Authorization = `Bearer ${this.token}`;
+        }
+        return config;
+      },
+      (error) => {
+        return Promise.reject(error);
+      }
+    );
+
+    // 響應攔截器 - 處理認證錯誤
+    axios.interceptors.response.use(
+      (response) => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          // 令牌過期，清除認證狀態
+          await this.logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+  }
+
+  /**
+   * 用戶登錄
+   */
+  async login(credentials: LoginCredentials): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${this.baseURL}/users/login`, credentials);
+      const { success, token, user, message } = response.data;
+
+      if (success && token && user) {
+        this.token = token;
+        this.user = user;
+        
+        // 保存到本地存儲
+        await Preferences.set({ key: 'auth_token', value: token });
+        await Preferences.set({ key: 'user_data', value: JSON.stringify(user) });
+        
+        this.setupAxiosInterceptors();
+        
+        return { success: true, token, user };
+      } else {
+        return { success: false, message: message || '登錄失敗' };
+      }
+    } catch (error: any) {
+      console.error('登錄錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '登錄失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 用戶註冊
+   */
+  async register(data: RegisterData): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${this.baseURL}/users/register`, data);
+      const { success, message, user } = response.data;
+
+      if (success && user) {
+        return { success: true, user, message };
+      } else {
+        return { success: false, message: message || '註冊失敗' };
+      }
+    } catch (error: any) {
+      console.error('註冊錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '註冊失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 忘記密碼
+   */
+  async forgotPassword(data: PasswordResetRequest): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${this.baseURL}/users/forgot-password`, data);
+      const { success, message } = response.data;
+
+      return { success, message };
+    } catch (error: any) {
+      console.error('忘記密碼錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '請求失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 重置密碼
+   */
+  async resetPassword(data: PasswordResetConfirm): Promise<AuthResponse> {
+    try {
+      const response = await axios.post(`${this.baseURL}/users/reset-password`, data);
+      const { success, message } = response.data;
+
+      return { success, message };
+    } catch (error: any) {
+      console.error('重置密碼錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '重置失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 更新用戶資料
+   */
+  async updateProfile(updates: Partial<User>): Promise<AuthResponse> {
+    try {
+      if (!this.token) {
+        return { success: false, message: '未登錄' };
+      }
+
+      const response = await axios.put(`${this.baseURL}/users/profile`, updates);
+      const { success, user, message } = response.data;
+
+      if (success && user) {
+        this.user = { ...this.user, ...user };
+        await Preferences.set({ key: 'user_data', value: JSON.stringify(this.user) });
+        return { success: true, user: this.user };
+      } else {
+        return { success: false, message: message || '更新失敗' };
+      }
+    } catch (error: any) {
+      console.error('更新資料錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '更新失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 更改密碼
+   */
+  async changePassword(currentPassword: string, newPassword: string): Promise<AuthResponse> {
+    try {
+      if (!this.token) {
+        return { success: false, message: '未登錄' };
+      }
+
+      const response = await axios.put(`${this.baseURL}/users/change-password`, {
+        currentPassword,
+        newPassword
+      });
+      const { success, message } = response.data;
+
+      return { success, message };
+    } catch (error: any) {
+      console.error('更改密碼錯誤:', error);
+      return {
+        success: false,
+        message: error.response?.data?.message || '更改失敗，請檢查網絡連接'
+      };
+    }
+  }
+
+  /**
+   * 用戶登出
+   */
+  async logout(): Promise<void> {
+    try {
+      this.token = null;
+      this.user = null;
+      
+      // 清除本地存儲
+      await Preferences.remove({ key: 'auth_token' });
+      await Preferences.remove({ key: 'user_data' });
+      
+      // 清除 Axios 攔截器
+      axios.interceptors.request.clear();
+      axios.interceptors.response.clear();
+      
+      console.log('用戶已登出');
+    } catch (error) {
+      console.error('登出錯誤:', error);
+    }
+  }
+
+  /**
+   * 檢查是否已登錄
+   */
+  isAuthenticated(): boolean {
+    return !!this.token && !!this.user;
+  }
+
+  /**
+   * 獲取當前用戶
+   */
+  getCurrentUser(): User | null {
+    return this.user;
+  }
+
+  /**
+   * 獲取認證令牌
+   */
+  getToken(): string | null {
+    return this.token;
+  }
+
+  /**
+   * 檢查令牌是否有效
+   */
+  async validateToken(): Promise<boolean> {
+    try {
+      if (!this.token) {
+        return false;
+      }
+
+      const response = await axios.get(`${this.baseURL}/users/validate-token`);
+      return response.data.success;
+    } catch (error) {
+      console.error('令牌驗證失敗:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 刷新用戶資料
+   */
+  async refreshUserProfile(): Promise<boolean> {
+    try {
+      if (!this.token) {
+        return false;
+      }
+
+      const response = await axios.get(`${this.baseURL}/users/profile`);
+      const { success, user } = response.data;
+
+      if (success && user) {
+        this.user = user;
+        await Preferences.set({ key: 'user_data', value: JSON.stringify(user) });
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('刷新用戶資料失敗:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 清理資源
+   */
+  async destroy(): Promise<void> {
+    await this.logout();
+  }
+}
+
+export default AuthService;

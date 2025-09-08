@@ -1,0 +1,6 @@
+import React from 'react';
+import BloodSugar from './BloodSugar';
+
+const Tab3: React.FC = () => <BloodSugar />;
+
+export default Tab3;

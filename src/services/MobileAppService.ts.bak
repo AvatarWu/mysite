@@ -1,0 +1,237 @@
+import { Capacitor } from '@capacitor/core';
+import { Network } from '@capacitor/network';
+import { Preferences } from '@capacitor/preferences';
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Device } from '@capacitor/device';
+
+export interface MobileAppInfo {
+  platform: 'ios' | 'android' | 'web';
+  version: string;
+  isNative: boolean;
+  deviceInfo: {
+    name: string;
+    model: string;
+    platform: string;
+    operatingSystem: string;
+    osVersion: string;
+    webViewVersion: string;
+  };
+}
+
+export interface NotificationConfig {
+  id: number;
+  title: string;
+  body: string;
+  schedule?: {
+    at: Date;
+  };
+  sound?: string;
+  actionTypeId?: string;
+  extra?: any;
+}
+
+export class MobileAppService {
+  private static instance: MobileAppService;
+  private appInfo: MobileAppInfo | null = null;
+
+  private constructor() {}
+
+  static getInstance(): MobileAppService {
+    if (!MobileAppService.instance) {
+      MobileAppService.instance = new MobileAppService();
+    }
+    return MobileAppService.instance;
+  }
+
+  /**
+   * 初始化移動應用服務
+   */
+  async initialize(): Promise<void> {
+    try {
+      // 獲取設備信息
+      const deviceInfo = await Device.getInfo();
+      
+      this.appInfo = {
+        platform: Capacitor.getPlatform() as 'ios' | 'android' | 'web',
+        version: '1.0.0',
+        isNative: Capacitor.isNativePlatform(),
+        deviceInfo: {
+          name: deviceInfo.name || 'Unknown',
+          model: deviceInfo.model || 'Unknown',
+          platform: deviceInfo.platform || 'Unknown',
+          operatingSystem: deviceInfo.operatingSystem || 'Unknown',
+          osVersion: deviceInfo.osVersion || 'Unknown',
+          webViewVersion: deviceInfo.webViewVersion || 'Unknown'
+        }
+      };
+
+      console.log('移動應用服務初始化完成:', this.appInfo);
+    } catch (error) {
+      console.error('移動應用服務初始化失敗:', error);
+    }
+  }
+
+  /**
+   * 獲取應用信息
+   */
+  getAppInfo(): MobileAppInfo | null {
+    return this.appInfo;
+  }
+
+  /**
+   * 檢查是否為原生平台
+   */
+  isNativePlatform(): boolean {
+    return Capacitor.isNativePlatform();
+  }
+
+  /**
+   * 獲取當前平台
+   */
+  getPlatform(): string {
+    return Capacitor.getPlatform();
+  }
+
+  /**
+   * 發送本地通知
+   */
+  async scheduleNotification(config: NotificationConfig): Promise<void> {
+    try {
+      if (!this.isNativePlatform()) {
+        console.log('非原生平台，模擬通知:', config);
+        return;
+      }
+
+      await LocalNotifications.schedule({
+        notifications: [{
+          id: config.id,
+          title: config.title,
+          body: config.body,
+          schedule: config.schedule,
+          sound: config.sound,
+          actionTypeId: config.actionTypeId,
+          extra: config.extra
+        }]
+      });
+
+      console.log('通知已安排:', config);
+    } catch (error) {
+      console.error('安排通知失敗:', error);
+    }
+  }
+
+  /**
+   * 取消通知
+   */
+  async cancelNotification(id: number): Promise<void> {
+    try {
+      if (!this.isNativePlatform()) {
+        console.log('非原生平台，模擬取消通知:', id);
+        return;
+      }
+
+      await LocalNotifications.cancel({ notifications: [{ id }] });
+      console.log('通知已取消:', id);
+    } catch (error) {
+      console.error('取消通知失敗:', error);
+    }
+  }
+
+  /**
+   * 獲取所有通知
+   */
+  async getPendingNotifications(): Promise<any[]> {
+    try {
+      if (!this.isNativePlatform()) {
+        console.log('非原生平台，返回空通知列表');
+        return [];
+      }
+
+      const result = await LocalNotifications.getPending();
+      return result.notifications || [];
+    } catch (error) {
+      console.error('獲取待處理通知失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 檢查網絡狀態
+   */
+  async getNetworkStatus(): Promise<{ connected: boolean; connectionType: string }> {
+    try {
+      const status = await Network.getStatus();
+      return {
+        connected: status.connected,
+        connectionType: status.connectionType
+      };
+    } catch (error) {
+      console.error('獲取網絡狀態失敗:', error);
+      return { connected: false, connectionType: 'unknown' };
+    }
+  }
+
+  /**
+   * 監聽網絡狀態變化
+   */
+  async addNetworkListener(callback: (status: { connected: boolean; connectionType: string }) => void): Promise<void> {
+    try {
+      await Network.addListener('networkStatusChange', (status) => {
+        callback({
+          connected: status.connected,
+          connectionType: status.connectionType
+        });
+      });
+    } catch (error) {
+      console.error('添加網絡監聽器失敗:', error);
+    }
+  }
+
+  /**
+   * 獲取設備存儲信息
+   */
+  async getStorageInfo(): Promise<{ used: number; total: number }> {
+    try {
+      // 模擬存儲信息（實際實現需要平台特定 API）
+      return {
+        used: 1024 * 1024 * 100, // 100MB
+        total: 1024 * 1024 * 1024 * 64 // 64GB
+      };
+    } catch (error) {
+      console.error('獲取存儲信息失敗:', error);
+      return { used: 0, total: 0 };
+    }
+  }
+
+  /**
+   * 檢查應用權限
+   */
+  async checkPermissions(): Promise<{ notifications: boolean; storage: boolean; network: boolean }> {
+    try {
+      // 模擬權限檢查
+      return {
+        notifications: true,
+        storage: true,
+        network: true
+      };
+    } catch (error) {
+      console.error('檢查權限失敗:', error);
+      return { notifications: false, storage: false, network: false };
+    }
+  }
+
+  /**
+   * 清理資源
+   */
+  async destroy(): Promise<void> {
+    try {
+      // 清理監聽器
+      await Network.removeAllListeners();
+      console.log('移動應用服務已清理');
+    } catch (error) {
+      console.error('清理移動應用服務失敗:', error);
+    }
+  }
+}
+
+export default MobileAppService.getInstance();

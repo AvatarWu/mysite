@@ -1,0 +1,376 @@
+/* 血糖管理頁面樣式 - 參考血壓管理成功模式 */
+
+.blood-sugar-page {
+  min-height: 100vh;
+  background: #f2f2f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* 自定義導航欄 - Apple 風格 */
+.custom-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding-top: max(env(safe-area-inset-top), 60px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 44px;
+  position: relative;
+}
+
+/* 返回按鈕 - Apple 風格 */
+.blood-sugar-page .custom-back-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #007aff !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  position: absolute !important;
+  left: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1001 !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.blood-sugar-page .custom-back-btn span {
+  color: #007aff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.blood-sugar-page .custom-back-btn svg {
+  stroke: #007aff !important;
+}
+
+/* 標題 - Apple 風格 */
+.blood-sugar-page .custom-title {
+  color: #1d1d1f !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  background-color: transparent !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  z-index: 1000 !important;
+}
+
+/* 新增按鈕 - Apple 風格 */
+.blood-sugar-page .custom-add-btn {
+  background: #007aff !important;
+  border: none !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  z-index: 1001 !important;
+  position: absolute !important;
+  right: 20px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+}
+
+.blood-sugar-page .custom-add-btn span {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding: 20px;
+  padding-top: 120px;
+  background: #f2f2f7;
+}
+
+/* 卡片樣式 */
+.status-card,
+.stat-card,
+.record-card,
+.empty-state {
+  background: #ffffff;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 統計網格 */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* 記錄列表 */
+.records-section h2 {
+  color: #1d1d1f;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.record-info {
+  flex: 1;
+}
+
+.record-value {
+  color: #1d1d1f;
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.record-meta {
+  color: #8e8e93;
+  font-size: 14px;
+}
+
+.record-status {
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  background-color: #34C759;
+  color: #ffffff;
+}
+
+/* 狀態卡片內容 */
+.status-title {
+  color: #1d1d1f;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.status-subtitle {
+  color: #8e8e93;
+  font-size: 14px;
+}
+
+/* 統計卡片內容 */
+.stat-value {
+  color: #1d1d1f;
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.stat-label {
+  color: #8e8e93;
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+.stat-unit {
+  color: #8e8e93;
+  font-size: 12px;
+}
+
+/* 空狀態 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #1d1d1f;
+}
+
+/* 全域深色模式強制樣式 */
+@media (prefers-color-scheme: dark) {
+  .blood-sugar-page * {
+    color: #ffffff !important;
+  }
+  
+  .blood-sugar-page .stat-value,
+  .blood-sugar-page .record-value,
+  .blood-sugar-page .status-title {
+    color: #ffffff !important;
+  }
+  
+  .blood-sugar-page .stat-label,
+  .blood-sugar-page .stat-unit,
+  .blood-sugar-page .record-meta,
+  .blood-sugar-page .status-subtitle {
+    color: #8e8e93 !important;
+  }
+  
+  .blood-sugar-page .records-section h2 {
+    color: #ffffff !important;
+  }
+  
+  .blood-sugar-page .empty-state {
+    color: #ffffff !important;
+  }
+}
+
+/* 深色模式支援 - 參考血壓管理成功模式 */
+@media (prefers-color-scheme: dark) {
+  .blood-sugar-page {
+    background: #000000 !important;
+  }
+  
+  .main-content {
+    background: #000000 !important;
+  }
+  
+  .custom-header {
+    background: #000000 !important;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .custom-back-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-back-btn span {
+    color: #007aff !important;
+  }
+  
+  .custom-back-btn svg {
+    stroke: #007aff !important;
+  }
+  
+  .custom-title {
+    color: #ffffff !important;
+    background-color: transparent !important;
+  }
+  
+  .custom-title * {
+    color: #ffffff !important;
+  }
+  
+  .custom-add-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-add-btn span {
+    color: #ffffff !important;
+  }
+  
+  .status-card,
+  .stat-card,
+  .record-card,
+  .empty-state {
+    background: #000000 !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: none !important;
+  }
+  
+  .records-section h2 {
+    color: #ffffff !important;
+  }
+  
+  .record-value {
+    color: #ffffff !important;
+  }
+  
+  .status-title {
+    color: #ffffff !important;
+  }
+  
+  .stat-value {
+    color: #ffffff !important;
+  }
+  
+  .empty-state {
+    color: #ffffff !important;
+  }
+}
+
+/* 響應式設計 */
+@media (max-width: 375px) {
+  .main-content {
+    padding: 16px;
+    padding-top: 100px;
+  }
+  
+  .custom-back-btn,
+  .custom-add-btn {
+    min-width: 50px !important;
+    padding: 6px 10px !important;
+  }
+  
+  .custom-title {
+    font-size: 18px !important;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+
+/* 按鈕懸停效果 */
+.custom-back-btn:hover,
+.custom-add-btn:hover {
+  opacity: 0.8;
+  transition: opacity 0.2s ease;
+}
+
+/* 確保所有文字在深色模式下可見 */
+.blood-sugar-page * {
+  color: inherit;
+}
+
+.blood-sugar-page .custom-title,
+.blood-sugar-page .custom-back-btn,
+.blood-sugar-page .custom-add-btn,
+.blood-sugar-page .records-section h2,
+.blood-sugar-page .record-value,
+.blood-sugar-page .status-title,
+.blood-sugar-page .stat-value,
+.blood-sugar-page .empty-state {
+  color: #1d1d1f !important;
+}
+
+.blood-sugar-page .record-meta,
+.blood-sugar-page .status-subtitle,
+.blood-sugar-page .stat-label,
+.blood-sugar-page .stat-unit {
+  color: #8e8e93 !important;
+}

@@ -1,0 +1,424 @@
+/* src/pages/Profile.css */
+
+/* 全局設定 */
+* {
+  box-sizing: border-box;
+}
+
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  position: relative;
+}
+
+/* 自定義導航欄 */
+.custom-header {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  background: rgba(255, 255, 255, 0.95) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1) !important;
+  z-index: 1000 !important;
+  padding-top: max(env(safe-area-inset-top), 44px) !important;
+  padding-bottom: 16px !important;
+}
+
+.header-content {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0 20px !important;
+  margin-top: 0 !important;
+}
+
+.back-button {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: none !important;
+  border: none !important;
+  color: #2563eb !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  position: absolute !important;
+  left: 0 !important;
+  z-index: 1001 !important;
+}
+
+.back-button:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+  transform: translateX(-2px) !important;
+}
+
+.header-title {
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100% !important;
+  text-align: center !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  margin: 0 !important;
+  z-index: 1000 !important;
+}
+
+.edit-button {
+  background: none !important;
+  border: none !important;
+  color: #2563eb !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  position: absolute !important;
+  right: 0 !important;
+  z-index: 1001 !important;
+}
+
+.edit-button:hover {
+  background: rgba(37, 99, 235, 0.1) !important;
+}
+
+.edit-actions {
+  display: flex !important;
+  gap: 12px !important;
+  position: absolute !important;
+  right: 0 !important;
+  z-index: 1001 !important;
+}
+
+.cancel-button,
+.save-button {
+  background: none !important;
+  border: none !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+}
+
+.cancel-button {
+  color: #6b7280 !important;
+}
+
+.cancel-button:hover {
+  background: rgba(107, 114, 128, 0.1) !important;
+}
+
+.save-button {
+  color: #16a34a !important;
+}
+
+.save-button:hover {
+  background: rgba(22, 163, 74, 0.1) !important;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding-top: calc(max(env(safe-area-inset-top), 44px) + 80px) !important;
+  padding-bottom: 40px !important;
+  padding-left: 20px !important;
+  padding-right: 20px !important;
+}
+
+/* 頭像區域 */
+.avatar-section {
+  text-align: center !important;
+  margin-bottom: 32px !important;
+  padding: 32px 20px !important;
+  background: rgba(255, 255, 255, 0.8) !important;
+  backdrop-filter: blur(10px) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+}
+
+.avatar-container {
+  position: relative !important;
+  display: inline-block !important;
+  margin-bottom: 20px !important;
+}
+
+.avatar {
+  width: 120px !important;
+  height: 120px !important;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: white !important;
+  margin: 0 auto !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15) !important;
+}
+
+.change-avatar-button {
+  position: absolute !important;
+  bottom: 8px !important;
+  right: 8px !important;
+  width: 36px !important;
+  height: 36px !important;
+  background: #2563eb !important;
+  border: none !important;
+  border-radius: 50% !important;
+  color: white !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+  transition: all 0.2s ease !important;
+}
+
+.change-avatar-button:hover {
+  transform: scale(1.1) !important;
+  background: #1d4ed8 !important;
+}
+
+.user-info {
+  text-align: center !important;
+}
+
+.user-name {
+  font-size: 24px !important;
+  font-weight: 700 !important;
+  color: #1f2937 !important;
+  margin: 0 0 8px 0 !important;
+}
+
+.user-details {
+  font-size: 16px !important;
+  color: #6b7280 !important;
+  margin: 0 !important;
+}
+
+/* 資訊區塊 */
+.info-section {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  margin-bottom: 20px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+.section-title {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  font-size: 18px !important;
+  font-weight: 600 !important;
+  color: #1f2937 !important;
+  margin: 0 0 24px 0 !important;
+  padding-bottom: 12px !important;
+  border-bottom: 2px solid #f3f4f6 !important;
+}
+
+.section-title svg {
+  color: #2563eb !important;
+}
+
+.info-group {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 20px !important;
+}
+
+.info-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 8px !important;
+}
+
+.info-label {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  color: #374151 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.info-value {
+  font-size: 16px !important;
+  color: #1f2937 !important;
+  padding: 12px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  gap: 16px !important;
+}
+
+.info-input,
+.info-textarea,
+.info-select {
+  width: 100% !important;
+  padding: 14px 16px !important;
+  border: 2px solid #e5e7eb !important;
+  border-radius: 12px !important;
+  font-size: 16px !important;
+  color: #1f2937 !important;
+  background: white !important;
+  transition: all 0.2s ease !important;
+  resize: vertical !important;
+}
+
+.info-input:focus,
+.info-textarea:focus,
+.info-select:focus {
+  outline: none !important;
+  border-color: #2563eb !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1) !important;
+}
+
+.info-textarea {
+  min-height: 60px !important;
+  font-family: inherit !important;
+}
+
+.call-button {
+  background: #16a34a !important;
+  border: none !important;
+  border-radius: 50% !important;
+  width: 32px !important;
+  height: 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: white !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  flex-shrink: 0 !important;
+}
+
+.call-button:hover {
+  background: #15803d !important;
+  transform: scale(1.1) !important;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .main-content {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  .avatar-section {
+    padding: 24px 16px !important;
+  }
+
+  .info-section {
+    padding: 20px !important;
+  }
+
+  .user-name {
+    font-size: 20px !important;
+  }
+
+  .edit-actions {
+    flex-direction: row !important;
+    gap: 8px !important;
+  }
+
+  .cancel-button,
+  .save-button {
+    padding: 6px 10px !important;
+    font-size: 14px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .avatar {
+    width: 100px !important;
+    height: 100px !important;
+  }
+
+  .avatar svg {
+    width: 48px !important;
+    height: 48px !important;
+  }
+
+  .change-avatar-button {
+    width: 32px !important;
+    height: 32px !important;
+  }
+
+  .change-avatar-button svg {
+    width: 16px !important;
+    height: 16px !important;
+  }
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+  .profile-page {
+    background: linear-gradient(135deg, #1f2937 0%, #111827 100%) !important;
+  }
+
+  .custom-header {
+    background: rgba(31, 41, 55, 0.95) !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .header-title {
+    color: #f9fafb !important;
+  }
+
+  .avatar-section {
+    background: rgba(31, 41, 55, 0.8) !important;
+  }
+
+  .info-section {
+    background: rgba(31, 41, 55, 0.9) !important;
+  }
+
+  .section-title {
+    color: #f9fafb !important;
+    border-bottom-color: #374151 !important;
+  }
+
+  .info-label {
+    color: #d1d5db !important;
+  }
+
+  .info-value {
+    color: #f9fafb !important;
+    border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  }
+
+  .user-name {
+    color: #f9fafb !important;
+  }
+
+  .user-details {
+    color: #9ca3af !important;
+  }
+
+  .info-input,
+  .info-textarea,
+  .info-select {
+    background: #374151 !important;
+    border-color: #4b5563 !important;
+    color: #f9fafb !important;
+  }
+
+  .info-input:focus,
+  .info-textarea:focus,
+  .info-select:focus {
+    border-color: #3b82f6 !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1) !important;
+  }
+}

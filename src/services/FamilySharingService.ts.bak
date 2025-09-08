@@ -1,0 +1,580 @@
+import { Preferences } from '@capacitor/preferences';
+import { User } from './AuthService';
+
+export interface FamilyMember {
+  id: string;
+  userId: string;
+  name: string;
+  relationship: 'spouse' | 'parent' | 'child' | 'sibling' | 'other';
+  avatar?: string;
+  email?: string;
+  phone?: string;
+  birthDate?: string;
+  gender?: 'male' | 'female' | 'other';
+  healthStatus?: 'healthy' | 'chronic' | 'recovery' | 'other';
+  permissions: {
+    viewHealthData: boolean;
+    editHealthData: boolean;
+    viewReports: boolean;
+    receiveNotifications: boolean;
+    emergencyAccess: boolean;
+  };
+  sharedData: {
+    weight: boolean;
+    bloodPressure: boolean;
+    bloodSugar: boolean;
+    medications: boolean;
+    appointments: boolean;
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface FamilyGroup {
+  id: string;
+  name: string;
+  description?: string;
+  ownerId: string;
+  members: FamilyMember[];
+  settings: {
+    autoSync: boolean;
+    privacyLevel: 'private' | 'family' | 'trusted' | 'public';
+    dataRetention: number; // 天數
+    emergencyContacts: string[];
+  };
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface SharedHealthData {
+  id: string;
+  memberId: string;
+  dataType: 'weight' | 'bloodPressure' | 'bloodSugar' | 'medications' | 'appointments';
+  data: any;
+  sharedAt: Date;
+  expiresAt?: Date;
+  accessLevel: 'view' | 'edit' | 'full';
+}
+
+export interface FamilyNotification {
+  id: string;
+  type: 'health_alert' | 'medication_reminder' | 'appointment_reminder' | 'data_update' | 'emergency';
+  title: string;
+  message: string;
+  memberId: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  read: boolean;
+  createdAt: Date;
+  expiresAt?: Date;
+}
+
+export class FamilySharingService {
+  private static instance: FamilySharingService;
+  private familyGroups: FamilyGroup[] = [];
+  private sharedData: SharedHealthData[] = [];
+  private notifications: FamilyNotification[] = [];
+
+  private constructor() {
+    this.initialize();
+  }
+
+  static getInstance(): FamilySharingService {
+    if (!FamilySharingService.instance) {
+      FamilySharingService.instance = new FamilySharingService();
+    }
+    return FamilySharingService.instance;
+  }
+
+  /**
+   * 初始化服務
+   */
+  private async initialize(): Promise<void> {
+    try {
+      await this.loadFamilyData();
+      console.log('家庭共享服務初始化完成');
+    } catch (error) {
+      console.error('家庭共享服務初始化失敗:', error);
+    }
+  }
+
+  /**
+   * 載入家庭數據
+   */
+  private async loadFamilyData(): Promise<void> {
+    try {
+      // 載入家庭組
+      const groupsData = await Preferences.get({ key: 'family_groups' });
+      if (groupsData.value) {
+        this.familyGroups = JSON.parse(groupsData.value);
+      }
+
+      // 載入共享數據
+      const sharedData = await Preferences.get({ key: 'shared_health_data' });
+      if (sharedData.value) {
+        this.sharedData = JSON.parse(sharedData.value);
+      }
+
+      // 載入通知
+      const notificationsData = await Preferences.get({ key: 'family_notifications' });
+      if (notificationsData.value) {
+        this.notifications = JSON.parse(notificationsData.value);
+      }
+    } catch (error) {
+      console.error('載入家庭數據失敗:', error);
+    }
+  }
+
+  /**
+   * 保存家庭數據
+   */
+  private async saveFamilyData(): Promise<void> {
+    try {
+      await Preferences.set({
+        key: 'family_groups',
+        value: JSON.stringify(this.familyGroups)
+      });
+
+      await Preferences.set({
+        key: 'shared_health_data',
+        value: JSON.stringify(this.sharedData)
+      });
+
+      await Preferences.set({
+        key: 'family_notifications',
+        value: JSON.stringify(this.notifications)
+      });
+    } catch (error) {
+      console.error('保存家庭數據失敗:', error);
+    }
+  }
+
+  /**
+   * 創建家庭組
+   */
+  async createFamilyGroup(
+    name: string,
+    description: string,
+    ownerId: string
+  ): Promise<FamilyGroup> {
+    try {
+      const group: FamilyGroup = {
+        id: `group_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        name,
+        description,
+        ownerId,
+        members: [],
+        settings: {
+          autoSync: true,
+          privacyLevel: 'family',
+          dataRetention: 365,
+          emergencyContacts: []
+        },
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.familyGroups.push(group);
+      await this.saveFamilyData();
+
+      return group;
+    } catch (error) {
+      console.error('創建家庭組失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 添加家庭成員
+   */
+  async addFamilyMember(
+    groupId: string,
+    memberData: Omit<FamilyMember, 'id' | 'createdAt' | 'updatedAt'>
+  ): Promise<FamilyMember> {
+    try {
+      const group = this.familyGroups.find(g => g.id === groupId);
+      if (!group) {
+        throw new Error('家庭組不存在');
+      }
+
+      const member: FamilyMember = {
+        ...memberData,
+        id: `member_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      group.members.push(member);
+      group.updatedAt = new Date();
+      await this.saveFamilyData();
+
+      return member;
+    } catch (error) {
+      console.error('添加家庭成員失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 更新家庭成員
+   */
+  async updateFamilyMember(
+    groupId: string,
+    memberId: string,
+    updates: Partial<FamilyMember>
+  ): Promise<FamilyMember> {
+    try {
+      const group = this.familyGroups.find(g => g.id === groupId);
+      if (!group) {
+        throw new Error('家庭組不存在');
+      }
+
+      const member = group.members.find(m => m.id === memberId);
+      if (!member) {
+        throw new Error('家庭成員不存在');
+      }
+
+      Object.assign(member, updates, { updatedAt: new Date() });
+      group.updatedAt = new Date();
+      await this.saveFamilyData();
+
+      return member;
+    } catch (error) {
+      console.error('更新家庭成員失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 移除家庭成員
+   */
+  async removeFamilyMember(groupId: string, memberId: string): Promise<void> {
+    try {
+      const group = this.familyGroups.find(g => g.id === groupId);
+      if (!group) {
+        throw new Error('家庭組不存在');
+      }
+
+      group.members = group.members.filter(m => m.id !== memberId);
+      group.updatedAt = new Date();
+      await this.saveFamilyData();
+    } catch (error) {
+      console.error('移除家庭成員失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 共享健康數據
+   */
+  async shareHealthData(
+    memberId: string,
+    dataType: string,
+    data: any,
+    accessLevel: 'view' | 'edit' | 'full' = 'view',
+    expiresInDays?: number
+  ): Promise<SharedHealthData> {
+    try {
+      const sharedData: SharedHealthData = {
+        id: `shared_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        memberId,
+        dataType: dataType as any,
+        data,
+        sharedAt: new Date(),
+        accessLevel,
+        expiresAt: expiresInDays ? new Date(Date.now() + expiresInDays * 24 * 60 * 60 * 1000) : undefined
+      };
+
+      this.sharedData.push(sharedData);
+      await this.saveFamilyData();
+
+      // 發送通知
+      await this.sendFamilyNotification(
+        memberId,
+        'data_update',
+        '數據更新',
+        `您的${this.getDataTypeText(dataType)}數據已更新`,
+        'medium'
+      );
+
+      return sharedData;
+    } catch (error) {
+      console.error('共享健康數據失敗:', error);
+      throw error;
+    }
+    }
+
+  /**
+   * 獲取共享的健康數據
+   */
+  async getSharedHealthData(
+    memberId: string,
+    dataType?: string
+  ): Promise<SharedHealthData[]> {
+    try {
+      let filteredData = this.sharedData.filter(d => d.memberId === memberId);
+
+      if (dataType) {
+        filteredData = filteredData.filter(d => d.dataType === dataType);
+      }
+
+      // 過濾過期的數據
+      filteredData = filteredData.filter(d => !d.expiresAt || d.expiresAt > new Date());
+
+      return filteredData;
+    } catch (error) {
+      console.error('獲取共享健康數據失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 發送家庭通知
+   */
+  async sendFamilyNotification(
+    memberId: string,
+    type: string,
+    title: string,
+    message: string,
+    priority: 'low' | 'medium' | 'high' | 'urgent' = 'medium',
+    expiresInHours?: number
+  ): Promise<FamilyNotification> {
+    try {
+      const notification: FamilyNotification = {
+        id: `notification_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        type: type as any,
+        title,
+        message,
+        memberId,
+        priority,
+        read: false,
+        createdAt: new Date(),
+        expiresAt: expiresInHours ? new Date(Date.now() + expiresInHours * 60 * 60 * 1000) : undefined
+      };
+
+      this.notifications.push(notification);
+      await this.saveFamilyData();
+
+      return notification;
+    } catch (error) {
+      console.error('發送家庭通知失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取家庭通知
+   */
+  async getFamilyNotifications(
+    memberId?: string,
+    unreadOnly: boolean = false
+  ): Promise<FamilyNotification[]> {
+    try {
+      let filteredNotifications = this.notifications;
+
+      if (memberId) {
+        filteredNotifications = filteredNotifications.filter(n => n.memberId === memberId);
+      }
+
+      if (unreadOnly) {
+        filteredNotifications = filteredNotifications.filter(n => !n.read);
+      }
+
+      // 過濾過期的通知
+      filteredNotifications = filteredNotifications.filter(n => !n.expiresAt || n.expiresAt > new Date());
+
+      // 按優先級和創建時間排序
+      filteredNotifications.sort((a, b) => {
+        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
+        
+        if (priorityDiff !== 0) return priorityDiff;
+        return b.createdAt.getTime() - a.createdAt.getTime();
+      });
+
+      return filteredNotifications;
+    } catch (error) {
+      console.error('獲取家庭通知失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 標記通知為已讀
+   */
+  async markNotificationAsRead(notificationId: string): Promise<void> {
+    try {
+      const notification = this.notifications.find(n => n.id === notificationId);
+      if (notification) {
+        notification.read = true;
+        await this.saveFamilyData();
+      }
+    } catch (error) {
+      console.error('標記通知為已讀失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取家庭組
+   */
+  async getFamilyGroups(userId: string): Promise<FamilyGroup[]> {
+    try {
+      return this.familyGroups.filter(g => 
+        g.ownerId === userId || g.members.some(m => m.userId === userId)
+      );
+    } catch (error) {
+      console.error('獲取家庭組失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 獲取家庭組
+   */
+  async getFamilyGroup(groupId: string): Promise<FamilyGroup | undefined> {
+    try {
+      return this.familyGroups.find(g => g.id === groupId);
+    } catch (error) {
+      console.error('獲取家庭組失敗:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * 更新家庭組設置
+   */
+  async updateFamilyGroupSettings(
+    groupId: string,
+    settings: Partial<FamilyGroup['settings']>
+  ): Promise<void> {
+    try {
+      const group = this.familyGroups.find(g => g.id === groupId);
+      if (!group) {
+        throw new Error('家庭組不存在');
+      }
+
+      Object.assign(group.settings, settings);
+      group.updatedAt = new Date();
+      await this.saveFamilyData();
+    } catch (error) {
+      console.error('更新家庭組設置失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 檢查數據訪問權限
+   */
+  async checkDataAccess(
+    memberId: string,
+    dataType: string,
+    accessLevel: 'view' | 'edit' | 'full'
+  ): Promise<boolean> {
+    try {
+      const member = this.findMemberById(memberId);
+      if (!member) return false;
+
+      const requiredPermission = this.getRequiredPermission(accessLevel);
+      return member.permissions[requiredPermission] || false;
+    } catch (error) {
+      console.error('檢查數據訪問權限失敗:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 根據ID查找成員
+   */
+  private findMemberById(memberId: string): FamilyMember | undefined {
+    for (const group of this.familyGroups) {
+      const member = group.members.find(m => m.id === memberId);
+      if (member) return member;
+    }
+    return undefined;
+  }
+
+  /**
+   * 獲取所需權限
+   */
+  private getRequiredPermission(accessLevel: string): keyof FamilyMember['permissions'] {
+    switch (accessLevel) {
+      case 'view':
+        return 'viewHealthData';
+      case 'edit':
+        return 'editHealthData';
+      case 'full':
+        return 'emergencyAccess';
+      default:
+        return 'viewHealthData';
+    }
+  }
+
+  /**
+   * 獲取數據類型文本
+   */
+  private getDataTypeText(dataType: string): string {
+    const typeMap: { [key: string]: string } = {
+      weight: '體重',
+      bloodPressure: '血壓',
+      bloodSugar: '血糖',
+      medications: '用藥',
+      appointments: '預約'
+    };
+    return typeMap[dataType] || dataType;
+  }
+
+  /**
+   * 清理過期數據
+   */
+  async cleanupExpiredData(): Promise<void> {
+    try {
+      const now = new Date();
+
+      // 清理過期的共享數據
+      this.sharedData = this.sharedData.filter(d => !d.expiresAt || d.expiresAt > now);
+
+      // 清理過期的通知
+      this.notifications = this.notifications.filter(n => !n.expiresAt || n.expiresAt > now);
+
+      await this.saveFamilyData();
+    } catch (error) {
+      console.error('清理過期數據失敗:', error);
+    }
+  }
+
+  /**
+   * 獲取家庭統計信息
+   */
+  async getFamilyStats(groupId: string): Promise<any> {
+    try {
+      const group = this.familyGroups.find(g => g.id === groupId);
+      if (!group) return null;
+
+      const totalMembers = group.members.length;
+      const activeMembers = group.members.filter(m => 
+        m.permissions.viewHealthData || m.permissions.editHealthData
+      ).length;
+
+      const sharedDataCount = this.sharedData.filter(d => 
+        group.members.some(m => m.id === d.memberId)
+      ).length;
+
+      const unreadNotifications = this.notifications.filter(n => 
+        !n.read && group.members.some(m => m.id === n.memberId)
+      ).length;
+
+      return {
+        totalMembers,
+        activeMembers,
+        sharedDataCount,
+        unreadNotifications,
+        lastUpdated: group.updatedAt
+      };
+    } catch (error) {
+      console.error('獲取家庭統計信息失敗:', error);
+      return null;
+    }
+  }
+}
+
+export default FamilySharingService.getInstance();

@@ -1,0 +1,718 @@
+import { Preferences } from '@capacitor/preferences';
+import { User } from './AuthService';
+
+export interface Doctor {
+  id: string;
+  name: string;
+  specialty: string;
+  hospital: string;
+  department: string;
+  avatar?: string;
+  email?: string;
+  phone?: string;
+  availability: {
+    monday: { start: string; end: string; available: boolean };
+    tuesday: { start: string; end: string; available: boolean };
+    wednesday: { start: string; end: string; available: boolean };
+    thursday: { start: string; end: string; available: boolean };
+    friday: { start: string; end: string; available: boolean };
+    saturday: { start: string; end: string; available: boolean };
+    sunday: { start: string; end: string; available: boolean };
+  };
+  rating: number;
+  reviewCount: number;
+  languages: string[];
+  certifications: string[];
+  experience: number; // 年數
+  consultationFee: number;
+  isOnline: boolean;
+  lastActive: Date;
+}
+
+export interface Appointment {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  type: 'consultation' | 'follow_up' | 'emergency' | 'routine_check';
+  status: 'scheduled' | 'confirmed' | 'completed' | 'cancelled' | 'rescheduled';
+  date: Date;
+  duration: number; // 分鐘
+  location: 'in_person' | 'video_call' | 'phone_call';
+  notes?: string;
+  symptoms?: string[];
+  medications?: string[];
+  vitalSigns?: {
+    weight?: number;
+    bloodPressure?: { systolic: number; diastolic: number };
+    bloodSugar?: number;
+    temperature?: number;
+    heartRate?: number;
+  };
+  doctorNotes?: string;
+  prescription?: string[];
+  followUpDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface Consultation {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  type: 'general' | 'specialized' | 'emergency' | 'follow_up';
+  status: 'pending' | 'active' | 'completed' | 'cancelled';
+  subject: string;
+  description: string;
+  symptoms: string[];
+  currentMedications: string[];
+  questions: string[];
+  doctorResponse?: string;
+  attachments: string[]; // 文件或圖片URL
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  createdAt: Date;
+  updatedAt: Date;
+  completedAt?: Date;
+}
+
+export interface Message {
+  id: string;
+  conversationId: string;
+  senderId: string;
+  senderType: 'patient' | 'doctor';
+  content: string;
+  type: 'text' | 'image' | 'file' | 'voice';
+  attachments?: string[];
+  read: boolean;
+  sentAt: Date;
+  readAt?: Date;
+}
+
+export interface Conversation {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  subject: string;
+  lastMessage?: Message;
+  unreadCount: number;
+  status: 'active' | 'archived' | 'closed';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface HealthRecord {
+  id: string;
+  patientId: string;
+  doctorId: string;
+  type: 'consultation' | 'examination' | 'lab_result' | 'imaging' | 'prescription';
+  title: string;
+  content: string;
+  attachments: string[];
+  tags: string[];
+  isPrivate: boolean;
+  sharedWith: string[]; // 醫生ID列表
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export class DoctorCommunicationService {
+  private static instance: DoctorCommunicationService;
+  private doctors: Doctor[] = [];
+  private appointments: Appointment[] = [];
+  private consultations: Consultation[] = [];
+  private conversations: Conversation[] = [];
+  private messages: Message[] = [];
+  private healthRecords: HealthRecord[] = [];
+
+  private constructor() {
+    this.initialize();
+  }
+
+  static getInstance(): DoctorCommunicationService {
+    if (!DoctorCommunicationService.instance) {
+      DoctorCommunicationService.instance = new DoctorCommunicationService();
+    }
+    return DoctorCommunicationService.instance;
+  }
+
+  /**
+   * 初始化服務
+   */
+  private async initialize(): Promise<void> {
+    try {
+      await this.loadData();
+      this.initializeMockData();
+      console.log('醫生溝通服務初始化完成');
+    } catch (error) {
+      console.error('醫生溝通服務初始化失敗:', error);
+    }
+  }
+
+  /**
+   * 載入數據
+   */
+  private async loadData(): Promise<void> {
+    try {
+      // 載入各種數據
+      const dataKeys = [
+        'doctors', 'appointments', 'consultations', 
+        'conversations', 'messages', 'health_records'
+      ];
+
+      for (const key of dataKeys) {
+        const data = await Preferences.get({ key });
+        if (data.value) {
+          (this as any)[key] = JSON.parse(data.value);
+        }
+      }
+    } catch (error) {
+      console.error('載入醫生溝通數據失敗:', error);
+    }
+  }
+
+  /**
+   * 保存數據
+   */
+  private async saveData(): Promise<void> {
+    try {
+      const dataToSave = {
+        doctors: this.doctors,
+        appointments: this.appointments,
+        consultations: this.consultations,
+        conversations: this.conversations,
+        messages: this.messages,
+        health_records: this.healthRecords
+      };
+
+      for (const [key, value] of Object.entries(dataToSave)) {
+        await Preferences.set({
+          key,
+          value: JSON.stringify(value)
+        });
+      }
+    } catch (error) {
+      console.error('保存醫生溝通數據失敗:', error);
+    }
+  }
+
+  /**
+   * 初始化模擬數據
+   */
+  private initializeMockData(): void {
+    if (this.doctors.length === 0) {
+      this.doctors = [
+        {
+          id: 'doc_001',
+          name: '張醫生',
+          specialty: '心臟內科',
+          hospital: '台北醫學大學附設醫院',
+          department: '心臟內科',
+          email: 'zhang.doctor@hospital.com',
+          phone: '02-1234-5678',
+          availability: {
+            monday: { start: '09:00', end: '17:00', available: true },
+            tuesday: { start: '09:00', end: '17:00', available: true },
+            wednesday: { start: '09:00', end: '17:00', available: true },
+            thursday: { start: '09:00', end: '17:00', available: true },
+            friday: { start: '09:00', end: '17:00', available: true },
+            saturday: { start: '09:00', end: '12:00', available: true },
+            sunday: { start: '09:00', end: '12:00', available: false }
+          },
+          rating: 4.8,
+          reviewCount: 156,
+          languages: ['中文', '英文'],
+          certifications: ['心臟專科醫師', '心臟超音波認證'],
+          experience: 15,
+          consultationFee: 800,
+          isOnline: true,
+          lastActive: new Date()
+        },
+        {
+          id: 'doc_002',
+          name: '李醫生',
+          specialty: '內分泌科',
+          hospital: '台大醫院',
+          department: '內分泌科',
+          email: 'li.doctor@hospital.com',
+          phone: '02-2345-6789',
+          availability: {
+            monday: { start: '08:00', end: '16:00', available: true },
+            tuesday: { start: '08:00', end: '16:00', available: true },
+            wednesday: { start: '08:00', end: '16:00', available: true },
+            thursday: { start: '08:00', end: '16:00', available: true },
+            friday: { start: '08:00', end: '16:00', available: true },
+            saturday: { start: '08:00', end: '12:00', available: false },
+            sunday: { start: '08:00', end: '12:00', available: false }
+          },
+          rating: 4.6,
+          reviewCount: 89,
+          languages: ['中文', '英文', '日文'],
+          certifications: ['內分泌專科醫師', '糖尿病認證'],
+          experience: 12,
+          consultationFee: 600,
+          isOnline: false,
+          lastActive: new Date(Date.now() - 2 * 60 * 60 * 1000)
+        }
+      ];
+    }
+  }
+
+  /**
+   * 獲取醫生列表
+   */
+  async getDoctors(filters?: {
+    specialty?: string;
+    hospital?: string;
+    isOnline?: boolean;
+    rating?: number;
+  }): Promise<Doctor[]> {
+    try {
+      let filteredDoctors = [...this.doctors];
+
+      if (filters?.specialty) {
+        filteredDoctors = filteredDoctors.filter(d => 
+          d.specialty.toLowerCase().includes(filters.specialty!.toLowerCase())
+        );
+      }
+
+      if (filters?.hospital) {
+        filteredDoctors = filteredDoctors.filter(d => 
+          d.hospital.toLowerCase().includes(filters.hospital!.toLowerCase())
+        );
+      }
+
+      if (filters?.isOnline !== undefined) {
+        filteredDoctors = filteredDoctors.filter(d => d.isOnline === filters.isOnline);
+      }
+
+      if (filters?.rating) {
+        filteredDoctors = filteredDoctors.filter(d => d.rating >= filters.rating!);
+      }
+
+      return filteredDoctors.sort((a, b) => b.rating - a.rating);
+    } catch (error) {
+      console.error('獲取醫生列表失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 獲取醫生詳情
+   */
+  async getDoctor(doctorId: string): Promise<Doctor | undefined> {
+    try {
+      return this.doctors.find(d => d.id === doctorId);
+    } catch (error) {
+      console.error('獲取醫生詳情失敗:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * 預約醫生
+   */
+  async bookAppointment(
+    patientId: string,
+    doctorId: string,
+    appointmentData: Omit<Appointment, 'id' | 'patientId' | 'doctorId' | 'status' | 'createdAt' | 'updatedAt'>
+  ): Promise<Appointment> {
+    try {
+      const appointment: Appointment = {
+        ...appointmentData,
+        id: `apt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        patientId,
+        doctorId,
+        status: 'scheduled',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.appointments.push(appointment);
+      await this.saveData();
+
+      return appointment;
+    } catch (error) {
+      console.error('預約醫生失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取預約列表
+   */
+  async getAppointments(
+    patientId?: string,
+    doctorId?: string,
+    status?: string
+  ): Promise<Appointment[]> {
+    try {
+      let filteredAppointments = [...this.appointments];
+
+      if (patientId) {
+        filteredAppointments = filteredAppointments.filter(a => a.patientId === patientId);
+      }
+
+      if (doctorId) {
+        filteredAppointments = filteredAppointments.filter(a => a.doctorId === doctorId);
+      }
+
+      if (status) {
+        filteredAppointments = filteredAppointments.filter(a => a.status === status);
+      }
+
+      return filteredAppointments.sort((a, b) => b.date.getTime() - a.date.getTime());
+    } catch (error) {
+      console.error('獲取預約列表失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 更新預約狀態
+   */
+  async updateAppointmentStatus(
+    appointmentId: string,
+    status: Appointment['status'],
+    notes?: string
+  ): Promise<Appointment | undefined> {
+    try {
+      const appointment = this.appointments.find(a => a.id === appointmentId);
+      if (!appointment) return undefined;
+
+      appointment.status = status;
+      if (notes) {
+        appointment.doctorNotes = notes;
+      }
+      appointment.updatedAt = new Date();
+
+      await this.saveData();
+      return appointment;
+    } catch (error) {
+      console.error('更新預約狀態失敗:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * 創建諮詢
+   */
+  async createConsultation(
+    patientId: string,
+    doctorId: string,
+    consultationData: Omit<Consultation, 'id' | 'patientId' | 'doctorId' | 'status' | 'createdAt' | 'updatedAt'>
+  ): Promise<Consultation> {
+    try {
+      const consultation: Consultation = {
+        ...consultationData,
+        id: `cons_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        patientId,
+        doctorId,
+        status: 'pending',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.consultations.push(consultation);
+      await this.saveData();
+
+      return consultation;
+    } catch (error) {
+      console.error('創建諮詢失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取諮詢列表
+   */
+  async getConsultations(
+    patientId?: string,
+    doctorId?: string,
+    status?: string
+  ): Promise<Consultation[]> {
+    try {
+      let filteredConsultations = [...this.consultations];
+
+      if (patientId) {
+        filteredConsultations = filteredConsultations.filter(c => c.patientId === patientId);
+      }
+
+      if (doctorId) {
+        filteredConsultations = filteredConsultations.filter(c => c.doctorId === doctorId);
+      }
+
+      if (status) {
+        filteredConsultations = filteredConsultations.filter(c => c.status === status);
+      }
+
+      return filteredConsultations.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+      console.error('獲取諮詢列表失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 醫生回覆諮詢
+   */
+  async respondToConsultation(
+    consultationId: string,
+    response: string
+  ): Promise<Consultation | undefined> {
+    try {
+      const consultation = this.consultations.find(c => c.id === consultationId);
+      if (!consultation) return undefined;
+
+      consultation.doctorResponse = response;
+      consultation.status = 'completed';
+      consultation.completedAt = new Date();
+      consultation.updatedAt = new Date();
+
+      await this.saveData();
+      return consultation;
+    } catch (error) {
+      console.error('回覆諮詢失敗:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * 發送消息
+   */
+  async sendMessage(
+    conversationId: string,
+    senderId: string,
+    senderType: 'patient' | 'doctor',
+    content: string,
+    type: Message['type'] = 'text',
+    attachments?: string[]
+  ): Promise<Message> {
+    try {
+      const message: Message = {
+        id: `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        conversationId,
+        senderId,
+        senderType,
+        content,
+        type,
+        attachments: attachments || [],
+        read: false,
+        sentAt: new Date()
+      };
+
+      this.messages.push(message);
+
+      // 更新對話的最後消息和未讀數量
+      const conversation = this.conversations.find(c => c.id === conversationId);
+      if (conversation) {
+        conversation.lastMessage = message;
+        conversation.unreadCount += 1;
+        conversation.updatedAt = new Date();
+      }
+
+      await this.saveData();
+      return message;
+    } catch (error) {
+      console.error('發送消息失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取對話消息
+   */
+  async getMessages(conversationId: string): Promise<Message[]> {
+    try {
+      return this.messages
+        .filter(m => m.conversationId === conversationId)
+        .sort((a, b) => a.sentAt.getTime() - b.sentAt.getTime());
+    } catch (error) {
+      console.error('獲取對話消息失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 標記消息為已讀
+   */
+  async markMessageAsRead(messageId: string): Promise<void> {
+    try {
+      const message = this.messages.find(m => m.id === messageId);
+      if (message && !message.read) {
+        message.read = true;
+        message.readAt = new Date();
+        await this.saveData();
+      }
+    } catch (error) {
+      console.error('標記消息為已讀失敗:', error);
+    }
+  }
+
+  /**
+   * 創建或獲取對話
+   */
+  async getOrCreateConversation(
+    patientId: string,
+    doctorId: string,
+    subject: string
+  ): Promise<Conversation> {
+    try {
+      let conversation = this.conversations.find(c => 
+        c.patientId === patientId && c.doctorId === doctorId && c.status === 'active'
+      );
+
+      if (!conversation) {
+        conversation = {
+          id: `conv_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          patientId,
+          doctorId,
+          subject,
+          unreadCount: 0,
+          status: 'active',
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+
+        this.conversations.push(conversation);
+        await this.saveData();
+      }
+
+      return conversation;
+    } catch (error) {
+      console.error('創建或獲取對話失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取對話列表
+   */
+  async getConversations(userId: string, userType: 'patient' | 'doctor'): Promise<Conversation[]> {
+    try {
+      let filteredConversations = [...this.conversations];
+
+      if (userType === 'patient') {
+        filteredConversations = filteredConversations.filter(c => c.patientId === userId);
+      } else {
+        filteredConversations = filteredConversations.filter(c => c.doctorId === userId);
+      }
+
+      return filteredConversations
+        .filter(c => c.status === 'active')
+        .sort((a, b) => (b.lastMessage?.sentAt.getTime() || b.updatedAt.getTime()) - (a.lastMessage?.sentAt.getTime() || a.updatedAt.getTime()));
+    } catch (error) {
+      console.error('獲取對話列表失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 創建健康記錄
+   */
+  async createHealthRecord(
+    patientId: string,
+    doctorId: string,
+    recordData: Omit<HealthRecord, 'id' | 'patientId' | 'doctorId' | 'createdAt' | 'updatedAt'>
+  ): Promise<HealthRecord> {
+    try {
+      const record: HealthRecord = {
+        ...recordData,
+        id: `rec_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        patientId,
+        doctorId,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      this.healthRecords.push(record);
+      await this.saveData();
+
+      return record;
+    } catch (error) {
+      console.error('創建健康記錄失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 獲取健康記錄
+   */
+  async getHealthRecords(
+    patientId?: string,
+    doctorId?: string,
+    type?: string
+  ): Promise<HealthRecord[]> {
+    try {
+      let filteredRecords = [...this.healthRecords];
+
+      if (patientId) {
+        filteredRecords = filteredRecords.filter(r => r.patientId === patientId);
+      }
+
+      if (doctorId) {
+        filteredRecords = filteredRecords.filter(r => r.doctorId === doctorId);
+      }
+
+      if (type) {
+        filteredRecords = filteredRecords.filter(r => r.type === type);
+      }
+
+      return filteredRecords.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+    } catch (error) {
+      console.error('獲取健康記錄失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 檢查醫生可用性
+   */
+  async checkDoctorAvailability(
+    doctorId: string,
+    date: Date,
+    time: string
+  ): Promise<boolean> {
+    try {
+      const doctor = this.doctors.find(d => d.id === doctorId);
+      if (!doctor) return false;
+
+      const dayOfWeek = date.toLocaleDateString('en-US', { weekday: 'lowercase' }) as keyof typeof doctor.availability;
+      const daySchedule = doctor.availability[dayOfWeek];
+
+      if (!daySchedule.available) return false;
+
+      const requestedTime = new Date(`2000-01-01T${time}`);
+      const startTime = new Date(`2000-01-01T${daySchedule.start}`);
+      const endTime = new Date(`2000-01-01T${daySchedule.end}`);
+
+      return requestedTime >= startTime && requestedTime <= endTime;
+    } catch (error) {
+      console.error('檢查醫生可用性失敗:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 獲取醫生統計信息
+   */
+  async getDoctorStats(doctorId: string): Promise<any> {
+    try {
+      const appointments = this.appointments.filter(a => a.doctorId === doctorId);
+      const consultations = this.consultations.filter(c => c.doctorId === doctorId);
+      const conversations = this.conversations.filter(c => c.doctorId === doctorId);
+
+      return {
+        totalAppointments: appointments.length,
+        completedAppointments: appointments.filter(a => a.status === 'completed').length,
+        pendingConsultations: consultations.filter(c => c.status === 'pending').length,
+        activeConversations: conversations.filter(c => c.status === 'active').length,
+        averageRating: 4.7, // 這裡應該從實際數據計算
+        totalPatients: new Set(appointments.map(a => a.patientId)).size
+      };
+    } catch (error) {
+      console.error('獲取醫生統計信息失敗:', error);
+      return null;
+    }
+  }
+}
+
+export default DoctorCommunicationService.getInstance();

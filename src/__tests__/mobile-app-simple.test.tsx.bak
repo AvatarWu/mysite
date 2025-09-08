@@ -1,0 +1,80 @@
+import { MobileAppService } from '../services/MobileAppService';
+
+// Mock Capacitor modules
+jest.mock('@capacitor/core', () => ({
+  Capacitor: {
+    getPlatform: jest.fn(() => 'ios'),
+    isNativePlatform: jest.fn(() => true)
+  }
+}));
+
+jest.mock('@capacitor/network', () => ({
+  Network: {
+    getStatus: jest.fn(() => Promise.resolve({ connected: true, connectionType: 'wifi' })),
+    addListener: jest.fn(() => Promise.resolve()),
+    removeAllListeners: jest.fn(() => Promise.resolve())
+  }
+}));
+
+jest.mock('@capacitor/device', () => ({
+  Device: {
+    getInfo: jest.fn(() => Promise.resolve({
+      name: 'iPhone',
+      model: 'iPhone 15',
+      platform: 'ios',
+      operatingSystem: 'ios',
+      osVersion: '17.0',
+      webViewVersion: '17.0'
+    }))
+  }
+}));
+
+describe('MobileAppService - 簡化測試', () => {
+  let mobileAppService: MobileAppService;
+
+  beforeEach(async () => {
+    mobileAppService = MobileAppService.getInstance();
+    await mobileAppService.initialize();
+    jest.clearAllMocks();
+  });
+
+  test('應該正確初始化移動應用服務', async () => {
+    const appInfo = mobileAppService.getAppInfo();
+    expect(appInfo).toBeTruthy();
+    expect(appInfo?.platform).toBe('ios');
+    expect(appInfo?.isNative).toBe(true);
+  });
+
+  test('應該正確識別原生平台', () => {
+    const isNative = mobileAppService.isNativePlatform();
+    expect(isNative).toBe(true);
+  });
+
+  test('應該返回正確的平台信息', () => {
+    const platform = mobileAppService.getPlatform();
+    expect(platform).toBe('ios');
+  });
+
+  test('應該能夠獲取網絡狀態', async () => {
+    const networkStatus = await mobileAppService.getNetworkStatus();
+    expect(networkStatus.connected).toBe(true);
+    expect(networkStatus.connectionType).toBe('wifi');
+  });
+
+  test('應該能夠獲取存儲信息', async () => {
+    const storageInfo = await mobileAppService.getStorageInfo();
+    expect(storageInfo.used).toBeGreaterThan(0);
+    expect(storageInfo.total).toBeGreaterThan(0);
+  });
+
+  test('應該能夠檢查應用權限', async () => {
+    const permissions = await mobileAppService.checkPermissions();
+    expect(permissions.notifications).toBe(true);
+    expect(permissions.storage).toBe(true);
+    expect(permissions.network).toBe(true);
+  });
+
+  test('應該能夠正確清理資源', async () => {
+    await expect(mobileAppService.destroy()).resolves.not.toThrow();
+  });
+});

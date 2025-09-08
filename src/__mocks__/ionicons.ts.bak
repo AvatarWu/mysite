@@ -1,0 +1,4 @@
+export const add = 'add';
+export const trash = 'trash';
+export const create = 'create';
+export const arrowBack = 'arrow-back'; 

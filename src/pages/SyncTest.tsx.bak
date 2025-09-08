@@ -1,0 +1,263 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonButton,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonTextarea,
+  IonToast,
+  IonCard,
+  IonCardHeader,
+  IonCardTitle,
+  IonCardContent,
+  IonGrid,
+  IonRow,
+  IonCol
+} from '@ionic/react';
+import { healthDataService } from '../services/HealthDataService';
+import { dataSyncService } from '../services/DataSyncService';
+import SyncStatusIndicator from '../components/SyncStatusIndicator';
+
+const SyncTest: React.FC = () => {
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
+  const [note, setNote] = useState('');
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [syncStats, setSyncStats] = useState<any>({});
+  const [pendingChanges, setPendingChanges] = useState<any[]>([]);
+
+  useEffect(() => {
+    updateStats();
+    const interval = setInterval(updateStats, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const updateStats = () => {
+    setSyncStats(dataSyncService.getSyncStats());
+    setPendingChanges(dataSyncService.getPendingChangesCount());
+  };
+
+  const handleAddWeight = async () => {
+    if (!weight || !height) {
+      setToastMessage('請填寫體重和身高');
+      setShowToast(true);
+      return;
+    }
+
+    try {
+      const weightNum = parseFloat(weight);
+      const heightNum = parseFloat(height);
+      const bmi = weightNum / Math.pow(heightNum / 100, 2);
+
+      await healthDataService.addWeightRecord({
+        weight: weightNum,
+        height: heightNum,
+        bmi: parseFloat(bmi.toFixed(1)),
+        note: note,
+        date: new Date().toISOString().split('T')[0]
+      });
+
+      setToastMessage('體重記錄已添加');
+      setShowToast(true);
+      setWeight('');
+      setHeight('');
+      setNote('');
+      updateStats();
+    } catch (error) {
+      console.error('添加體重記錄失敗:', error);
+      setToastMessage('添加體重記錄失敗');
+      setShowToast(true);
+    }
+  };
+
+  const handleManualSync = async () => {
+    try {
+      await healthDataService.syncAllData();
+      setToastMessage('手動同步完成');
+      setShowToast(true);
+      updateStats();
+    } catch (error) {
+      console.error('手動同步失敗:', error);
+      setToastMessage('手動同步失敗');
+      setShowToast(true);
+    }
+  };
+
+  const handleClearData = async () => {
+    try {
+      await healthDataService.clearAllLocalData();
+      setToastMessage('本地數據已清理');
+      setShowToast(true);
+      updateStats();
+    } catch (error) {
+      console.error('清理數據失敗:', error);
+      setToastMessage('清理數據失敗');
+      setShowToast(true);
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>數據同步測試</IonTitle>
+          <div slot="end">
+            <SyncStatusIndicator />
+          </div>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonGrid>
+          <IonRow>
+            <IonCol size="12" sizeMd="6">
+              {/* 同步狀態卡片 */}
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>同步狀態</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <IonList>
+                    <IonItem>
+                      <IonLabel>
+                        <h3>當前狀態</h3>
+                        <p>{syncStats.status}</p>
+                      </IonLabel>
+                    </IonItem>
+                    <IonItem>
+                      <IonLabel>
+                        <h3>待同步變更</h3>
+                        <p>{pendingChanges} 個</p>
+                      </IonLabel>
+                    </IonItem>
+                    <IonItem>
+                      <IonLabel>
+                        <h3>最後同步</h3>
+                        <p>{syncStats.lastSync ? new Date(syncStats.lastSync).toLocaleString() : '從未同步'}</p>
+                      </IonLabel>
+                    </IonItem>
+                  </IonList>
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+
+            <IonCol size="12" sizeMd="6">
+              {/* 操作按鈕卡片 */}
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>操作</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <IonButton 
+                    expand="block" 
+                    onClick={handleManualSync}
+                    color="primary"
+                    style={{ marginBottom: '10px' }}
+                  >
+                    手動同步
+                  </IonButton>
+                  <IonButton 
+                    expand="block" 
+                    onClick={handleClearData}
+                    color="danger"
+                  >
+                    清理本地數據
+                  </IonButton>
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+          </IonRow>
+
+          <IonRow>
+            <IonCol size="12">
+              {/* 添加體重記錄卡片 */}
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>添加體重記錄（測試同步）</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <IonList>
+                    <IonItem>
+                      <IonLabel position="stacked">體重 (kg)</IonLabel>
+                      <IonInput
+                        type="number"
+                        value={weight}
+                        onIonChange={e => setWeight(e.detail.value!)}
+                        placeholder="輸入體重"
+                      />
+                    </IonItem>
+                    <IonItem>
+                      <IonLabel position="stacked">身高 (cm)</IonLabel>
+                      <IonInput
+                        type="number"
+                        value={height}
+                        onIonChange={e => setHeight(e.detail.value!)}
+                        placeholder="輸入身高"
+                      />
+                    </IonItem>
+                    <IonItem>
+                      <IonLabel position="stacked">備註</IonLabel>
+                      <IonTextarea
+                        value={note}
+                        onIonChange={e => setNote(e.detail.value!)}
+                        placeholder="輸入備註（可選）"
+                        rows={3}
+                      />
+                    </IonItem>
+                    <IonItem>
+                      <IonButton 
+                        expand="block" 
+                        onClick={handleAddWeight}
+                        color="success"
+                      >
+                        添加記錄
+                      </IonButton>
+                    </IonItem>
+                  </IonList>
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+          </IonRow>
+
+          <IonRow>
+            <IonCol size="12">
+              {/* 說明卡片 */}
+              <IonCard>
+                <IonCardHeader>
+                  <IonCardTitle>使用說明</IonCardTitle>
+                </IonCardHeader>
+                <IonCardContent>
+                  <p>這個頁面用於測試數據同步功能：</p>
+                  <ul>
+                    <li>添加體重記錄會觸發本地存儲和同步隊列</li>
+                    <li>同步狀態指示器顯示當前的同步狀態</li>
+                    <li>手動同步按鈕可以強制執行同步</li>
+                    <li>清理數據按鈕會清除所有本地數據</li>
+                    <li>網絡斷開時會自動切換到離線模式</li>
+                    <li>網絡恢復時會自動同步待同步的變更</li>
+                  </ul>
+                </IonCardContent>
+              </IonCard>
+            </IonCol>
+          </IonRow>
+        </IonGrid>
+
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message={toastMessage}
+          duration={3000}
+          position="top"
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default SyncTest;

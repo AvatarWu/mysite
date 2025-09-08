@@ -1,0 +1,414 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardContent,
+  IonCardHeader,
+  IonCardTitle,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonIcon,
+  IonText,
+  IonBadge,
+  IonButtons,
+  IonBackButton,
+  IonFab,
+  IonFabButton,
+  IonAlert,
+  IonLoading,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonNote,
+  IonChip
+} from '@ionic/react';
+import {
+  notificationsOutline,
+  addOutline,
+  trashOutline,
+  checkmarkOutline,
+  timeOutline,
+  medicalOutline,
+  pulseOutline,
+  calendarOutline,
+  sendOutline,
+  refreshOutline
+} from 'ionicons/icons';
+import { useNavigate } from 'react-router-dom';
+import NotificationService, { NotificationHistory } from '../services/NotificationService';
+import './Notifications.css';
+
+const Notifications: React.FC = () => {
+  const navigate = useNavigate();
+  const [notifications, setNotifications] = useState<NotificationHistory[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [showAlert, setShowAlert] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
+  const [alertType, setAlertType] = useState<'success' | 'error'>('success');
+
+  useEffect(() => {
+    loadNotifications();
+  }, []);
+
+  const loadNotifications = async () => {
+    try {
+      setLoading(true);
+      const history = NotificationService.getNotificationHistory();
+      setNotifications(history);
+    } catch (error) {
+      console.error('載入通知失敗:', error);
+      showMessage('載入通知失敗', 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefresh = async () => {
+    await loadNotifications();
+  };
+
+  const handleMarkAsRead = (id: number) => {
+    NotificationService.markAsRead(id);
+    setNotifications(prev => 
+      prev.map(n => n.id === id ? { ...n, read: true } : n)
+    );
+  };
+
+  const handleDeleteNotification = (id: number) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+    // 這裡應該調用服務的刪除方法
+  };
+
+  const handleClearAll = () => {
+    NotificationService.clearHistory();
+    setNotifications([]);
+    showMessage('所有通知已清除', 'success');
+  };
+
+  const handleTestNotification = async (type: string) => {
+    try {
+      setSending(true);
+      let notificationId = 0;
+
+      switch (type) {
+        case 'medication':
+          notificationId = await NotificationService.sendMedicationReminder('阿司匹林', '09:00');
+          break;
+        case 'health_check':
+          notificationId = await NotificationService.sendHealthCheckReminder('血壓檢查');
+          break;
+        case 'appointment':
+          notificationId = await NotificationService.sendAppointmentReminder('醫生預約', '14:30');
+          break;
+        case 'custom':
+          notificationId = await NotificationService.sendNotification({
+            title: '測試通知',
+            body: '這是一個測試通知，用於驗證通知功能是否正常工作。',
+            data: { type: 'test' }
+          });
+          break;
+      }
+
+      if (notificationId > 0) {
+        showMessage('測試通知已發送', 'success');
+        await loadNotifications(); // 重新載入以顯示新通知
+      } else {
+        showMessage('發送測試通知失敗', 'error');
+      }
+    } catch (error) {
+      console.error('發送測試通知失敗:', error);
+      showMessage('發送測試通知失敗', 'error');
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const getNotificationIcon = (type?: string) => {
+    switch (type) {
+      case 'medication':
+        return medicalOutline;
+      case 'health_check':
+        return pulseOutline;
+      case 'appointment':
+        return calendarOutline;
+      default:
+        return notificationsOutline;
+    }
+  };
+
+  const getNotificationColor = (type?: string) => {
+    switch (type) {
+      case 'medication':
+        return 'primary';
+      case 'health_check':
+        return 'success';
+      case 'appointment':
+        return 'warning';
+      default:
+        return 'medium';
+    }
+  };
+
+  const formatTimestamp = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / (1000 * 60));
+    const hours = Math.floor(diff / (1000 * 60 * 60));
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+    if (minutes < 1) return '剛剛';
+    if (minutes < 60) return `${minutes}分鐘前`;
+    if (hours < 24) return `${hours}小時前`;
+    if (days < 7) return `${days}天前`;
+    
+    return new Date(timestamp).toLocaleDateString('zh-TW');
+  };
+
+  const showMessage = (message: string, type: 'success' | 'error') => {
+    setAlertMessage(message);
+    setAlertType(type);
+    setShowAlert(true);
+  };
+
+  if (loading) {
+    return (
+      <IonPage>
+        <IonHeader>
+          <IonToolbar>
+            <IonButtons slot="start">
+              <IonBackButton defaultHref="/home" />
+            </IonButtons>
+            <IonTitle>通知</IonTitle>
+            <IonButtons slot="end">
+              <IonButton onClick={handleRefresh}>
+                <IonIcon icon={refreshOutline} />
+              </IonButton>
+            </IonButtons>
+          </IonToolbar>
+        </IonHeader>
+        <IonContent>
+          <div className="loading-container">
+            <IonLoading isOpen={true} message="正在載入通知..." duration={0} />
+          </div>
+        </IonContent>
+      </IonPage>
+    );
+  }
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/home" />
+          </IonButtons>
+          <IonTitle>通知</IonTitle>
+          <IonButtons slot="end">
+            <IonButton onClick={handleRefresh}>
+              <IonIcon icon={refreshOutline} />
+            </IonButton>
+          </IonButtons>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent>
+        {/* 測試通知區域 */}
+        <div className="test-notifications">
+          <IonCard>
+            <IonCardHeader>
+              <IonCardTitle>測試通知功能</IonCardTitle>
+            </IonCardHeader>
+            <IonCardContent>
+              <div className="test-buttons">
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  onClick={() => handleTestNotification('medication')}
+                  disabled={sending}
+                >
+                  <IonIcon icon={medicalOutline} slot="start" />
+                  用藥提醒
+                </IonButton>
+
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  onClick={() => handleTestNotification('health_check')}
+                  disabled={sending}
+                >
+                  <IonIcon icon={pulseOutline} slot="start" />
+                  健康檢查
+                </IonButton>
+
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  onClick={() => handleTestNotification('appointment')}
+                  disabled={sending}
+                >
+                  <IonIcon icon={calendarOutline} slot="start" />
+                  預約提醒
+                </IonButton>
+
+                <IonButton
+                  size="small"
+                  fill="outline"
+                  onClick={() => handleTestNotification('custom')}
+                  disabled={sending}
+                >
+                  <IonIcon icon={sendOutline} slot="start" />
+                  自定義通知
+                </IonButton>
+              </div>
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 通知列表 */}
+        <div className="notifications-list">
+          <IonCard>
+            <IonCardHeader>
+              <div className="notifications-header">
+                <IonCardTitle>通知歷史</IonCardTitle>
+                <div className="notifications-actions">
+                  <IonButton
+                    size="small"
+                    fill="clear"
+                    onClick={handleClearAll}
+                    disabled={notifications.length === 0}
+                  >
+                    <IonIcon icon={trashOutline} />
+                    清除全部
+                  </IonButton>
+                </div>
+              </div>
+            </IonCardHeader>
+            <IonCardContent>
+              {notifications.length === 0 ? (
+                <div className="empty-state">
+                  <IonIcon icon={notificationsOutline} className="empty-icon" />
+                  <p className="empty-description">暫無通知</p>
+                  <IonButton fill="outline" onClick={handleTestNotification('custom')}>
+                    發送測試通知
+                  </IonButton>
+                </div>
+              ) : (
+                <IonList>
+                  {notifications.map((notification) => (
+                    <IonItemSliding key={notification.id}>
+                      <IonItem
+                        className={notification.read ? 'notification-read' : 'notification-unread'}
+                        button
+                        onClick={() => handleMarkAsRead(notification.id)}
+                      >
+                        <IonIcon
+                          icon={getNotificationIcon(notification.data?.type)}
+                          slot="start"
+                          color={getNotificationColor(notification.data?.type)}
+                        />
+                        <IonLabel>
+                          <h3>{notification.title}</h3>
+                          <p>{notification.body}</p>
+                          <div className="notification-meta">
+                            <IonNote>
+                              <IonIcon icon={timeOutline} />
+                              {formatTimestamp(notification.timestamp)}
+                            </IonNote>
+                            {!notification.read && (
+                              <IonBadge color="primary" className="unread-badge">
+                                新
+                              </IonBadge>
+                            )}
+                          </div>
+                        </IonLabel>
+                      </IonItem>
+
+                      <IonItemOptions side="end">
+                        <IonItemOption
+                          color="success"
+                          onClick={() => handleMarkAsRead(notification.id)}
+                        >
+                          <IonIcon icon={checkmarkOutline} />
+                          標記已讀
+                        </IonItemOption>
+                        <IonItemOption
+                          color="danger"
+                          onClick={() => handleDeleteNotification(notification.id)}
+                        >
+                          <IonIcon icon={trashOutline} />
+                          刪除
+                        </IonItemOption>
+                      </IonItemOptions>
+                    </IonItemSliding>
+                  ))}
+                </IonList>
+              )}
+            </IonCardContent>
+          </IonCard>
+        </div>
+
+        {/* 通知統計 */}
+        {notifications.length > 0 && (
+          <div className="notifications-stats">
+            <IonCard>
+              <IonCardContent>
+                <div className="stats-grid">
+                  <div className="stat-item">
+                    <IonText color="primary">
+                      <h2>{notifications.length}</h2>
+                    </IonText>
+                    <p>總通知數</p>
+                  </div>
+                  <div className="stat-item">
+                    <IonText color="success">
+                      <h2>{notifications.filter(n => n.read).length}</h2>
+                    </IonText>
+                    <p>已讀</p>
+                  </div>
+                  <div className="stat-item">
+                    <IonText color="warning">
+                      <h2>{notifications.filter(n => !n.read).length}</h2>
+                    </IonText>
+                    <p>未讀</p>
+                  </div>
+                </div>
+              </IonCardContent>
+            </IonCard>
+          </div>
+        )}
+
+        {/* 提示框 */}
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={alertType === 'success' ? '成功' : '錯誤'}
+          message={alertMessage}
+          buttons={['確定']}
+        />
+
+        {/* 加載指示器 */}
+        <IonLoading
+          isOpen={sending}
+          message="正在發送通知..."
+          duration={0}
+        />
+
+        {/* 浮動按鈕 */}
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton onClick={() => handleTestNotification('custom')}>
+            <IonIcon icon={addOutline} />
+          </IonFabButton>
+        </IonFab>
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default Notifications;

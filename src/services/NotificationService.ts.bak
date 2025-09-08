@@ -1,0 +1,478 @@
+import { LocalNotifications } from '@capacitor/local-notifications';
+import { Preferences } from '@capacitor/preferences';
+import { Capacitor } from '@capacitor/core';
+
+export interface NotificationItem {
+  id: number;
+  title: string;
+  body: string;
+  schedule?: {
+    at: Date;
+    every?: 'day' | 'week' | 'month';
+    on?: {
+      hour: number;
+      minute: number;
+    };
+  };
+  data?: any;
+  sound?: string;
+  actionTypeId?: string;
+  categoryId?: string;
+  extra?: any;
+}
+
+export interface NotificationSettings {
+  enabled: boolean;
+  medicationReminders: boolean;
+  healthCheckReminders: boolean;
+  appointmentReminders: boolean;
+  soundEnabled: boolean;
+  vibrationEnabled: boolean;
+  quietHours: {
+    enabled: boolean;
+    start: string;
+    end: string;
+  };
+}
+
+export interface NotificationHistory {
+  id: number;
+  title: string;
+  body: string;
+  timestamp: Date;
+  read: boolean;
+  action?: string;
+}
+
+export class NotificationService {
+  private static instance: NotificationService;
+  private settings: NotificationSettings;
+  private history: NotificationHistory[] = [];
+
+  private constructor() {
+    this.settings = {
+      enabled: true,
+      medicationReminders: true,
+      healthCheckReminders: true,
+      appointmentReminders: true,
+      soundEnabled: true,
+      vibrationEnabled: true,
+      quietHours: {
+        enabled: false,
+        start: '22:00',
+        end: '08:00'
+      }
+    };
+    this.initialize();
+  }
+
+  static getInstance(): NotificationService {
+    if (!NotificationService.instance) {
+      NotificationService.instance = new NotificationService();
+    }
+    return NotificationService.instance;
+  }
+
+  /**
+   * 初始化通知服務
+   */
+  private async initialize(): Promise<void> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        // 請求通知權限
+        await this.requestPermissions();
+        
+        // 載入設置
+        await this.loadSettings();
+        
+        // 載入歷史記錄
+        await this.loadHistory();
+        
+        console.log('通知服務初始化完成');
+      }
+    } catch (error) {
+      console.error('通知服務初始化失敗:', error);
+    }
+  }
+
+  /**
+   * 請求通知權限
+   */
+  private async requestPermissions(): Promise<void> {
+    try {
+      // 檢查是否支持通知
+      const supported = await LocalNotifications.checkPermissions();
+      if (supported.display === 'granted') {
+        return;
+      }
+
+      // 請求權限
+      const result = await LocalNotifications.requestPermissions();
+      if (result.display !== 'granted') {
+        console.warn('通知權限被拒絕');
+      }
+    } catch (error) {
+      console.error('請求通知權限失敗:', error);
+    }
+  }
+
+  /**
+   * 載入通知設置
+   */
+  private async loadSettings(): Promise<void> {
+    try {
+      const settingsData = await Preferences.get({ key: 'notification_settings' });
+      if (settingsData.value) {
+        this.settings = { ...this.settings, ...JSON.parse(settingsData.value) };
+      }
+    } catch (error) {
+      console.error('載入通知設置失敗:', error);
+    }
+  }
+
+  /**
+   * 保存通知設置
+   */
+  async saveSettings(): Promise<void> {
+    try {
+      await Preferences.set({
+        key: 'notification_settings',
+        value: JSON.stringify(this.settings)
+      });
+    } catch (error) {
+      console.error('保存通知設置失敗:', error);
+    }
+  }
+
+  /**
+   * 載入通知歷史
+   */
+  private async loadHistory(): Promise<void> {
+    try {
+      const historyData = await Preferences.get({ key: 'notification_history' });
+      if (historyData.value) {
+        this.history = JSON.parse(historyData.value);
+      }
+    } catch (error) {
+      console.error('載入通知歷史失敗:', error);
+    }
+  }
+
+  /**
+   * 保存通知歷史
+   */
+  private async saveHistory(): Promise<void> {
+    try {
+      await Preferences.set({
+        key: 'notification_history',
+        value: JSON.stringify(this.history)
+      });
+    } catch (error) {
+      console.error('保存通知歷史失敗:', error);
+    }
+  }
+
+  /**
+   * 發送立即通知
+   */
+  async sendNotification(notification: Omit<NotificationItem, 'id'>): Promise<number> {
+    try {
+      if (!this.settings.enabled) {
+        console.log('通知已禁用');
+        return 0;
+      }
+
+      // 檢查靜音時間
+      if (this.settings.quietHours.enabled && this.isInQuietHours()) {
+        console.log('當前處於靜音時間，跳過通知');
+        return 0;
+      }
+
+      const id = Date.now();
+      const notificationItem: NotificationItem = {
+        ...notification,
+        id
+      };
+
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.schedule({
+          notifications: [{
+            id,
+            title: notificationItem.title,
+            body: notificationItem.body,
+            schedule: notificationItem.schedule,
+            sound: this.settings.soundEnabled ? notificationItem.sound : undefined,
+            actionTypeId: notificationItem.actionTypeId,
+            categoryId: notificationItem.categoryId,
+            extra: notificationItem.data
+          }]
+        });
+      }
+
+      // 添加到歷史記錄
+      this.addToHistory({
+        id,
+        title: notificationItem.title,
+        body: notificationItem.body,
+        timestamp: new Date(),
+        read: false
+      });
+
+      console.log('通知已發送:', id);
+      return id;
+    } catch (error) {
+      console.error('發送通知失敗:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 安排定時通知
+   */
+  async scheduleNotification(notification: Omit<NotificationItem, 'id'>): Promise<number> {
+    try {
+      if (!this.settings.enabled) {
+        console.log('通知已禁用');
+        return 0;
+      }
+
+      const id = Date.now();
+      const notificationItem: NotificationItem = {
+        ...notification,
+        id
+      };
+
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.schedule({
+          notifications: [{
+            id,
+            title: notificationItem.title,
+            body: notificationItem.body,
+            schedule: notificationItem.schedule,
+            sound: this.settings.soundEnabled ? notificationItem.sound : undefined,
+            actionTypeId: notificationItem.actionTypeId,
+            categoryId: notificationItem.categoryId,
+            extra: notificationItem.data
+          }]
+        });
+      }
+
+      console.log('定時通知已安排:', id);
+      return id;
+    } catch (error) {
+      console.error('安排定時通知失敗:', error);
+      return 0;
+    }
+  }
+
+  /**
+   * 取消通知
+   */
+  async cancelNotification(id: number): Promise<void> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [{ id }] });
+      }
+      console.log('通知已取消:', id);
+    } catch (error) {
+      console.error('取消通知失敗:', error);
+    }
+  }
+
+  /**
+   * 取消所有通知
+   */
+  async cancelAllNotifications(): Promise<void> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        await LocalNotifications.cancel({ notifications: [] });
+      }
+      console.log('所有通知已取消');
+    } catch (error) {
+      console.error('取消所有通知失敗:', error);
+    }
+  }
+
+  /**
+   * 獲取待處理通知
+   */
+  async getPendingNotifications(): Promise<any[]> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await LocalNotifications.getPending();
+        return result.notifications || [];
+      }
+      return [];
+    } catch (error) {
+      console.error('獲取待處理通知失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 發送用藥提醒
+   */
+  async sendMedicationReminder(medicationName: string, time: string): Promise<number> {
+    if (!this.settings.medicationReminders) {
+      return 0;
+    }
+
+    return this.sendNotification({
+      title: '用藥提醒',
+      body: `該服用 ${medicationName} 了`,
+      data: {
+        type: 'medication',
+        medicationName,
+        time
+      }
+    });
+  }
+
+  /**
+   * 發送健康檢查提醒
+   */
+  async sendHealthCheckReminder(type: string): Promise<number> {
+    if (!this.settings.healthCheckReminders) {
+      return 0;
+    }
+
+    return this.sendNotification({
+      title: '健康檢查提醒',
+      body: `該進行 ${type} 檢查了`,
+      data: {
+        type: 'health_check',
+        checkType: type
+      }
+    });
+  }
+
+  /**
+   * 發送預約提醒
+   */
+  async sendAppointmentReminder(appointmentType: string, time: string): Promise<number> {
+    if (!this.settings.appointmentReminders) {
+      return 0;
+    }
+
+    return this.sendNotification({
+      title: '預約提醒',
+      body: `您有 ${appointmentType} 預約，時間：${time}`,
+      data: {
+        type: 'appointment',
+        appointmentType,
+        time
+      }
+    });
+  }
+
+  /**
+   * 添加到歷史記錄
+   */
+  private addToHistory(notification: NotificationHistory): void {
+    this.history.unshift(notification);
+    
+    // 限制歷史記錄數量
+    if (this.history.length > 100) {
+      this.history = this.history.slice(0, 100);
+    }
+    
+    this.saveHistory();
+  }
+
+  /**
+   * 獲取通知歷史
+   */
+  getNotificationHistory(): NotificationHistory[] {
+    return [...this.history];
+  }
+
+  /**
+   * 標記通知為已讀
+   */
+  markAsRead(id: number): void {
+    const notification = this.history.find(n => n.id === id);
+    if (notification) {
+      notification.read = true;
+      this.saveHistory();
+    }
+  }
+
+  /**
+   * 清除通知歷史
+   */
+  clearHistory(): void {
+    this.history = [];
+    this.saveHistory();
+  }
+
+  /**
+   * 獲取通知設置
+   */
+  getSettings(): NotificationSettings {
+    return { ...this.settings };
+  }
+
+  /**
+   * 更新通知設置
+   */
+  async updateSettings(newSettings: Partial<NotificationSettings>): Promise<void> {
+    this.settings = { ...this.settings, ...newSettings };
+    await this.saveSettings();
+  }
+
+  /**
+   * 檢查是否在靜音時間
+   */
+  private isInQuietHours(): boolean {
+    if (!this.settings.quietHours.enabled) {
+      return false;
+    }
+
+    const now = new Date();
+    const currentTime = now.getHours() * 60 + now.getMinutes();
+    
+    const [startHour, startMinute] = this.settings.quietHours.start.split(':').map(Number);
+    const [endHour, endMinute] = this.settings.quietHours.end.split(':').map(Number);
+    
+    const startTime = startHour * 60 + startMinute;
+    const endTime = endHour * 60 + endMinute;
+
+    if (startTime <= endTime) {
+      // 同一天內
+      return currentTime >= startTime && currentTime <= endTime;
+    } else {
+      // 跨天
+      return currentTime >= startTime || currentTime <= endTime;
+    }
+  }
+
+  /**
+   * 檢查通知權限
+   */
+  async checkPermissions(): Promise<boolean> {
+    try {
+      if (Capacitor.isNativePlatform()) {
+        const result = await LocalNotifications.checkPermissions();
+        return result.display === 'granted';
+      }
+      return false;
+    } catch (error) {
+      console.error('檢查通知權限失敗:', error);
+      return false;
+    }
+  }
+
+  /**
+   * 清理資源
+   */
+  async destroy(): Promise<void> {
+    try {
+      await this.cancelAllNotifications();
+      console.log('通知服務已清理');
+    } catch (error) {
+      console.error('清理通知服務失敗:', error);
+    }
+  }
+}
+
+export default NotificationService.getInstance();

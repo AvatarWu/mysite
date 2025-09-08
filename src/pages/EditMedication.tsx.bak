@@ -1,0 +1,168 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonCheckbox,
+  IonList,
+  IonBackButton,
+  IonButtons,
+  IonToast
+} from '@ionic/react';
+import { useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';
+import { scheduleMedicationNotification } from '../utils/notifications';
+
+interface RouteParams {
+  id: string;
+}
+
+const EditMedication: React.FC = () => {
+  const navigate = useNavigate();
+  const { id } = useParams<RouteParams>();
+  const [name, setName] = useState('');
+  const [dosage, setDosage] = useState('');
+  const [timeSlots, setTimeSlots] = useState([
+    { time: '08:00', enabled: true },
+    { time: '12:00', enabled: true },
+    { time: '18:00', enabled: true },
+    { time: '22:00', enabled: false }
+  ]);
+  const [reminders, setReminders] = useState(true);
+  const [showToast, setShowToast] = useState(false);
+
+  useEffect(() => {
+    fetchMedication();
+  }, [id]);
+
+  const fetchMedication = async () => {
+    try {
+      const response = await axios.get(`/api/health/medications/${id}`, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+      const medication = response.data;
+      setName(medication.name);
+      setDosage(medication.dosage);
+      setTimeSlots(medication.timeSlots);
+      setReminders(medication.reminders);
+    } catch (error) {
+      console.error('獲取用藥提醒失敗:', error);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.put(`/api/health/medications/${id}`, {
+        name,
+        dosage,
+        timeSlots,
+        reminders
+      }, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+
+      // 更新提醒通知
+      if (reminders) {
+        timeSlots.filter(slot => slot.enabled).forEach(slot => {
+          const [hours, minutes] = slot.time.split(':');
+          const now = new Date();
+          const notificationTime = new Date(now);
+          notificationTime.setHours(parseInt(hours), parseInt(minutes), 0);
+          
+          if (notificationTime > now) {
+            scheduleMedicationNotification(
+              '用藥提醒',
+              `該服用 ${name} ${dosage} 了`,
+              notificationTime
+            );
+          }
+        });
+      }
+
+      setShowToast(true);
+      setTimeout(() => {
+        navigate('/tab1');
+      }, 1500);
+    } catch (error) {
+      console.error('更新用藥提醒失敗:', error);
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/tab1" />
+          </IonButtons>
+          <IonTitle>編輯用藥提醒</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <form onSubmit={handleSubmit}>
+          <IonList>
+            <IonItem>
+              <IonLabel position="stacked">藥物名稱</IonLabel>
+              <IonInput
+                value={name}
+                onIonChange={e => setName(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">劑量</IonLabel>
+              <IonInput
+                value={dosage}
+                onIonChange={e => setDosage(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel>提醒時間</IonLabel>
+            </IonItem>
+            {timeSlots.map((slot, index) => (
+              <IonItem key={index}>
+                <IonLabel>{slot.time}</IonLabel>
+                <IonCheckbox
+                  checked={slot.enabled}
+                  onIonChange={e => {
+                    const newTimeSlots = [...timeSlots];
+                    newTimeSlots[index].enabled = e.detail.checked;
+                    setTimeSlots(newTimeSlots);
+                  }}
+                />
+              </IonItem>
+            ))}
+            <IonItem>
+              <IonLabel>開啟提醒</IonLabel>
+              <IonCheckbox
+                checked={reminders}
+                onIonChange={e => setReminders(e.detail.checked)}
+              />
+            </IonItem>
+          </IonList>
+          <div style={{ padding: '16px' }}>
+            <IonButton expand="block" type="submit">
+              更新
+            </IonButton>
+          </div>
+        </form>
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message="已更新用藥提醒"
+          duration={1500}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default EditMedication; 

@@ -1,0 +1,483 @@
+.ai-health-chat {
+  --background: var(--ion-color-light);
+}
+
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.messages-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+  padding-bottom: 80px;
+}
+
+.message {
+  display: flex;
+  margin-bottom: 16px;
+  align-items: flex-start;
+}
+
+.message.user {
+  flex-direction: row-reverse;
+}
+
+.message-avatar {
+  flex-shrink: 0;
+  margin: 0 8px;
+}
+
+.ai-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--ion-color-primary), var(--ion-color-primary-shade));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 20px;
+}
+
+.message-content {
+  flex: 1;
+  max-width: 70%;
+}
+
+.message.user .message-content {
+  text-align: right;
+}
+
+.message-bubble {
+  background: var(--ion-color-light-shade);
+  padding: 12px 16px;
+  border-radius: 18px;
+  position: relative;
+  word-wrap: break-word;
+}
+
+.message.user .message-bubble {
+  background: var(--ion-color-primary);
+  color: white;
+}
+
+.message-bubble::before {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: -8px;
+  width: 0;
+  height: 0;
+  border: 8px solid transparent;
+  border-right-color: var(--ion-color-light-shade);
+  border-left: 0;
+}
+
+.message.user .message-bubble::before {
+  left: auto;
+  right: -8px;
+  border-right-color: var(--ion-color-primary);
+  border-left-color: transparent;
+}
+
+.message-time {
+  font-size: 12px;
+  color: var(--ion-color-medium);
+  margin-top: 4px;
+  text-align: right;
+}
+
+.message.user .message-time {
+  text-align: left;
+}
+
+.message-insights,
+.message-recommendations {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--ion-color-light);
+  border-top: 1px solid var(--ion-color-light-shade);
+  padding: 8px 16px;
+  padding-bottom: calc(8px + env(safe-area-inset-bottom));
+}
+
+.input-item {
+  --background: transparent;
+  --border-radius: 24px;
+  --border-width: 1px;
+  --border-color: var(--ion-color-medium);
+  --padding-start: 16px;
+  --padding-end: 16px;
+  --padding-top: 8px;
+  --padding-bottom: 8px;
+}
+
+.chat-input {
+  --padding-start: 0;
+  --padding-end: 0;
+}
+
+/* 洞察項目樣式 */
+.insight-item {
+  width: 100%;
+}
+
+.insight-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.insight-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.insight-description {
+  color: var(--ion-color-medium);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.insight-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.action-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: var(--ion-color-light);
+  border-radius: 8px;
+}
+
+.action-item ion-icon {
+  color: var(--ion-color-success);
+  font-size: 18px;
+}
+
+/* 建議項目樣式 */
+.recommendation-item {
+  width: 100%;
+}
+
+.recommendation-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.recommendation-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.recommendation-description {
+  color: var(--ion-color-medium);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.recommendation-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recommendation-meta ion-badge {
+  font-size: 11px;
+}
+
+/* 預測項目樣式 */
+.prediction-item {
+  width: 100%;
+}
+
+.prediction-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.prediction-title {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.prediction-description {
+  color: var(--ion-color-medium);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.prediction-factors {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.factors-title {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--ion-color-dark);
+}
+
+.prediction-factors ion-badge {
+  font-size: 11px;
+  margin-right: 4px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .message-content {
+    max-width: 85%;
+  }
+  
+  .messages-container {
+    padding: 12px;
+  }
+  
+  .input-container {
+    padding: 8px 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .message-content {
+    max-width: 90%;
+  }
+  
+  .message-bubble {
+    padding: 10px 14px;
+  }
+  
+  .ai-avatar {
+    width: 36px;
+    height: 36px;
+    font-size: 18px;
+  }
+}
+
+/* 動畫效果 */
+.message {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.message-bubble {
+  transition: all 0.2s ease;
+}
+
+.message-bubble:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .ai-health-chat {
+    --background: var(--ion-color-dark);
+  }
+  
+  .message-bubble {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .input-container {
+    background: var(--ion-color-dark);
+    border-top-color: var(--ion-color-dark-shade);
+  }
+  
+  .insight-item,
+  .recommendation-item,
+  .prediction-item {
+    background: var(--ion-color-dark-shade);
+  }
+  
+  .action-item {
+    background: var(--ion-color-dark-tint);
+  }
+}
+
+/* 高對比度模式 */
+@media (prefers-contrast: high) {
+  .message-bubble {
+    border: 2px solid var(--ion-color-primary);
+  }
+  
+  .ai-avatar {
+    border: 2px solid white;
+  }
+}
+
+/* 減少動畫模式 */
+@media (prefers-reduced-motion: reduce) {
+  .message {
+    animation: none;
+  }
+  
+  .message-bubble {
+    transition: none;
+  }
+  
+  .message-bubble:hover {
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+/* 焦點狀態 */
+.chat-input:focus-within {
+  --border-color: var(--ion-color-primary);
+  --border-width: 2px;
+}
+
+/* 加載狀態 */
+.message.assistant .message-bubble {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.message.assistant .message-bubble ion-spinner {
+  color: var(--ion-color-primary);
+}
+
+/* 錯誤狀態 */
+.message.error .message-bubble {
+  background: var(--ion-color-danger-tint);
+  color: var(--ion-color-danger-contrast);
+}
+
+.message.error .message-bubble::before {
+  border-right-color: var(--ion-color-danger-tint);
+}
+
+/* 成功狀態 */
+.message.success .message-bubble {
+  background: var(--ion-color-success-tint);
+  color: var(--ion-color-success-contrast);
+}
+
+.message.success .message-bubble::before {
+  border-right-color: var(--ion-color-success-tint);
+}
+
+/* 語音輸入狀態 */
+.message.recording .message-bubble {
+  background: var(--ion-color-warning-tint);
+  color: var(--ion-color-warning-contrast);
+}
+
+.message.recording .message-bubble::before {
+  border-right-color: var(--ion-color-warning-tint);
+}
+
+/* 滾動條樣式 */
+.messages-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+  background: var(--ion-color-medium);
+  border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+  background: var(--ion-color-medium-shade);
+}
+
+/* 工具提示 */
+.message-bubble[data-tooltip] {
+  position: relative;
+}
+
+.message-bubble[data-tooltip]:hover::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--ion-color-dark);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 1000;
+}
+
+/* 選擇文本樣式 */
+.message-bubble ::selection {
+  background: var(--ion-color-primary-tint);
+  color: var(--ion-color-primary-contrast);
+}
+
+/* 鏈接樣式 */
+.message-bubble a {
+  color: var(--ion-color-primary);
+  text-decoration: underline;
+}
+
+.message.user .message-bubble a {
+  color: white;
+}
+
+/* 代碼塊樣式 */
+.message-bubble code {
+  background: var(--ion-color-light-shade);
+  padding: 2px 4px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 14px;
+}
+
+.message.user .message-bubble code {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* 引用樣式 */
+.message-bubble blockquote {
+  border-left: 4px solid var(--ion-color-primary);
+  margin: 8px 0;
+  padding-left: 12px;
+  font-style: italic;
+  color: var(--ion-color-medium);
+}
+
+.message.user .message-bubble blockquote {
+  border-left-color: white;
+  color: rgba(255, 255, 255, 0.8);
+}

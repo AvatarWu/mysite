@@ -1,0 +1,610 @@
+import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { IonApp, IonContent } from '@ionic/react';
+import AIHealthAssistant from '../pages/AIHealthAssistant';
+import AIHealthChat from '../components/AIHealthChat';
+import AIHealthAssistantService from '../services/AIHealthAssistantService';
+
+// Mock the services
+jest.mock('../services/AIHealthAssistantService');
+jest.mock('../services/DataVisualizationService');
+
+const MockedAIHealthAssistantService = AIHealthAssistantService as jest.Mocked<typeof AIHealthAssistantService>;
+
+// Mock data
+const mockHealthData = {
+  metrics: {
+    weight: {
+      current: 70.5,
+      average: 71.2,
+      min: 68.0,
+      max: 74.0,
+      trend: { trend: 'stable', change: -0.5, percentage: -0.7, period: '7天' }
+    },
+    bloodPressure: {
+      systolic: {
+        current: 135,
+        average: 132,
+        trend: { trend: 'up', change: 3, percentage: 2.3, period: '7天' }
+      },
+      diastolic: {
+        current: 88,
+        average: 85,
+        trend: { trend: 'up', change: 3, percentage: 3.5, period: '7天' }
+      }
+    },
+    bloodSugar: {
+      current: 5.8,
+      average: 5.6,
+      trend: { trend: 'up', change: 0.2, percentage: 3.6, period: '7天' }
+    },
+    medications: {
+      total: 15,
+      today: 3,
+      adherence: 87
+    }
+  },
+  trends: {
+    weight: { trend: 'stable', change: -0.5, percentage: -0.7, period: '7天' },
+    bloodPressure: { trend: 'up', change: 3, percentage: 2.3, period: '7天' },
+    bloodSugar: { trend: 'up', change: 0.2, percentage: 3.6, period: '7天' },
+    medications: { trend: 'stable', change: 0, percentage: 0, period: '7天' }
+  },
+  recentRecords: [
+    { weight: 70.5, date: '2024-01-15' },
+    { weight: 71.0, date: '2024-01-14' },
+    { weight: 70.8, date: '2024-01-13' }
+  ]
+};
+
+const mockInsights = [
+  {
+    id: 'insight_1',
+    type: 'trend',
+    title: '體重管理建議',
+    description: '您的BMI為24.4，建議進行體重管理。',
+    severity: 'medium',
+    confidence: 80,
+    data: { bmi: 24.4, currentWeight: 70.5 },
+    actionable: true,
+    actionItems: ['控制每日熱量攝入', '增加有氧運動'],
+    createdAt: new Date(),
+    expiresAt: undefined
+  }
+];
+
+const mockPredictions = [
+  {
+    id: 'prediction_1',
+    metric: 'weight',
+    currentValue: 70.5,
+    predictedValue: 71.0,
+    confidence: 70,
+    timeframe: '1_month',
+    factors: ['飲食習慣', '運動量', '代謝率'],
+    riskLevel: 'low',
+    recommendations: ['保持均衡飲食', '適量運動'],
+    createdAt: new Date()
+  }
+];
+
+const mockRecommendations = [
+  {
+    id: 'rec_1',
+    category: 'lifestyle',
+    title: '控制每日熱量攝入',
+    description: '基於體重管理建議的建議',
+    priority: 'medium',
+    difficulty: 'moderate',
+    estimatedImpact: 'medium',
+    timeToImplement: '1-2週',
+    trackingMetrics: ['trend'],
+    createdAt: new Date(),
+    isCompleted: false
+  }
+];
+
+const mockRiskAssessment = {
+  id: 'risk_1',
+  riskType: 'general',
+  riskLevel: 'medium',
+  score: 45,
+  factors: [
+    {
+      factor: '血壓偏高',
+      contribution: 25,
+      modifiable: true
+    }
+  ],
+  recommendations: ['定期監測健康指標', '改善生活方式'],
+  nextAssessmentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  createdAt: new Date()
+};
+
+// Test wrapper component
+const TestWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) => (
+  <IonApp>
+    <IonContent>
+      {children}
+    </IonContent>
+  </IonApp>
+);
+
+describe('AI健康助手功能測試', () => {
+  beforeEach(() => {
+    // Reset all mocks
+    jest.clearAllMocks();
+    
+    // Setup default mock implementations
+    MockedAIHealthAssistantService.analyzeHealthData = jest.fn().mockResolvedValue(mockInsights);
+    MockedAIHealthAssistantService.generateHealthPredictions = jest.fn().mockResolvedValue(mockPredictions);
+    MockedAIHealthAssistantService.generatePersonalizedRecommendations = jest.fn().mockResolvedValue(mockRecommendations);
+    MockedAIHealthAssistantService.performHealthRiskAssessment = jest.fn().mockResolvedValue(mockRiskAssessment);
+    MockedAIHealthAssistantService.markRecommendationCompleted = jest.fn().mockResolvedValue();
+  });
+
+  describe('AI健康助手服務測試', () => {
+    test('應該能夠分析健康數據並生成洞察', async () => {
+      const insights = await MockedAIHealthAssistantService.analyzeHealthData(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+
+      expect(MockedAIHealthAssistantService.analyzeHealthData).toHaveBeenCalledWith(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+      expect(insights).toEqual(mockInsights);
+    });
+
+    test('應該能夠生成健康預測', async () => {
+      const predictions = await MockedAIHealthAssistantService.generateHealthPredictions(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+
+      expect(MockedAIHealthAssistantService.generateHealthPredictions).toHaveBeenCalledWith(
+        mockHealthData.metrics,
+        mockHealthData.trends,
+        mockHealthData.recentRecords
+      );
+      expect(predictions).toEqual(mockPredictions);
+    });
+
+    test('應該能夠生成個性化建議', async () => {
+      const recommendations = await MockedAIHealthAssistantService.generatePersonalizedRecommendations(
+        mockInsights,
+        mockPredictions,
+        { userId: 'user_001' }
+      );
+
+      expect(MockedAIHealthAssistantService.generatePersonalizedRecommendations).toHaveBeenCalledWith(
+        mockInsights,
+        mockPredictions,
+        { userId: 'user_001' }
+      );
+      expect(recommendations).toEqual(mockRecommendations);
+    });
+
+    test('應該能夠進行健康風險評估', async () => {
+      const riskAssessment = await MockedAIHealthAssistantService.performHealthRiskAssessment(
+        mockHealthData.metrics,
+        { userId: 'user_001' }
+      );
+
+      expect(MockedAIHealthAssistantService.performHealthRiskAssessment).toHaveBeenCalledWith(
+        mockHealthData.metrics,
+        { userId: 'user_001' }
+      );
+      expect(riskAssessment).toEqual(mockRiskAssessment);
+    });
+
+    test('應該能夠標記建議為完成', async () => {
+      await MockedAIHealthAssistantService.markRecommendationCompleted('rec_1');
+
+      expect(MockedAIHealthAssistantService.markRecommendationCompleted).toHaveBeenCalledWith('rec_1');
+    });
+  });
+
+  describe('AI健康助手頁面測試', () => {
+    test('應該能夠渲染AI健康助手頁面', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      // 等待加載完成
+      await waitFor(() => {
+        expect(screen.getByText('AI健康助手')).toBeInTheDocument();
+      });
+
+      // 檢查主要組件
+      expect(screen.getByText('健康概覽')).toBeInTheDocument();
+      expect(screen.getByText('健康風險評估')).toBeInTheDocument();
+      expect(screen.getByText('健康洞察')).toBeInTheDocument();
+      expect(screen.getByText('AI建議')).toBeInTheDocument();
+      expect(screen.getByText('健康預測')).toBeInTheDocument();
+    });
+
+    test('應該能夠顯示健康指標', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('70.5 kg')).toBeInTheDocument();
+        expect(screen.getByText('135/88')).toBeInTheDocument();
+        expect(screen.getByText('5.8 mmol/L')).toBeInTheDocument();
+        expect(screen.getByText('87%')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠顯示風險評估', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('45/100')).toBeInTheDocument();
+        expect(screen.getByText('medium')).toBeInTheDocument();
+        expect(screen.getByText('血壓偏高')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠顯示健康洞察', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('體重管理建議')).toBeInTheDocument();
+        expect(screen.getByText('您的BMI為24.4，建議進行體重管理。')).toBeInTheDocument();
+        expect(screen.getByText('medium')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠顯示AI建議', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('控制每日熱量攝入')).toBeInTheDocument();
+        expect(screen.getByText('lifestyle')).toBeInTheDocument();
+        expect(screen.getByText('標記完成')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠顯示健康預測', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('weight預測')).toBeInTheDocument();
+        expect(screen.getByText('當前: 70.5')).toBeInTheDocument();
+        expect(screen.getByText('預測: 71.0')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠打開聊天功能', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        const chatButton = screen.getByText('聊天');
+        expect(chatButton).toBeInTheDocument();
+      });
+
+      const chatButton = screen.getByText('聊天');
+      fireEvent.click(chatButton);
+
+      // 檢查聊天模態框是否打開
+      await waitFor(() => {
+        expect(screen.getByText('AI健康助手')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠標記建議為完成', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        const completeButton = screen.getByText('標記完成');
+        expect(completeButton).toBeInTheDocument();
+      });
+
+      const completeButton = screen.getByText('標記完成');
+      fireEvent.click(completeButton);
+
+      expect(MockedAIHealthAssistantService.markRecommendationCompleted).toHaveBeenCalledWith('rec_1');
+    });
+  });
+
+  describe('AI健康聊天組件測試', () => {
+    test('應該能夠渲染聊天組件', () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      expect(screen.getByText('AI健康助手')).toBeInTheDocument();
+      expect(screen.getByText('輸入您的健康問題...')).toBeInTheDocument();
+      expect(screen.getByText('您好！我是您的AI健康助手。')).toBeInTheDocument();
+    });
+
+    test('應該能夠發送消息', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '我的體重怎麼樣？' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText('我的體重怎麼樣？')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理體重查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '體重' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/您目前的體重是70\.5公斤/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理血壓查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '血壓' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/您目前的血壓是135\/88 mmHg/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理血糖查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '血糖' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/您目前的血糖是5\.8 mmol\/L/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理一般健康建議查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '運動' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/建議您每週進行至少150分鐘的中等強度有氧運動/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理飲食建議查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '飲食' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/建議您遵循均衡飲食原則/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理睡眠建議查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '睡眠' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/建議您每晚保持7-9小時的優質睡眠/)).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理未知查詢', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      fireEvent.change(input, { target: { value: '未知問題' } });
+      fireEvent.click(sendButton);
+
+      await waitFor(() => {
+        expect(screen.getByText(/我理解您的問題/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('錯誤處理測試', () => {
+    test('應該能夠處理服務錯誤', async () => {
+      MockedAIHealthAssistantService.analyzeHealthData = jest.fn().mockRejectedValue(new Error('服務錯誤'));
+
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('初始化AI健康助手時發生錯誤，請稍後再試。')).toBeInTheDocument();
+      });
+    });
+
+    test('應該能夠處理聊天錯誤', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthChat
+            userId="user_001"
+            healthData={mockHealthData}
+            onClose={() => {}}
+          />
+        </TestWrapper>
+      );
+
+      const input = screen.getByPlaceholderText('輸入您的健康問題...');
+      const sendButton = screen.getByRole('button', { name: /send/i });
+
+      // 模擬錯誤情況
+      fireEvent.change(input, { target: { value: '錯誤測試' } });
+      fireEvent.click(sendButton);
+
+      // 檢查是否顯示默認回覆
+      await waitFor(() => {
+        expect(screen.getByText(/我理解您的問題/)).toBeInTheDocument();
+      });
+    });
+  });
+
+  describe('無障礙性測試', () => {
+    test('應該支持鍵盤導航', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        const chatButton = screen.getByText('聊天');
+        expect(chatButton).toBeInTheDocument();
+      });
+
+      const chatButton = screen.getByText('聊天');
+      chatButton.focus();
+      
+      expect(chatButton).toHaveFocus();
+    });
+
+    test('應該支持屏幕閱讀器', async () => {
+      render(
+        <TestWrapper>
+          <AIHealthAssistant />
+        </TestWrapper>
+      );
+
+      await waitFor(() => {
+        expect(screen.getByRole('heading', { name: 'AI健康助手' })).toBeInTheDocument();
+        expect(screen.getByRole('button', { name: '聊天' })).toBeInTheDocument();
+      });
+    });
+  });
+});

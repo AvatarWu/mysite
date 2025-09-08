@@ -1,0 +1,1944 @@
+// src/pages/Settings.tsx
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import './Settings.css';
+
+interface SettingsData {
+  notifications: {
+    medication: boolean;
+    healthReminder: boolean;
+    dailyCheck: boolean;
+    emergency: boolean;
+  };
+  privacy: {
+    dataSharing: boolean;
+    analytics: boolean;
+    crashReports: boolean;
+  };
+  accessibility: {
+    largeText: boolean;
+    highContrast: boolean;
+    voiceOver: boolean;
+  };
+  general: {
+    language: string;
+    theme: string;
+    autoBackup: boolean;
+  };
+}
+
+const Settings: React.FC = () => {
+  const navigate = useNavigate();
+  
+  // 從 localStorage 載入設定，如果沒有則使用預設值
+  const loadSettings = (): SettingsData => {
+    try {
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        return JSON.parse(savedSettings);
+      }
+    } catch (error) {
+      console.error('載入設定失敗:', error);
+    }
+    
+    // 預設設定
+    return {
+      notifications: {
+        medication: true,
+        healthReminder: true,
+        dailyCheck: false,
+        emergency: true,
+      },
+      privacy: {
+        dataSharing: false,
+        analytics: true,
+        crashReports: true,
+      },
+      accessibility: {
+        largeText: false,
+        highContrast: false, // 高對比度默認關閉
+        voiceOver: false,
+      },
+      general: {
+        language: 'zh-CN',
+        theme: 'auto',
+        autoBackup: true,
+      },
+    };
+  };
+
+  const [settings, setSettings] = useState<SettingsData>(loadSettings);
+
+  // 監聽 localStorage 變化，強制重新渲染
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setSettings(loadSettings());
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // 定期檢查 localStorage 變化（因為同頁面內的變化不會觸發 storage 事件）
+    const interval = setInterval(() => {
+      const currentSettings = loadSettings();
+      if (JSON.stringify(currentSettings) !== JSON.stringify(settings)) {
+        setSettings(currentSettings);
+      }
+    }, 100);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
+  }, [settings]);
+
+  const handleBack = () => {
+    navigate('/');
+  };
+
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  // 在頁面載入時應用已保存的設定
+  useEffect(() => {
+    console.log('Settings 頁面載入，當前設定:', settings);
+    
+    // 不調用 DOM 操作函數，讓內聯樣式處理所有樣式
+    console.log('使用內聯樣式處理所有主題和無障礙設定');
+  }, [settings]); // 添加 settings 作為依賴，確保設定變更時重新執行
+
+  // 監聽系統主題變化
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    
+    const handleSystemThemeChange = (e: MediaQueryListEvent) => {
+      console.log('系統主題變化檢測到:', e.matches ? '深色' : '淺色');
+      // 如果當前設定是跟隨系統，則強制重新渲染
+      if (settings.general.theme === 'auto') {
+        console.log('系統主題變化，強制重新渲染');
+        // 強制重新渲染，讓內聯樣式重新計算
+        setSettings(prev => ({ ...prev }));
+      }
+    };
+    
+    mediaQuery.addEventListener('change', handleSystemThemeChange);
+    
+    return () => {
+      mediaQuery.removeEventListener('change', handleSystemThemeChange);
+    };
+  }, [settings.general.theme]);
+
+  // 強制重新應用主題（用於調試）
+  useEffect(() => {
+    // 不調用 DOM 操作，讓內聯樣式處理
+    console.log('強制重新應用主題，當前主題設定:', settings.general.theme);
+  }, []);
+
+  // 專門處理高對比度的強制應用
+  useEffect(() => {
+    // 不調用 DOM 操作，讓內聯樣式處理高對比度
+    console.log('使用內聯樣式處理高對比度');
+  }, []); // 只在組件掛載時執行一次
+
+  const handleToggle = (category: keyof SettingsData, key: string) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: !prev[category][key as keyof typeof prev[typeof category]]
+      }
+    }));
+    setHasUnsavedChanges(true);
+    
+    // 如果是高對比度變更，通知 App.tsx
+    if (category === 'accessibility' && key === 'highContrast') {
+      const newValue = !settings.accessibility.highContrast;
+      // 通知 App.tsx 進行全局高對比度更新
+      window.dispatchEvent(new CustomEvent('highContrastChanged', { detail: { enabled: newValue } }));
+    }
+  };
+
+  const handleSelectChange = (category: keyof SettingsData, key: string, value: string) => {
+    setSettings(prev => ({
+      ...prev,
+      [category]: {
+        ...prev[category],
+        [key]: value
+      }
+    }));
+    setHasUnsavedChanges(true);
+    
+    // 如果是主題變更，通知 App.tsx
+    if (category === 'general' && key === 'theme') {
+      // 通知 App.tsx 進行全局主題更新
+      window.dispatchEvent(new CustomEvent('themeChanged', { detail: { theme: value } }));
+    }
+    
+    // 如果是語言變更，通知 App.tsx
+    if (category === 'general' && key === 'language') {
+      // 通知 App.tsx 進行全局語言更新
+      window.dispatchEvent(new CustomEvent('languageChanged', { detail: { language: value } }));
+    }
+  };
+
+  const handleSaveSettings = () => {
+    try {
+      // 保存到 localStorage
+      localStorage.setItem('careold-settings', JSON.stringify(settings));
+      
+      console.log('保存設定前，大字體狀態:', settings.accessibility.largeText);
+      console.log('保存設定前，高對比度狀態:', settings.accessibility.highContrast);
+      
+      // 檢查是否有語言變更
+      const savedSettings = localStorage.getItem('careold-settings');
+      let hasLanguageChange = false;
+      if (savedSettings) {
+        const oldSettings = JSON.parse(savedSettings);
+        hasLanguageChange = oldSettings.general && oldSettings.general.language !== settings.general.language;
+      }
+      
+      if (hasLanguageChange) {
+        console.log('檢測到語言變更，保持高對比度狀態並重新應用');
+        // 語言變更時，保持當前的高對比度狀態
+        if (settings.accessibility.highContrast) {
+          console.log('語言變更後重新應用高對比度');
+          // 延遲重新應用高對比度，確保語言切換完成
+          setTimeout(() => {
+            applyHighContrast(true);
+          }, 100);
+        }
+        
+        // 如果有大字體設定變更，也一併處理
+        if (settings.accessibility.largeText !== undefined) {
+          console.log('語言變更後應用大字體設定');
+          const tempAccessibility = {
+            largeText: settings.accessibility.largeText,
+            highContrast: settings.accessibility.highContrast, // 保持當前高對比度狀態
+            voiceOver: settings.accessibility.voiceOver
+          };
+          applyAccessibilitySettings(tempAccessibility, false); // 不跳過高對比度
+        }
+      } else {
+        // 非語言變更時，正常應用所有無障礙設定
+        if (settings.accessibility.largeText !== undefined || 
+            settings.accessibility.highContrast !== undefined || 
+            settings.accessibility.voiceOver !== undefined) {
+          console.log('非語言變更，應用所有無障礙設定');
+          applyAccessibilitySettings(settings.accessibility, false);
+        }
+      }
+      
+      console.log('設定已保存:', settings);
+      setHasUnsavedChanges(false);
+      
+      // 顯示保存成功提示
+      alert('設定已成功保存！');
+    } catch (error) {
+      console.error('保存設定失敗:', error);
+      alert('保存失敗，請重試');
+    }
+  };
+
+  // 應用高對比度設定
+  const applyHighContrast = (enabled: boolean) => {
+    console.log('Settings.tsx: 應用高對比度:', enabled);
+    
+    if (enabled) {
+      // 檢查當前主題
+      const savedSettings = localStorage.getItem('careold-settings');
+      let isDarkTheme = false;
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        isDarkTheme = settings.general && settings.general.theme === 'dark';
+      }
+      
+      if (isDarkTheme) {
+        // 深色主題下的高對比度
+        document.body.style.setProperty('background-color', '#000000', 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        
+        // 強制所有文字為白色
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, button, input, select, label');
+        allTextElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            element.style.setProperty('color', '#ffffff', 'important');
+          }
+        });
+        
+        // 強制所有背景為純黑
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            const currentBg = element.style.backgroundColor || element.style.background;
+            if (currentBg && !currentBg.includes('transparent')) {
+              element.style.setProperty('background-color', '#000000', 'important');
+            }
+          }
+        });
+      } else {
+        // 淺色主題下的高對比度
+        document.body.style.setProperty('background-color', '#ffffff', 'important');
+        document.body.style.setProperty('color', '#000000', 'important');
+        
+        // 強制所有文字為黑色
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, button, input, select, label');
+        allTextElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            element.style.setProperty('color', '#000000', 'important');
+          }
+        });
+        
+        // 強制所有背景為純白
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            const currentBg = element.style.backgroundColor || element.style.background;
+            if (currentBg && !currentBg.includes('transparent')) {
+              element.style.setProperty('background-color', '#ffffff', 'important');
+            }
+          }
+        });
+      }
+      
+      // 設置高對比度的主題色變數
+      const root = document.documentElement;
+      root.style.setProperty('--primary', '#00ffff', 'important');      // 青色
+      root.style.setProperty('--success', '#00ff00', 'important');      // 亮綠色
+      root.style.setProperty('--warning', '#ffff00', 'important');      // 黃色
+      root.style.setProperty('--danger', '#ff0000', 'important');       // 紅色
+      
+      // 強制應用高對比度到設定頁面的特定元素
+      const settingsPage = document.querySelector('.settings-page');
+      if (settingsPage instanceof HTMLElement) {
+        if (isDarkTheme) {
+          settingsPage.style.setProperty('background-color', '#000000', 'important');
+          settingsPage.style.setProperty('color', '#ffffff', 'important');
+        } else {
+          settingsPage.style.setProperty('background-color', '#ffffff', 'important');
+          settingsPage.style.setProperty('color', '#000000', 'important');
+        }
+      }
+      
+      // 強制應用高對比度到設定區塊
+      const settingSections = document.querySelectorAll('.settings-section');
+      settingSections.forEach(section => {
+        if (section instanceof HTMLElement) {
+          if (isDarkTheme) {
+            section.style.setProperty('background-color', '#000000', 'important');
+            section.style.setProperty('border-color', '#00ffff', 'important');
+            section.style.setProperty('color', '#ffffff', 'important');
+          } else {
+            section.style.setProperty('background-color', '#ffffff', 'important');
+            section.style.setProperty('border-color', '#000000', 'important');
+            section.style.setProperty('color', '#000000', 'important');
+          }
+        }
+      });
+      
+      // 強制應用高對比度到設定項目
+      const settingItems = document.querySelectorAll('.setting-item');
+      settingItems.forEach(item => {
+        if (item instanceof HTMLElement) {
+          if (isDarkTheme) {
+            item.style.setProperty('background-color', '#000000', 'important');
+            item.style.setProperty('border-color', '#00ffff', 'important');
+            item.style.setProperty('color', '#ffffff', 'important');
+          } else {
+            item.style.setProperty('background-color', '#ffffff', 'important');
+            item.style.setProperty('border-color', '#000000', 'important');
+            item.style.setProperty('color', '#000000', 'important');
+          }
+        }
+      });
+      
+      console.log('Settings.tsx: 高對比度已應用，主題:', isDarkTheme ? '深色' : '淺色');
+      
+    } else {
+      // 關閉高對比度，恢復當前主題
+      console.log('Settings.tsx: 關閉高對比度，恢復主題');
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.general && settings.general.theme) {
+          applyTheme(settings.general.theme);
+        }
+      }
+    }
+  };
+
+  // 重新應用高對比度狀態（如果已啟用）
+  const reapplyHighContrastIfEnabled = () => {
+    const savedSettings = localStorage.getItem('careold-settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      if (settings.accessibility && settings.accessibility.highContrast) {
+        console.log('重新應用高對比度狀態');
+        applyHighContrast(true);
+        return true;
+      }
+    }
+    return false;
+  };
+
+  // 語言設定現在由內聯樣式處理，不需要 DOM 操作
+
+  // 語言切換函數已移除，現在由內聯樣式處理
+
+  // 頁面文字更新函數已移除，現在由內聯樣式處理
+
+  // 應用主題設定
+  const applyTheme = (theme: string) => {
+    console.log('開始應用主題:', theme);
+    
+    if (theme === 'dark') {
+      console.log('啟用深色模式');
+      
+      // 強制應用深色模式樣式到所有元素
+      document.body.style.setProperty('background-color', '#1a1a1a', 'important');
+      document.body.style.setProperty('color', '#ffffff', 'important');
+      
+      // 設定頁面主容器
+      const settingsPage = document.querySelector('.settings-page');
+      if (settingsPage instanceof HTMLElement) {
+        settingsPage.style.setProperty('background', '#1a1a1a', 'important');
+        settingsPage.style.setProperty('color', '#ffffff', 'important');
+      }
+      
+      console.log('深色模式樣式已強制應用');
+      
+    } else if (theme === 'light') {
+      console.log('啟用淺色模式');
+      
+      // 強制應用淺色模式樣式
+      document.body.style.setProperty('background-color', '#f8f9fa', 'important');
+      document.body.style.setProperty('color', '#1f2937', 'important');
+      
+      console.log('淺色模式樣式已恢復');
+      
+    } else {
+      console.log('跟隨系統模式');
+      // 跟隨系統 - 檢查系統偏好
+      const isSystemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log('系統深色模式狀態:', isSystemDark);
+      
+      if (isSystemDark) {
+        console.log('系統為深色模式，應用深色主題');
+        // 直接應用深色主題樣式，避免遞歸調用
+        document.body.style.setProperty('background-color', '#1a1a1a', 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        
+        const settingsPage = document.querySelector('.settings-page');
+        if (settingsPage instanceof HTMLElement) {
+          settingsPage.style.setProperty('background', '#1a1a1a', 'important');
+          settingsPage.style.setProperty('color', '#ffffff', 'important');
+        }
+        
+        const header = document.querySelector('.custom-header');
+        if (header instanceof HTMLElement) {
+          header.style.setProperty('background', 'rgba(26, 26, 26, 0.95)', 'important');
+          header.style.setProperty('border-bottom-color', '#4d4d4d', 'important');
+        }
+        
+        console.log('深色模式樣式已應用（跟隨系統）');
+      } else {
+        console.log('系統為淺色模式，應用淺色主題');
+        // 直接應用淺色主題樣式，避免遞歸調用
+        document.body.style.setProperty('background-color', '#f8f9fa', 'important');
+        document.body.style.setProperty('color', '#1f2937', 'important');
+        
+        const settingsPage = document.querySelector('.settings-page');
+        if (settingsPage instanceof HTMLElement) {
+          settingsPage.style.setProperty('background', 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 'important');
+          settingsPage.style.setProperty('color', '#1f2937', 'important');
+        }
+        
+        const header = document.querySelector('.custom-header');
+        if (header instanceof HTMLElement) {
+          header.style.setProperty('background', 'rgba(255, 255, 255, 0.95)', 'important');
+          header.style.setProperty('border-bottom-color', 'rgba(0, 0, 0, 0.1)', 'important');
+        }
+        
+        console.log('淺色模式樣式已應用（跟隨系統）');
+      }
+    }
+    
+    console.log('主題已應用完成:', theme);
+  };
+
+  // 應用無障礙設定
+  const applyAccessibilitySettings = (accessibility: SettingsData['accessibility'], skipHighContrast: boolean = false) => {
+    console.log('開始應用無障礙設定，大字體狀態:', accessibility.largeText, '跳過高對比度:', skipHighContrast);
+        'analytics-desc': '收集使用數據以改善服務',
+        'crash-reports': '崩潰報告',
+        'crash-reports-desc': '自動發送崩潰報告以修復問題',
+        'accessibility-title': '無障礙設定',
+        'large-text': '大字體',
+        'large-text-desc': '增大文字大小以提高可讀性',
+        'high-contrast': '高對比度',
+        'high-contrast-desc': '提高文字與背景的對比度',
+        'voice-over': '語音導航',
+        'voice-over-desc': '啟用語音導航功能',
+        'general-title': '一般設定',
+        'language': '語言',
+        'language-desc': '選擇應用程式語言',
+        'theme': '主題',
+        'theme-desc': '選擇應用程式主題',
+        'auto-backup': '自動備份',
+        'auto-backup-desc': '自動備份您的健康數據',
+        'reset-settings': '重置設定',
+        'export-settings': '匯出設定'
+      },
+      'en': {
+        'header-title': 'Settings',
+        'back-button': 'Back',
+        'save-button': 'Save',
+        'notifications-title': 'Notifications',
+        'medication-reminder': 'Medication Reminder',
+        'medication-desc': 'Remind you to take medication on time',
+        'health-reminder': 'Health Reminder',
+        'health-desc': 'Remind you to record health data',
+        'daily-check': 'Daily Check',
+        'daily-check-desc': 'Daily health status check reminder',
+        'emergency': 'Emergency Notifications',
+        'emergency-desc': 'Emergency situation related notifications',
+        'privacy-title': 'Privacy Settings',
+        'data-sharing': 'Data Sharing',
+        'data-sharing-desc': 'Allow sharing health data with medical institutions',
+        'analytics': 'Analytics',
+        'analytics-desc': 'Collect usage data to improve services',
+        'crash-reports': 'Crash Reports',
+        'crash-reports-desc': 'Automatically send crash reports to fix issues',
+        'accessibility-title': 'Accessibility Settings',
+        'large-text': 'Large Text',
+        'large-text-desc': 'Increase text size for better readability',
+        'high-contrast': 'High Contrast',
+        'high-contrast-desc': 'Increase contrast between text and background',
+        'voice-over': 'Voice Over',
+        'voice-over-desc': 'Enable voice navigation features',
+        'general-title': 'General Settings',
+        'language': 'Language',
+        'language-desc': 'Choose application language',
+        'theme': 'Theme',
+        'theme-desc': 'Choose application theme',
+        'auto-backup': 'Auto Backup',
+        'auto-backup-desc': 'Automatically backup your health data',
+        'reset-settings': 'Reset Settings',
+        'export-settings': 'Export Settings'
+      },
+      'zh-TW': {
+        'header-title': '設定',
+        'back-button': '返回',
+        'save-button': '儲存',
+        'notifications-title': '通知設定',
+        'medication-reminder': '用藥提醒',
+        'medication-desc': '提醒您按時服藥',
+        'health-reminder': '健康提醒',
+        'health-desc': '提醒您記錄健康數據',
+        'daily-check': '每日檢查',
+        'daily-check-desc': '每日健康狀況檢查提醒',
+        'emergency': '緊急通知',
+        'emergency-desc': '緊急狀況相關通知',
+        'privacy-title': '隱私設定',
+        'data-sharing': '數據分享',
+        'data-sharing-desc': '允許與醫療機構分享健康數據',
+        'analytics': '分析數據',
+        'analytics-desc': '收集使用數據以改善服務',
+        'crash-reports': '崩潰報告',
+        'crash-reports-desc': '自動發送崩潰報告以修復問題',
+        'accessibility-title': '無障礙設定',
+        'large-text': '大字體',
+        'large-text-desc': '增大文字大小以提高可讀性',
+        'high-contrast': '高對比度',
+        'high-contrast-desc': '提高文字與背景的對比度',
+        'voice-over': '語音導航',
+        'voice-over-desc': '啟用語音導航功能',
+        'general-title': '一般設定',
+        'language': '語言',
+        'language-desc': '選擇應用程式語言',
+        'theme': '主題',
+        'theme-desc': '選擇應用程式主題',
+        'auto-backup': '自動備份',
+        'auto-backup-desc': '自動備份您的健康數據',
+        'reset-settings': '重置設定',
+        'export-settings': '匯出設定'
+      }
+    };
+
+    const texts = textMap[language];
+    if (!texts) return;
+
+    // 暫時禁用全域文字更新，避免影響其他頁面
+    // Object.keys(texts).forEach(key => {
+    //   const elements = document.querySelectorAll(`.settings-page [data-text-key="${key}"]`);
+    //   elements.forEach(element => {
+    //     if (element instanceof HTMLElement) {
+    //       element.textContent = texts[key];
+    //     }
+    //   });
+    // });
+
+    // 更新特定元素
+    const headerTitle = document.querySelector('.header-title');
+    if (headerTitle instanceof HTMLElement) {
+      headerTitle.textContent = texts['header-title'];
+    }
+
+    // 移除重複的 back-button 更新，避免與上面的 querySelectorAll 衝突
+
+    console.log(`頁面文字已更新為 ${language}`);
+    
+    // 文字更新完成後，立即檢查並重新應用高對比度狀態
+    setTimeout(() => {
+      const wasApplied = reapplyHighContrastIfEnabled();
+      if (wasApplied) {
+        console.log('文字更新後高對比度已重新應用');
+      } else {
+        console.log('文字更新後無需重新應用高對比度');
+      }
+    }, 25); // 減少延遲到 25ms，更快地恢復高對比度
+    
+    // 額外檢查：如果當前設定中高對比度已啟用，立即重新應用
+    const savedSettings = localStorage.getItem('careold-settings');
+    if (savedSettings) {
+      const settings = JSON.parse(savedSettings);
+      if (settings.accessibility && settings.accessibility.highContrast) {
+        console.log('文字更新後立即重新應用高對比度');
+        setTimeout(() => {
+          applyHighContrast(true);
+        }, 10); // 非常短的延遲，確保高對比度立即生效
+      }
+    }
+    
+    // 強制保持高對比度狀態：最終檢查
+    setTimeout(() => {
+      const finalCheckSettings = localStorage.getItem('careold-settings');
+      if (finalCheckSettings) {
+        const finalSettings = JSON.parse(finalCheckSettings);
+        if (finalSettings.accessibility && finalSettings.accessibility.highContrast) {
+          console.log('文字更新後強制檢查並重新應用高對比度');
+          // 強制重新應用高對比度
+          applyHighContrast(true);
+          
+          // 通知 App.tsx 進行全局高對比度更新
+          window.dispatchEvent(new CustomEvent('highContrastChanged', { detail: { enabled: true } }));
+        }
+      }
+    }, 50); // 延遲 50ms 進行最終檢查
+  };
+
+  // 應用主題設定
+  const applyTheme = (theme: string) => {
+    console.log('開始應用主題:', theme);
+    
+    if (theme === 'dark') {
+      console.log('啟用深色模式');
+      
+      // 強制應用深色模式樣式到所有元素
+      document.body.style.setProperty('background-color', '#1a1a1a', 'important');
+      document.body.style.setProperty('color', '#ffffff', 'important');
+      
+      // 設定頁面主容器
+      const settingsPage = document.querySelector('.settings-page');
+      if (settingsPage instanceof HTMLElement) {
+        settingsPage.style.setProperty('background', '#1a1a1a', 'important');
+        settingsPage.style.setProperty('color', '#ffffff', 'important');
+      }
+      
+      // 導航欄
+      const header = document.querySelector('.custom-header');
+      if (header instanceof HTMLElement) {
+        header.style.setProperty('background', 'rgba(26, 26, 26, 0.95)', 'important');
+        header.style.setProperty('border-bottom-color', '#4d4d4d', 'important');
+      }
+      
+      // 標題
+      const headerTitle = document.querySelector('.header-title');
+      if (headerTitle instanceof HTMLElement) {
+        headerTitle.style.setProperty('color', '#ffffff', 'important');
+      }
+      
+      // 返回按鈕
+      const backButton = document.querySelector('.back-button');
+      if (backButton instanceof HTMLElement) {
+        backButton.style.setProperty('color', '#60a5fa', 'important');
+      }
+      
+      // 主要內容區域
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent instanceof HTMLElement) {
+        mainContent.style.setProperty('background-color', '#1a1a1a', 'important');
+        mainContent.style.setProperty('color', '#ffffff', 'important');
+      }
+      
+      // 設定區塊
+      const settingSections = document.querySelectorAll('.settings-section');
+      settingSections.forEach(section => {
+        if (section instanceof HTMLElement) {
+          section.style.setProperty('background-color', '#2d2d2d', 'important');
+          section.style.setProperty('border-color', '#4d4d4d', 'important');
+          section.style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      // 設定群組
+      const settingsGroups = document.querySelectorAll('.settings-group');
+      settingsGroups.forEach(group => {
+        if (group instanceof HTMLElement) {
+          group.style.setProperty('background-color', '#2d2d2d', 'important');
+          group.style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      // 設定項目
+      const settingItems = document.querySelectorAll('.setting-item');
+      settingItems.forEach(item => {
+        if (item instanceof HTMLElement) {
+          item.style.setProperty('background-color', '#2d2d2d', 'important');
+          item.style.setProperty('border-color', '#4d4d4d', 'important');
+          item.style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      // 設定名稱和描述
+      const settingNames = document.querySelectorAll('.setting-name');
+      settingNames.forEach(name => {
+        if (name instanceof HTMLElement) {
+          name.style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      const settingDescs = document.querySelectorAll('.setting-desc');
+      settingDescs.forEach(desc => {
+        if (desc instanceof HTMLElement) {
+          desc.style.setProperty('color', '#e0e0e0', 'important');
+        }
+      });
+      
+      // 區塊標題
+      const sectionTitles = document.querySelectorAll('.section-title');
+      sectionTitles.forEach(title => {
+        if (title instanceof HTMLElement) {
+          title.style.setProperty('color', '#ffffff', 'important');
+        }
+      });
+      
+      // 下拉選單
+      const selects = document.querySelectorAll('select');
+      selects.forEach(select => {
+        if (select instanceof HTMLElement) {
+          select.style.setProperty('background-color', '#3d3d3d', 'important');
+          select.style.setProperty('color', '#ffffff', 'important');
+          select.style.setProperty('border-color', '#4d4d4d', 'important');
+        }
+      });
+      
+      // 按鈕
+      const buttons = document.querySelectorAll('button:not(.back-button):not(.save-button)');
+      buttons.forEach(button => {
+        if (button instanceof HTMLElement) {
+          button.style.setProperty('background-color', '#3d3d3d', 'important');
+          button.style.setProperty('color', '#ffffff', 'important');
+          button.style.setProperty('border-color', '#4d4d4d', 'important');
+        }
+      });
+      
+      // 導出按鈕
+      const exportButton = document.querySelector('.export-button');
+      if (exportButton instanceof HTMLElement) {
+        exportButton.style.setProperty('background-color', '#1d4ed8', 'important');
+        exportButton.style.setProperty('color', '#ffffff', 'important');
+      }
+      
+      console.log('深色模式樣式已強制應用');
+      
+    } else if (theme === 'light') {
+      console.log('啟用淺色模式');
+      
+      // 強制應用淺色模式樣式
+      document.body.style.setProperty('background-color', '#f8f9fa', 'important');
+      document.body.style.setProperty('color', '#1f2937', 'important');
+      
+      const settingsPage = document.querySelector('.settings-page');
+      if (settingsPage instanceof HTMLElement) {
+        settingsPage.style.setProperty('background', 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 'important');
+        settingsPage.style.setProperty('color', '#1f2937', 'important');
+      }
+      
+      const header = document.querySelector('.custom-header');
+      if (header instanceof HTMLElement) {
+        header.style.setProperty('background', 'rgba(255, 255, 255, 0.95)', 'important');
+        header.style.setProperty('border-bottom-color', 'rgba(0, 0, 0, 0.1)', 'important');
+      }
+      
+      const headerTitle = document.querySelector('.header-title');
+      if (headerTitle instanceof HTMLElement) {
+        headerTitle.style.setProperty('color', '#1f2937', 'important');
+      }
+      
+      const backButton = document.querySelector('.back-button');
+      if (backButton instanceof HTMLElement) {
+        backButton.style.setProperty('color', '#2563eb', 'important');
+      }
+      
+      const mainContent = document.querySelector('.main-content');
+      if (mainContent instanceof HTMLElement) {
+        mainContent.style.setProperty('background-color', 'transparent', 'important');
+        mainContent.style.setProperty('color', '#1f2937', 'important');
+      }
+      
+      const settingSections = document.querySelectorAll('.settings-section');
+      settingSections.forEach(section => {
+        if (section instanceof HTMLElement) {
+          section.style.setProperty('background-color', 'rgba(255, 255, 255, 0.9)', 'important');
+          section.style.setProperty('border-color', 'rgba(0, 0, 0, 0.1)', 'important');
+          section.style.setProperty('color', '#1f2937', 'important');
+        }
+      });
+      
+      const settingsGroups = document.querySelectorAll('.settings-group');
+      settingsGroups.forEach(group => {
+        if (group instanceof HTMLElement) {
+          group.style.setProperty('background-color', 'transparent', 'important');
+          group.style.setProperty('color', '#1f2937', 'important');
+        }
+      });
+      
+      const settingItems = document.querySelectorAll('.setting-item');
+      settingItems.forEach(item => {
+        if (item instanceof HTMLElement) {
+          item.style.setProperty('background-color', 'transparent', 'important');
+          item.style.setProperty('border-color', 'rgba(0, 0, 0, 0.05)', 'important');
+          item.style.setProperty('color', '#1f2937', 'important');
+        }
+      });
+      
+      const settingNames = document.querySelectorAll('.setting-name');
+      settingNames.forEach(name => {
+        if (name instanceof HTMLElement) {
+          name.style.setProperty('color', '#1f2937', 'important');
+        }
+      });
+      
+      const settingDescs = document.querySelectorAll('.setting-desc');
+      settingDescs.forEach(desc => {
+        if (desc instanceof HTMLElement) {
+          desc.style.setProperty('color', '#6b7280', 'important');
+        }
+      });
+      
+      const sectionTitles = document.querySelectorAll('.section-title');
+      sectionTitles.forEach(title => {
+        if (title instanceof HTMLElement) {
+          title.style.setProperty('color', '#1f2937', 'important');
+        }
+      });
+      
+      const selects = document.querySelectorAll('select');
+      selects.forEach(select => {
+        if (select instanceof HTMLElement) {
+          select.style.setProperty('background-color', 'white', 'important');
+          select.style.setProperty('color', '#1f2937', 'important');
+          select.style.setProperty('border-color', '#d1d5db', 'important');
+        }
+      });
+      
+      const buttons = document.querySelectorAll('button:not(.back-button):not(.save-button)');
+      buttons.forEach(button => {
+        if (button instanceof HTMLElement) {
+          button.style.removeProperty('background-color');
+          button.style.removeProperty('color');
+          button.style.removeProperty('border-color');
+        }
+      });
+      
+      const exportButton = document.querySelector('.export-button');
+      if (exportButton instanceof HTMLElement) {
+        exportButton.style.removeProperty('background-color');
+        exportButton.style.removeProperty('color');
+      }
+      
+      console.log('淺色模式樣式已恢復');
+      
+    } else {
+      console.log('跟隨系統模式');
+      // 跟隨系統 - 檢查系統偏好
+      const isSystemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      console.log('系統深色模式狀態:', isSystemDark);
+      
+      if (isSystemDark) {
+        console.log('系統為深色模式，應用深色主題');
+        // 直接應用深色主題樣式，避免遞歸調用
+        document.body.style.setProperty('background-color', '#1a1a1a', 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        
+        const settingsPage = document.querySelector('.settings-page');
+        if (settingsPage instanceof HTMLElement) {
+          settingsPage.style.setProperty('background', '#1a1a1a', 'important');
+          settingsPage.style.setProperty('color', '#ffffff', 'important');
+        }
+        
+        const header = document.querySelector('.custom-header');
+        if (header instanceof HTMLElement) {
+          header.style.setProperty('background', 'rgba(26, 26, 26, 0.95)', 'important');
+          header.style.setProperty('border-bottom-color', '#4d4d4d', 'important');
+        }
+        
+        console.log('深色模式樣式已應用（跟隨系統）');
+      } else {
+        console.log('系統為淺色模式，應用淺色主題');
+        // 直接應用淺色主題樣式，避免遞歸調用
+        document.body.style.setProperty('background-color', '#f8f9fa', 'important');
+        document.body.style.setProperty('color', '#1f2937', 'important');
+        
+        const settingsPage = document.querySelector('.settings-page');
+        if (settingsPage instanceof HTMLElement) {
+          settingsPage.style.setProperty('background', 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)', 'important');
+          settingsPage.style.setProperty('color', '#1f2937', 'important');
+        }
+        
+        const header = document.querySelector('.custom-header');
+        if (header instanceof HTMLElement) {
+          header.style.setProperty('background', 'rgba(255, 255, 255, 0.95)', 'important');
+          header.style.setProperty('border-bottom-color', 'rgba(0, 0, 0, 0.1)', 'important');
+        }
+        
+        console.log('淺色模式樣式已應用（跟隨系統）');
+      }
+    }
+    
+    console.log('主題已應用完成:', theme);
+  };
+
+  // 應用無障礙設定
+  const applyAccessibilitySettings = (accessibility: SettingsData['accessibility'], skipHighContrast: boolean = false) => {
+    console.log('開始應用無障礙設定，大字體狀態:', accessibility.largeText, '跳過高對比度:', skipHighContrast);
+    
+    if (accessibility.largeText) {
+      console.log('啟用大字體模式');
+      
+      // 強制應用大字體到所有元素 - 更強烈的效果
+      document.body.style.setProperty('font-size', '1.8rem', 'important');
+      document.body.style.setProperty('line-height', '2', 'important');
+      
+      // 強制應用大字體到所有標題 - 非常明顯的變化
+      const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      console.log('找到標題元素數量:', allHeadings.length);
+      allHeadings.forEach((heading, index) => {
+        if (heading instanceof HTMLElement) {
+          const tagName = heading.tagName;
+          let newSize = '2rem';
+          
+          if (tagName === 'H1') newSize = '4rem';
+          else if (tagName === 'H2') newSize = '3.5rem';
+          else if (tagName === 'H3') newSize = '3rem';
+          else if (tagName === 'H4') newSize = '2.5rem';
+          else if (tagName === 'H5') newSize = '2.2rem';
+          else if (tagName === 'H6') newSize = '2rem';
+          
+          heading.style.setProperty('font-size', newSize, 'important');
+          heading.style.setProperty('line-height', '1.3', 'important');
+          heading.style.setProperty('font-weight', '600', 'important');
+          console.log(`標題 ${index + 1} (${tagName}): ${newSize}`);
+        }
+      });
+      
+      // 強制應用大字體到所有段落和文字 - 非常明顯的變化
+      const allTextElements = document.querySelectorAll('p, span, div, button, input, select, label');
+      console.log('找到文字元素數量:', allTextElements.length);
+      let appliedCount = 0;
+      
+      allTextElements.forEach((element) => {
+        if (element instanceof HTMLElement) {
+          // 跳過已經處理的標題和特殊元素
+          if (element.tagName.match(/^H[1-6]$/)) return;
+          if (element.classList.contains('setting-name')) return;
+          if (element.classList.contains('setting-desc')) return;
+          if (element.classList.contains('section-title')) return;
+          
+          element.style.setProperty('font-size', '1.8rem', 'important');
+          element.style.lineHeight = '1.6';
+          appliedCount++;
+        }
+      });
+      console.log('已應用大字體的文字元素數量:', appliedCount);
+      
+      // 特別處理設定頁面的元素 - 更強烈的效果
+      const settingNames = document.querySelectorAll('.setting-name');
+      settingNames.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('font-size', '2.5rem', 'important');
+          element.style.setProperty('line-height', '1.4', 'important');
+          element.style.setProperty('font-weight', '600', 'important');
+        }
+      });
+      
+      const settingDescs = document.querySelectorAll('.setting-desc');
+      settingDescs.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('font-size', '2rem', 'important');
+          element.style.setProperty('line-height', '1.6', 'important');
+        }
+      });
+      
+      const sectionTitles = document.querySelectorAll('.section-title');
+      sectionTitles.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('font-size', '3.5rem', 'important');
+          element.style.setProperty('line-height', '1.3', 'important');
+          element.style.setProperty('font-weight', '700', 'important');
+        }
+      });
+      
+      // 特別處理按鈕和輸入框 - 更強烈的效果
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('font-size', '1.6rem', 'important');
+          element.style.setProperty('padding', '16px 20px', 'important');
+          element.style.setProperty('border-radius', '12px', 'important');
+        }
+      });
+      
+      const inputs = document.querySelectorAll('input, select');
+      inputs.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.setProperty('font-size', '1.6rem', 'important');
+          element.style.setProperty('padding', '12px 16px', 'important');
+          element.style.setProperty('height', 'auto', 'important');
+          element.style.setProperty('min-height', '48px', 'important');
+        }
+      });
+      
+      // 強制覆蓋所有可能的內聯樣式
+      const allElements = document.querySelectorAll('*');
+      allElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          // 檢查是否有字體大小樣式
+          if (element.style.fontSize) {
+            const currentSize = element.style.fontSize;
+            if (currentSize.includes('px')) {
+              const sizeNum = parseInt(currentSize);
+              if (sizeNum < 24) { // 如果字體小於 24px，強制放大
+                element.style.setProperty('font-size', '1.8rem', 'important');
+              }
+            }
+          }
+        }
+      });
+      
+      console.log('大字體模式已強制應用，變化非常明顯');
+      
+    } else {
+      console.log('恢復正常字體模式');
+      
+      // 恢復所有元素的字體大小
+      document.body.style.removeProperty('font-size');
+      document.body.style.removeProperty('line-height');
+      
+      // 恢復標題字體
+      const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+      allHeadings.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('line-height');
+          element.style.removeProperty('font-weight');
+        }
+      });
+      
+      // 恢復文字元素字體
+      const allTextElements = document.querySelectorAll('p, span, div, button, input, select, label');
+      allTextElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          if (element.tagName.match(/^H[1-6]$/)) return;
+          if (element.classList.contains('setting-name')) return;
+          if (element.classList.contains('setting-desc')) return;
+          if (element.classList.contains('section-title')) return;
+          
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('line-height');
+        }
+      });
+      
+      // 恢復設定頁面元素
+      const settingNames = document.querySelectorAll('.setting-name');
+      settingNames.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('line-height');
+          element.style.removeProperty('font-weight');
+        }
+      });
+      
+      const settingDescs = document.querySelectorAll('.setting-desc');
+      settingDescs.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('line-height');
+        }
+      });
+      
+      const sectionTitles = document.querySelectorAll('.section-title');
+      sectionTitles.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('line-height');
+          element.style.removeProperty('font-weight');
+        }
+      });
+      
+      // 恢復按鈕和輸入框
+      const buttons = document.querySelectorAll('button');
+      buttons.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('padding');
+          element.style.removeProperty('border-radius');
+        }
+      });
+      
+      const inputs = document.querySelectorAll('input, select');
+      inputs.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.style.removeProperty('font-size');
+          element.style.removeProperty('padding');
+          element.style.removeProperty('height');
+          element.style.removeProperty('min-height');
+        }
+      });
+      
+      console.log('正常字體模式已恢復');
+    }
+    
+    if (accessibility.highContrast && !skipHighContrast) {
+      console.log('啟用高對比度模式');
+      
+      // 高對比度 - 更強烈的顏色
+      const root = document.documentElement;
+      root.style.setProperty('--primary', '#00ffff', 'important');      // 青色
+      root.style.setProperty('--success', '#00ff00', 'important');      // 亮綠色
+      root.style.setProperty('--warning', '#ffff00', 'important');      // 黃色
+      root.style.setProperty('--danger', '#ff0000', 'important');       // 紅色
+      
+      // 檢查當前主題，決定高對比度的基礎顏色
+      const savedSettings = localStorage.getItem('careold-settings');
+      let isDarkTheme = false;
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        isDarkTheme = settings.general && settings.general.theme === 'dark';
+      }
+      
+      if (isDarkTheme) {
+        // 深色主題下的高對比度
+        document.body.style.setProperty('background-color', '#000000', 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        
+        // 強制所有文字為白色
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, button, input, select, label');
+        allTextElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            element.style.setProperty('color', '#ffffff', 'important');
+          }
+        });
+        
+        // 強制所有背景為純黑
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            const currentBg = element.style.backgroundColor || element.style.background;
+            if (currentBg && !currentBg.includes('transparent')) {
+              element.style.setProperty('background-color', '#000000', 'important');
+            }
+          }
+        });
+      } else {
+        // 淺色主題下的高對比度
+        document.body.style.setProperty('background-color', '#ffffff', 'important');
+        document.body.style.setProperty('color', '#000000', 'important');
+        
+        // 強制所有文字為黑色
+        const allTextElements = document.querySelectorAll('h1, h2, h3, h4, h5, h6, p, span, div, button, input, select, label');
+        allTextElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            element.style.setProperty('color', '#000000', 'important');
+          }
+        });
+        
+        // 強制所有背景為純白
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(element => {
+          if (element instanceof HTMLElement) {
+            const currentBg = element.style.backgroundColor || element.style.background;
+            if (currentBg && !currentBg.includes('transparent')) {
+              element.style.setProperty('background-color', '#ffffff', 'important');
+            }
+          }
+        });
+      }
+      
+      console.log('高對比度模式已強制應用，主題:', isDarkTheme ? '深色' : '淺色');
+      
+    } else {
+      console.log('恢復正常對比度');
+      
+      // 恢復正常對比度，但保持當前主題
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        const settings = JSON.parse(savedSettings);
+        if (settings.general && settings.general.theme) {
+          // 重新應用當前主題，而不是清除所有樣式
+          console.log('重新應用當前主題:', settings.general.theme);
+          if (settings.general.theme === 'dark') {
+            // 重新應用深色模式
+            document.body.style.setProperty('background-color', '#1a1a1a', 'important');
+            document.body.style.setProperty('color', '#ffffff', 'important');
+            
+            // 重新應用深色模式到設定頁面
+            const settingsPage = document.querySelector('.settings-page');
+            if (settingsPage instanceof HTMLElement) {
+              settingsPage.style.setProperty('background', '#1a1a1a', 'important');
+              settingsPage.style.setProperty('color', '#ffffff', 'important');
+            }
+            
+            // 重新應用深色模式到各個元素
+            const settingSections = document.querySelectorAll('.settings-section');
+            settingSections.forEach(section => {
+              if (section instanceof HTMLElement) {
+                section.style.setProperty('background-color', '#2d2d2d', 'important');
+                section.style.setProperty('border-color', '#4d4d4d', 'important');
+                section.style.setProperty('color', '#ffffff', 'important');
+              }
+            });
+            
+            const settingItems = document.querySelectorAll('.setting-item');
+            settingItems.forEach(item => {
+              if (item instanceof HTMLElement) {
+                item.style.setProperty('background-color', '#2d2d2d', 'important');
+                item.style.setProperty('border-color', '#4d4d4d', 'important');
+                item.style.setProperty('color', '#ffffff', 'important');
+              }
+            });
+            
+            const settingNames = document.querySelectorAll('.setting-name');
+            settingNames.forEach(name => {
+              if (name instanceof HTMLElement) {
+                name.style.setProperty('color', '#ffffff', 'important');
+              }
+            });
+            
+            const settingDescs = document.querySelectorAll('.setting-desc');
+            settingDescs.forEach(desc => {
+              if (desc instanceof HTMLElement) {
+                desc.style.setProperty('color', '#e0e0e0', 'important');
+              }
+            });
+            
+            const sectionTitles = document.querySelectorAll('.section-title');
+            sectionTitles.forEach(title => {
+              if (title instanceof HTMLElement) {
+                title.style.setProperty('color', '#ffffff', 'important');
+              }
+            });
+            
+            console.log('深色模式已重新應用');
+          } else {
+            // 重新應用淺色模式
+            document.body.style.setProperty('background-color', '#ffffff', 'important');
+            document.body.style.setProperty('color', '#1a1a1a', 'important');
+            
+            // 清除深色模式的強制樣式
+            const allElements = document.querySelectorAll('*');
+            allElements.forEach(element => {
+              if (element instanceof HTMLElement) {
+                element.style.removeProperty('background-color');
+                element.style.removeProperty('color');
+                element.style.removeProperty('border-color');
+              }
+            });
+            
+            console.log('淺色模式已重新應用');
+          }
+        }
+      }
+      
+      // 清除高對比度的主題色變數
+      const root = document.documentElement;
+      root.style.removeProperty('--primary');
+      root.style.removeProperty('--success');
+      root.style.removeProperty('--warning');
+      root.style.removeProperty('--danger');
+      
+      console.log('正常對比度已恢復，主題已重新應用');
+    }
+    
+    if (accessibility.voiceOver) {
+      console.log('啟用語音輔助模式');
+      
+      // 語音輔助功能 - 添加 ARIA 標籤和語音提示
+      const allInteractiveElements = document.querySelectorAll('button, input, select, a, [role="button"]');
+      allInteractiveElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          // 添加 ARIA 標籤
+          if (!element.getAttribute('aria-label')) {
+            const text = element.textContent || (element as HTMLImageElement).alt || element.title || '可點擊元素';
+            element.setAttribute('aria-label', text);
+          }
+          
+          // 添加語音提示的點擊事件
+          element.addEventListener('click', () => {
+            const label = element.getAttribute('aria-label') || element.textContent || '已點擊';
+            console.log('語音輔助:', label);
+            // 這裡可以集成真正的語音合成 API
+          });
+        }
+      });
+      
+      // 添加頁面導航語音提示
+      const pageTitle = document.querySelector('h1, .header-title');
+      if (pageTitle) {
+        console.log('語音輔助: 進入設定頁面');
+      }
+      
+      console.log('語音輔助模式已啟用');
+      
+    } else {
+      console.log('停用語音輔助模式');
+      
+      // 移除語音輔助功能
+      const allInteractiveElements = document.querySelectorAll('button, input, select, a, [role="button"]');
+      allInteractiveElements.forEach(element => {
+        if (element instanceof HTMLElement) {
+          element.removeAttribute('aria-label');
+          // 移除語音提示事件監聽器（簡化處理）
+        }
+      });
+      
+      console.log('語音輔助模式已停用');
+    }
+    
+    console.log('無障礙設定已應用完成，大字體狀態:', accessibility.largeText, '高對比度:', accessibility.highContrast, '語音輔助:', accessibility.voiceOver);
+  };
+
+  const handleDataExport = () => {
+    console.log('導出數據...');
+    // 這裡可以實現數據導出邏輯
+  };
+
+  const handleDataClear = () => {
+    if (window.confirm('確定要清除所有本地數據嗎？此操作無法撤銷。')) {
+      console.log('清除數據...');
+      // 這裡可以實現數據清除邏輯
+    }
+  };
+
+  const handleResetSettings = () => {
+    if (window.confirm('確定要重置所有設定嗎？')) {
+      const defaultSettings = {
+        notifications: {
+          medication: true,
+          healthReminder: true,
+          dailyCheck: false,
+          emergency: true,
+        },
+        privacy: {
+          dataSharing: false,
+          analytics: true,
+          crashReports: true,
+        },
+        accessibility: {
+          largeText: false,
+          highContrast: true, // 高對比度默認開啟
+          voiceOver: false,
+        },
+        general: {
+          language: 'zh-CN',
+          theme: 'auto',
+          autoBackup: true,
+        },
+      };
+      
+      setSettings(defaultSettings);
+      setHasUnsavedChanges(true);
+      
+      // 應用重置後的無障礙設定
+      applyAccessibilitySettings(defaultSettings.accessibility);
+    }
+  };
+
+  // 檢測當前應該使用的主題
+  const getCurrentTheme = () => {
+    if (settings.general.theme === 'dark') return 'dark';
+    if (settings.general.theme === 'light') return 'light';
+    // auto - 跟隨系統
+    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  };
+
+  const currentTheme = getCurrentTheme();
+  const isDark = currentTheme === 'dark';
+  
+  // 直接從 localStorage 獲取高對比度狀態，確保實時更新
+  const getHighContrastState = () => {
+    try {
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        const parsedSettings = JSON.parse(savedSettings);
+        const highContrast = parsedSettings.accessibility?.highContrast || false;
+        console.log('獲取高對比度狀態:', highContrast);
+        return highContrast;
+      }
+    } catch (error) {
+      console.error('獲取高對比度狀態失敗:', error);
+    }
+    return false;
+  };
+  
+  const isHighContrast = getHighContrastState();
+  console.log('當前高對比度狀態:', isHighContrast, '當前主題:', currentTheme, '是否深色:', isDark);
+
+  // 通用樣式函數
+  const getSettingItemStyle = () => ({
+    backgroundColor: 'transparent',
+    borderBottom: isHighContrast
+      ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+      : (isDark ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.05)'),
+    padding: '16px 0',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: '16px'
+  });
+
+  const getSettingNameStyle = () => ({
+    color: isHighContrast 
+      ? (isDark ? '#ffffff' : '#000000')
+      : (isDark ? '#ffffff' : '#1f2937'),
+    fontSize: isHighContrast ? '18px' : '16px',
+    fontWeight: isHighContrast ? '700' : '500',
+    marginBottom: '4px'
+  });
+
+  const getSettingDescStyle = () => ({
+    color: isHighContrast 
+      ? (isDark ? '#ffffff' : '#000000')
+      : (isDark ? '#e0e0e0' : '#6b7280'),
+    fontSize: isHighContrast ? '16px' : '14px',
+    lineHeight: '1.4'
+  });
+
+  const getToggleSwitchStyle = (isActive: boolean): React.CSSProperties => ({
+    width: isHighContrast ? '56px' : '48px',
+    height: isHighContrast ? '32px' : '28px',
+    background: isHighContrast 
+      ? (isActive ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#333333' : '#cccccc'))
+      : (isActive ? '#16a34a' : '#e5e7eb'),
+    borderRadius: isHighContrast ? '16px' : '14px',
+    position: 'relative' as const,
+    cursor: 'pointer',
+    transition: 'all 0.3s ease',
+    border: isHighContrast 
+      ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+      : 'none',
+    boxShadow: isHighContrast ? 'none' : 'inset 0 1px 3px rgba(0, 0, 0, 0.1)'
+  });
+
+  const getToggleHandleStyle = (isActive: boolean): React.CSSProperties => ({
+    width: isHighContrast ? '26px' : '22px',
+    height: isHighContrast ? '26px' : '22px',
+    background: isHighContrast 
+      ? (isActive ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#ffffff' : '#000000'))
+      : 'white',
+    borderRadius: '50%',
+    position: 'absolute' as const,
+    top: isHighContrast ? '3px' : '3px',
+    left: isActive ? (isHighContrast ? '27px' : '23px') : (isHighContrast ? '3px' : '3px'),
+    transition: 'all 0.3s ease',
+    boxShadow: isHighContrast ? 'none' : '0 2px 4px rgba(0, 0, 0, 0.15)',
+    border: isHighContrast 
+      ? (isActive ? (isDark ? '2px solid #ffffff' : '2px solid #000000') : 'none')
+      : 'none'
+  });
+
+  const getSelectStyle = (): React.CSSProperties => ({
+    backgroundColor: isHighContrast 
+      ? (isDark ? '#000000' : '#ffffff')
+      : (isDark ? '#2d2d2d' : '#ffffff'),
+    color: isHighContrast 
+      ? (isDark ? '#ffffff' : '#000000')
+      : (isDark ? '#ffffff' : '#1f2937'),
+    border: isHighContrast 
+      ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+      : (isDark ? '1px solid #4d4d4d' : '1px solid #d1d5db'),
+    borderRadius: isHighContrast ? '0px' : '8px',
+    padding: isHighContrast ? '12px 16px' : '8px 12px',
+    fontSize: isHighContrast ? '18px' : '16px',
+    fontWeight: isHighContrast ? '700' : '500',
+    minWidth: '100px',
+    maxWidth: '180px',
+    cursor: 'pointer',
+    outline: 'none',
+    boxShadow: isHighContrast ? 'none' : (isDark ? '0 1px 2px rgba(0, 0, 0, 0.1)' : '0 1px 2px rgba(0, 0, 0, 0.05)'),
+    appearance: 'none',
+    backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#6b7280')}' stroke-width='2'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 10px center',
+    backgroundSize: '12px',
+    paddingRight: '32px',
+    transition: 'all 0.2s ease',
+    borderWidth: isHighContrast ? '2px' : '1px',
+    borderStyle: 'solid',
+    height: '40px',
+    display: 'flex',
+    alignItems: 'center'
+  });
+
+  return (
+    <div className="settings-page" style={{ 
+      backgroundColor: isHighContrast 
+        ? (isDark ? '#000000' : '#ffffff')
+        : (isDark ? '#1a1a1a' : 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)'),
+      minHeight: '100vh',
+      color: isHighContrast 
+        ? (isDark ? '#ffffff' : '#000000')
+        : (isDark ? '#ffffff' : '#1f2937')
+    }}>
+      {/* 自定義導航欄 - Apple 風格 */}
+      <header className="custom-header" style={{
+        backgroundColor: isHighContrast 
+          ? (isDark ? '#000000' : '#ffffff')
+          : (isDark ? 'rgba(26, 26, 26, 0.95)' : 'rgba(255, 255, 255, 0.95)'),
+        borderBottom: isHighContrast
+          ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+          : (isDark ? '0.5px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)'),
+        backdropFilter: isHighContrast ? 'none' : 'blur(20px) saturate(180%)'
+      }}>
+        <div className="header-content">
+          <button onClick={handleBack} className="back-button" type="button" style={{
+            color: isHighContrast 
+              ? (isDark ? '#ffffff' : '#000000')
+              : (isDark ? '#60a5fa' : '#2563eb'),
+            background: 'none',
+            border: isHighContrast 
+              ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+              : 'none',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: isHighContrast ? '18px' : '16px',
+            fontWeight: isHighContrast ? '700' : '500',
+            cursor: 'pointer',
+            padding: '8px',
+            borderRadius: '8px'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            返回
+          </button>
+          <h1 className="header-title" style={{
+            color: isHighContrast 
+              ? (isDark ? '#ffffff' : '#000000')
+              : (isDark ? '#ffffff' : '#1f2937'),
+            fontSize: isHighContrast ? '20px' : '18px',
+            fontWeight: isHighContrast ? '700' : '600',
+            margin: '0',
+            textAlign: 'center',
+            position: 'absolute',
+            left: '50%',
+            top: '50%',
+            transform: 'translate(-50%, -50%)',
+            width: '100%',
+            zIndex: '1000'
+          }}>設定</h1>
+          {hasUnsavedChanges && (
+            <button onClick={handleSaveSettings} className="save-button" type="button" style={{
+              background: isHighContrast 
+                ? (isDark ? '#ffffff' : '#000000')
+                : '#16a34a',
+              color: isHighContrast 
+                ? (isDark ? '#000000' : '#ffffff')
+                : 'white',
+              border: isHighContrast 
+                ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+                : 'none',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: isHighContrast ? '16px' : '14px',
+              fontWeight: isHighContrast ? '700' : '500',
+              cursor: 'pointer',
+              position: 'absolute',
+              right: '20px',
+              zIndex: '1001'
+            }}>
+              保存
+            </button>
+          )}
+        </div>
+      </header>
+
+      {/* 主要內容區域 */}
+      <main className="main-content" style={{
+        backgroundColor: 'transparent',
+        color: isHighContrast 
+          ? (isDark ? '#ffffff' : '#000000')
+          : (isDark ? '#ffffff' : '#1f2937'),
+        paddingTop: 'calc(max(env(safe-area-inset-top), 44px) + 80px)',
+        paddingBottom: '40px',
+        paddingLeft: '20px',
+        paddingRight: '20px'
+      }}>
+        {/* 通知設定 */}
+        <section className="settings-section" style={{
+          backgroundColor: isHighContrast 
+            ? (isDark ? '#000000' : '#ffffff')
+            : (isDark ? 'rgba(45, 45, 45, 0.9)' : 'rgba(255, 255, 255, 0.9)'),
+          borderRadius: isHighContrast ? '0px' : '16px',
+          padding: '24px',
+          marginBottom: '20px',
+          boxShadow: isHighContrast ? 'none' : (isDark ? '0 4px 20px rgba(0, 0, 0, 0.3)' : '0 4px 20px rgba(0, 0, 0, 0.08)'),
+          backdropFilter: isHighContrast ? 'none' : 'blur(10px)',
+          border: isHighContrast
+            ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+            : (isDark ? '0.5px solid rgba(255, 255, 255, 0.1)' : '1px solid rgba(0, 0, 0, 0.1)')
+        }}>
+          <h3 className="section-title" style={{
+            color: isHighContrast 
+              ? (isDark ? '#ffffff' : '#000000')
+              : (isDark ? '#ffffff' : '#1f2937'),
+            fontSize: isHighContrast ? '20px' : '18px',
+            fontWeight: isHighContrast ? '700' : '600',
+            margin: '0 0 24px 0',
+            paddingBottom: '12px',
+            borderBottom: isHighContrast
+              ? (isDark ? '3px solid #ffffff' : '3px solid #000000')
+              : (isDark ? '2px solid #374151' : '2px solid #f3f4f6'),
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px'
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#60a5fa' : '#2563eb')} strokeWidth={isHighContrast ? '3' : '2'}>
+              <path d="M6 8a6 6 0 0 1 12 0c0 7-3 9-3 9H9s-3-2-3-9"/>
+              <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+            </svg>
+            通知設定
+          </h3>
+
+          <div className="settings-group">
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>用藥提醒</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>提醒您按時服藥</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.notifications.medication ? 'active' : ''}`}
+                onClick={() => handleToggle('notifications', 'medication')}
+                style={getToggleSwitchStyle(settings.notifications.medication)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.notifications.medication)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>健康提醒</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>提醒您記錄健康數據</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.notifications.healthReminder ? 'active' : ''}`}
+                onClick={() => handleToggle('notifications', 'healthReminder')}
+                style={getToggleSwitchStyle(settings.notifications.healthReminder)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.notifications.healthReminder)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>每日檢查</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>每日健康狀況檢查提醒</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.notifications.dailyCheck ? 'active' : ''}`}
+                onClick={() => handleToggle('notifications', 'dailyCheck')}
+                style={getToggleSwitchStyle(settings.notifications.dailyCheck)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.notifications.dailyCheck)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>緊急通知</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>緊急狀況相關通知</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.notifications.emergency ? 'active' : ''}`}
+                onClick={() => handleToggle('notifications', 'emergency')}
+                style={getToggleSwitchStyle(settings.notifications.emergency)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.notifications.emergency)}></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 隱私設定 */}
+        <section className="settings-section">
+          <h3 className="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+              <circle cx="12" cy="16" r="1"/>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+            </svg>
+            隱私與安全
+          </h3>
+
+          <div className="settings-group">
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>數據分享</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>允許與醫療機構分享健康數據</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.privacy.dataSharing ? 'active' : ''}`}
+                onClick={() => handleToggle('privacy', 'dataSharing')}
+                style={getToggleSwitchStyle(settings.privacy.dataSharing)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.privacy.dataSharing)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>使用分析</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>幫助改善應用功能</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.privacy.analytics ? 'active' : ''}`}
+                onClick={() => handleToggle('privacy', 'analytics')}
+                style={getToggleSwitchStyle(settings.privacy.analytics)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.privacy.analytics)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>錯誤報告</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>自動發送錯誤報告</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.privacy.crashReports ? 'active' : ''}`}
+                onClick={() => handleToggle('privacy', 'crashReports')}
+                style={getToggleSwitchStyle(settings.privacy.crashReports)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.privacy.crashReports)}></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 無障礙設定 */}
+        <section className="settings-section">
+          <h3 className="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v6M12 17v6M4.22 4.22l4.24 4.24M15.54 15.54l4.24 4.24M1 12h6M17 12h6M4.22 19.78l4.24-4.24M15.54 8.46l4.24-4.24"/>
+            </svg>
+            無障礙功能
+          </h3>
+
+          <div className="settings-group">
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>大字體</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>使用較大的字體顯示</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.accessibility.largeText ? 'active' : ''}`}
+                onClick={() => handleToggle('accessibility', 'largeText')}
+                style={getToggleSwitchStyle(settings.accessibility.largeText)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.accessibility.largeText)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>高對比度</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>增強色彩對比度</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.accessibility.highContrast ? 'active' : ''}`}
+                onClick={() => handleToggle('accessibility', 'highContrast')}
+                style={getToggleSwitchStyle(settings.accessibility.highContrast)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.accessibility.highContrast)}></div>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>語音輔助</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>啟用螢幕閱讀器支援</div>
+              </div>
+              <div 
+                className={`toggle-switch ${settings.accessibility.voiceOver ? 'active' : ''}`}
+                onClick={() => handleToggle('accessibility', 'voiceOver')}
+                style={getToggleSwitchStyle(settings.accessibility.voiceOver)}
+              >
+                <div className="toggle-handle" style={getToggleHandleStyle(settings.accessibility.voiceOver)}></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 一般設定 */}
+        <section className="settings-section">
+          <h3 className="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+            </svg>
+            一般設定
+          </h3>
+
+          <div className="settings-group">
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>語言</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>選擇應用介面語言</div>
+              </div>
+              <div className="setting-control">
+                <select
+                  className="setting-select"
+                  value={settings.general.language}
+                  onChange={(e) => handleSelectChange('general', 'language', e.target.value)}
+                  style={getSelectStyle()}
+                >
+                  <option value="zh-CN" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>簡體中文</option>
+                  <option value="zh-TW" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>繁體中文</option>
+                  <option value="en" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>English</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>主題</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>選擇應用外觀主題</div>
+              </div>
+              <div className="setting-control">
+                <select
+                  className="setting-select"
+                  value={settings.general.theme}
+                  onChange={(e) => handleSelectChange('general', 'theme', e.target.value)}
+                  style={getSelectStyle()}
+                >
+                  <option value="auto" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>跟隨系統</option>
+                  <option value="light" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>淺色模式</option>
+                  <option value="dark" style={{ backgroundColor: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#2d2d2d' : '#ffffff'), color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1f2937') }}>深色模式</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="setting-item" style={getSettingItemStyle()}>
+              <div className="setting-info" style={{ flex: '1' }}>
+                <div className="setting-name" style={getSettingNameStyle()}>自動備份</div>
+                <div className="setting-desc" style={getSettingDescStyle()}>自動備份健康數據到雲端</div>
+              </div>
+              <div className="setting-control">
+                <div 
+                  className={`toggle-switch ${settings.general.autoBackup ? 'active' : ''}`}
+                  onClick={() => handleToggle('general', 'autoBackup')}
+                  style={getToggleSwitchStyle(settings.general.autoBackup)}
+                >
+                  <div className="toggle-handle" style={getToggleHandleStyle(settings.general.autoBackup)}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* 數據管理 */}
+        <section className="settings-section">
+          <h3 className="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14,2 14,8 20,8"/>
+              <line x1="16" y1="13" x2="8" y2="13"/>
+              <line x1="16" y1="17" x2="8" y2="17"/>
+              <polyline points="10,9 9,9 8,9"/>
+            </svg>
+            數據管理
+          </h3>
+
+          <div className="settings-group">
+            <button className="action-button export" onClick={handleDataExport}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7,10 12,15 17,10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              <div>
+                <div className="action-name">導出數據</div>
+                <div className="action-desc">將健康數據導出為文件</div>
+              </div>
+            </button>
+
+            <button className="action-button danger" onClick={handleDataClear}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="3,6 5,6 21,6"/>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                <line x1="10" y1="11" x2="10" y2="17"/>
+                <line x1="14" y1="11" x2="14" y2="17"/>
+              </svg>
+              <div>
+                <div className="action-name">清除數據</div>
+                <div className="action-desc">刪除所有本地健康數據</div>
+              </div>
+            </button>
+
+            <button className="action-button warning" onClick={handleResetSettings}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="1,4 1,10 7,10"/>
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+              </svg>
+              <div>
+                <div className="action-name">重置設定</div>
+                <div className="action-desc">恢復所有設定為預設值</div>
+              </div>
+            </button>
+          </div>
+        </section>
+
+        {/* 關於 */}
+        <section className="settings-section">
+          <h3 className="section-title">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10"/>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+              <line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            關於
+          </h3>
+
+          <div className="settings-group">
+            <div className="info-item">
+              <div className="info-label">應用版本</div>
+              <div className="info-value">1.0.0</div>
+            </div>
+
+            <div className="info-item">
+              <div className="info-label">建置版本</div>
+              <div className="info-value">20241227</div>
+            </div>
+
+            <div className="info-item">
+              <div className="info-label">開發者</div>
+              <div className="info-value">CareOld Team</div>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  );
+};
+
+export default Settings;

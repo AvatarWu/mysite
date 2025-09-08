@@ -1,0 +1,770 @@
+import { HealthMetrics } from './DataVisualizationService';
+
+export interface HealthInsight {
+  id: string;
+  type: 'trend' | 'anomaly' | 'recommendation' | 'prediction' | 'risk_assessment';
+  title: string;
+  description: string;
+  severity: 'low' | 'medium' | 'high' | 'critical';
+  confidence: number; // 0-100
+  data: any;
+  actionable: boolean;
+  actionItems?: string[];
+  createdAt: Date;
+  expiresAt?: Date;
+}
+
+export interface HealthPrediction {
+  id: string;
+  metric: string;
+  currentValue: number;
+  predictedValue: number;
+  confidence: number;
+  timeframe: '1_week' | '1_month' | '3_months' | '6_months';
+  factors: string[];
+  riskLevel: 'low' | 'medium' | 'high';
+  recommendations: string[];
+  createdAt: Date;
+}
+
+export interface AIRecommendation {
+  id: string;
+  category: 'lifestyle' | 'diet' | 'exercise' | 'medication' | 'monitoring' | 'prevention';
+  title: string;
+  description: string;
+  priority: 'low' | 'medium' | 'high' | 'urgent';
+  difficulty: 'easy' | 'moderate' | 'hard';
+  estimatedImpact: 'low' | 'medium' | 'high';
+  timeToImplement: string;
+  resources?: string[];
+  trackingMetrics: string[];
+  createdAt: Date;
+  completedAt?: Date;
+  isCompleted: boolean;
+}
+
+export interface HealthRiskAssessment {
+  id: string;
+  riskType: 'cardiovascular' | 'diabetes' | 'obesity' | 'hypertension' | 'general';
+  riskLevel: 'low' | 'medium' | 'high' | 'critical';
+  score: number; // 0-100
+  factors: {
+    factor: string;
+    contribution: number;
+    modifiable: boolean;
+  }[];
+  recommendations: string[];
+  nextAssessmentDate: Date;
+  createdAt: Date;
+}
+
+export interface ConversationContext {
+  userId: string;
+  sessionId: string;
+  healthData: {
+    metrics: HealthMetrics;
+    trends: any;
+    recentRecords: any[];
+  };
+  conversationHistory: {
+    role: 'user' | 'assistant';
+    content: string;
+    timestamp: Date;
+  }[];
+  currentFocus: string;
+  lastInteraction: Date;
+}
+
+export class AIHealthAssistantService {
+  private static instance: AIHealthAssistantService;
+  private insights: HealthInsight[] = [];
+  private predictions: HealthPrediction[] = [];
+  private recommendations: AIRecommendation[] = [];
+  private riskAssessments: HealthRiskAssessment[] = [];
+  // private conversationContexts: Map<string, ConversationContext> = new Map();
+
+  private constructor() {
+    this.initialize();
+  }
+
+  static getInstance(): AIHealthAssistantService {
+    if (!AIHealthAssistantService.instance) {
+      AIHealthAssistantService.instance = new AIHealthAssistantService();
+    }
+    return AIHealthAssistantService.instance;
+  }
+
+  /**
+   * 初始化服務
+   */
+  private async initialize(): Promise<void> {
+    try {
+      console.log('AI健康助手服務初始化完成');
+    } catch (error) {
+      console.error('AI健康助手服務初始化失敗:', error);
+    }
+  }
+
+  /**
+   * 分析健康數據並生成洞察
+   */
+  async analyzeHealthData(
+    metrics: HealthMetrics,
+    trends: any,
+    recentRecords: any[]
+  ): Promise<HealthInsight[]> {
+    try {
+      const insights: HealthInsight[] = [];
+
+      // 分析體重趨勢
+      const weightInsight = this.analyzeWeightTrend(metrics.weight, trends.weight);
+      if (weightInsight) insights.push(weightInsight);
+
+      // 分析血壓趨勢
+      const bloodPressureInsight = this.analyzeBloodPressureTrend(metrics.bloodPressure, trends.bloodPressure);
+      if (bloodPressureInsight) insights.push(bloodPressureInsight);
+
+      // 分析血糖趨勢
+      const bloodSugarInsight = this.analyzeBloodSugarTrend(metrics.bloodSugar, trends.bloodSugar);
+      if (bloodSugarInsight) insights.push(bloodSugarInsight);
+
+      // 分析用藥依從性
+      const medicationInsight = this.analyzeMedicationAdherence(metrics.medications);
+      if (medicationInsight) insights.push(medicationInsight);
+
+      // 檢測異常值
+      const anomalyInsights = this.detectAnomalies(metrics, recentRecords);
+      insights.push(...anomalyInsights);
+
+      // 保存洞察
+      this.insights.push(...insights);
+      return insights;
+    } catch (error) {
+      console.error('分析健康數據失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 分析體重趨勢
+   */
+  private analyzeWeightTrend(weight: any, trend: any): HealthInsight | null {
+    if (!weight.current || weight.current === 0) return null;
+
+    const bmi = weight.current / Math.pow(1.7, 2); // 假設身高1.7m
+    let insight: HealthInsight | null = null;
+
+    if (bmi < 18.5) {
+      insight = {
+        id: `insight_${Date.now()}_weight_underweight`,
+        type: 'trend',
+        title: '體重偏低提醒',
+        description: `您的BMI為${bmi.toFixed(1)}，屬於體重偏低範圍。建議適當增加營養攝入。`,
+        severity: 'medium',
+        confidence: 85,
+        data: { bmi, currentWeight: weight.current, trend },
+        actionable: true,
+        actionItems: [
+          '增加每日熱量攝入',
+          '多攝入優質蛋白質',
+          '適量增加運動量',
+          '諮詢營養師建議'
+        ]
+      };
+    } else if (bmi > 24.9) {
+      insight = {
+        id: `insight_${Date.now()}_weight_overweight`,
+        type: 'trend',
+        title: '體重管理建議',
+        description: `您的BMI為${bmi.toFixed(1)}，建議進行體重管理。`,
+        severity: 'medium',
+        confidence: 80,
+        data: { bmi, currentWeight: weight.current, trend },
+        actionable: true,
+        actionItems: [
+          '控制每日熱量攝入',
+          '增加有氧運動',
+          '減少高糖高脂食物',
+          '定期監測體重變化'
+        ]
+      };
+    }
+
+    return insight;
+  }
+
+  /**
+   * 分析血壓趨勢
+   */
+  private analyzeBloodPressureTrend(bp: any, trend: any): HealthInsight | null {
+    if (!bp.systolic.current || !bp.diastolic.current) return null;
+
+    let insight: HealthInsight | null = null;
+    const systolic = bp.systolic.current;
+    const diastolic = bp.diastolic.current;
+
+    if (systolic >= 140 || diastolic >= 90) {
+      insight = {
+        id: `insight_${Date.now()}_bp_high`,
+        type: 'trend',
+        title: '血壓偏高提醒',
+        description: `您的血壓為${systolic}/${diastolic} mmHg，屬於高血壓範圍。`,
+        severity: 'high',
+        confidence: 90,
+        data: { systolic, diastolic, trend },
+        actionable: true,
+        actionItems: [
+          '減少鹽分攝入',
+          '保持規律運動',
+          '控制體重',
+          '諮詢醫生建議',
+          '定期監測血壓'
+        ]
+      };
+    }
+
+    return insight;
+  }
+
+  /**
+   * 分析血糖趨勢
+   */
+  private analyzeBloodSugarTrend(bs: any, trend: any): HealthInsight | null {
+    if (!bs.current) return null;
+
+    let insight: HealthInsight | null = null;
+    const bloodSugar = bs.current;
+
+    if (bloodSugar > 6.1) {
+      insight = {
+        id: `insight_${Date.now()}_bs_high`,
+        type: 'trend',
+        title: '血糖偏高提醒',
+        description: `您的血糖為${bloodSugar} mmol/L，建議關注血糖管理。`,
+        severity: 'medium',
+        confidence: 85,
+        data: { bloodSugar, trend },
+        actionable: true,
+        actionItems: [
+          '控制碳水化合物攝入',
+          '增加運動量',
+          '定期監測血糖',
+          '諮詢醫生建議'
+        ]
+      };
+    }
+
+    return insight;
+  }
+
+  /**
+   * 分析用藥依從性
+   */
+  private analyzeMedicationAdherence(medications: any): HealthInsight | null {
+    if (medications.total === 0) return null;
+
+    let insight: HealthInsight | null = null;
+    const adherence = medications.adherence;
+
+    if (adherence < 80) {
+      insight = {
+        id: `insight_${Date.now()}_med_adherence`,
+        type: 'trend',
+        title: '用藥依從性提醒',
+        description: `您的用藥依從性為${adherence.toFixed(1)}%，建議提高按時服藥的頻率。`,
+        severity: 'medium',
+        confidence: 90,
+        data: { adherence, total: medications.total },
+        actionable: true,
+        actionItems: [
+          '設置服藥提醒',
+          '建立服藥習慣',
+          '使用藥盒整理藥物',
+          '與家人溝通監督'
+        ]
+      };
+    }
+
+    return insight;
+  }
+
+  /**
+   * 檢測異常值
+   */
+  private detectAnomalies(metrics: HealthMetrics, recentRecords: any[]): HealthInsight[] {
+    const insights: HealthInsight[] = [];
+
+    // 檢測體重異常變化
+    if (recentRecords.length >= 2) {
+      const weightRecords = recentRecords.filter(r => r.weight);
+      if (weightRecords.length >= 2) {
+        const recentWeight = weightRecords[weightRecords.length - 1].weight;
+        const previousWeight = weightRecords[weightRecords.length - 2].weight;
+        const change = Math.abs(recentWeight - previousWeight);
+        const changePercent = (change / previousWeight) * 100;
+
+        if (changePercent > 5) {
+          insights.push({
+            id: `insight_${Date.now()}_weight_change`,
+            type: 'anomaly',
+            title: '體重異常變化',
+            description: `您的體重在短期內變化${changePercent.toFixed(1)}%，建議關注。`,
+            severity: 'medium',
+            confidence: 75,
+            data: { change, changePercent, recentWeight, previousWeight },
+            actionable: true,
+            actionItems: [
+              '檢查飲食習慣',
+              '評估運動量變化',
+              '關注身體狀況',
+              '必要時諮詢醫生'
+            ]
+          });
+        }
+      }
+    }
+
+    return insights;
+  }
+
+  /**
+   * 生成健康預測
+   */
+  async generateHealthPredictions(
+    metrics: HealthMetrics,
+    trends: any,
+    historicalData: any[]
+  ): Promise<HealthPrediction[]> {
+    try {
+      const predictions: HealthPrediction[] = [];
+
+      // 體重預測
+      const weightPrediction = this.predictWeight(metrics.weight, trends.weight, historicalData);
+      if (weightPrediction) predictions.push(weightPrediction);
+
+      // 血壓預測
+      const bloodPressurePrediction = this.predictBloodPressure(metrics.bloodPressure, trends.bloodPressure, historicalData);
+      if (bloodPressurePrediction) predictions.push(bloodPressurePrediction);
+
+      // 血糖預測
+      const bloodSugarPrediction = this.predictBloodSugar(metrics.bloodSugar, trends.bloodSugar, historicalData);
+      if (bloodSugarPrediction) predictions.push(bloodSugarPrediction);
+
+      // 保存預測
+      this.predictions.push(...predictions);
+      return predictions;
+    } catch (error) {
+      console.error('生成健康預測失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 預測體重
+   */
+  private predictWeight(weight: any, trend: any, historicalData: any[]): HealthPrediction | null {
+    if (!weight.current) return null;
+
+    const currentWeight = weight.current;
+    let predictedWeight = currentWeight;
+    let confidence = 70;
+    let riskLevel: 'low' | 'medium' | 'high' = 'low';
+
+    // 簡單的線性預測
+    if (trend.trend === 'up') {
+      predictedWeight = currentWeight * 1.02; // 預測增加2%
+      riskLevel = 'medium';
+    } else if (trend.trend === 'down') {
+      predictedWeight = currentWeight * 0.98; // 預測減少2%
+      riskLevel = 'low';
+    }
+
+    return {
+      id: `prediction_${Date.now()}_weight`,
+      metric: 'weight',
+      currentValue: currentWeight,
+      predictedValue: predictedWeight,
+      confidence,
+      timeframe: '1_month',
+      factors: ['飲食習慣', '運動量', '代謝率'],
+      riskLevel,
+      recommendations: [
+        '保持均衡飲食',
+        '適量運動',
+        '定期監測體重'
+      ],
+      createdAt: new Date()
+    };
+  }
+
+  /**
+   * 預測血壓
+   */
+  private predictBloodPressure(bp: any, trend: any, historicalData: any[]): HealthPrediction | null {
+    if (!bp.systolic.current || !bp.diastolic.current) return null;
+
+    const currentSystolic = bp.systolic.current;
+    const currentDiastolic = bp.diastolic.current;
+    let predictedSystolic = currentSystolic;
+    let predictedDiastolic = currentDiastolic;
+    let confidence = 65;
+    let riskLevel: 'low' | 'medium' | 'high' = 'low';
+
+    if (currentSystolic >= 130 || currentDiastolic >= 85) {
+      riskLevel = 'medium';
+      if (currentSystolic >= 140 || currentDiastolic >= 90) {
+        riskLevel = 'high';
+      }
+    }
+
+    return {
+      id: `prediction_${Date.now()}_blood_pressure`,
+      metric: 'bloodPressure',
+      currentValue: currentSystolic,
+      predictedValue: predictedSystolic,
+      confidence,
+      timeframe: '1_month',
+      factors: ['鹽分攝入', '運動量', '體重', '壓力水平'],
+      riskLevel,
+      recommendations: [
+        '減少鹽分攝入',
+        '保持規律運動',
+        '控制體重',
+        '管理壓力'
+      ],
+      createdAt: new Date()
+    };
+  }
+
+  /**
+   * 預測血糖
+   */
+  private predictBloodSugar(bs: any, trend: any, historicalData: any[]): HealthPrediction | null {
+    if (!bs.current) return null;
+
+    const currentBloodSugar = bs.current;
+    let predictedBloodSugar = currentBloodSugar;
+    let confidence = 60;
+    let riskLevel: 'low' | 'medium' | 'high' = 'low';
+
+    if (currentBloodSugar > 6.1) {
+      riskLevel = 'medium';
+      if (currentBloodSugar > 7.0) {
+        riskLevel = 'high';
+      }
+    }
+
+    return {
+      id: `prediction_${Date.now()}_blood_sugar`,
+      metric: 'bloodSugar',
+      currentValue: currentBloodSugar,
+      predictedValue: predictedBloodSugar,
+      confidence,
+      timeframe: '1_month',
+      factors: ['碳水化合物攝入', '運動量', '體重', '遺傳因素'],
+      riskLevel,
+      recommendations: [
+        '控制碳水化合物攝入',
+        '增加運動量',
+        '保持健康體重',
+        '定期監測血糖'
+      ],
+      createdAt: new Date()
+    };
+  }
+
+  /**
+   * 生成個性化建議
+   */
+  async generatePersonalizedRecommendations(
+    insights: HealthInsight[],
+    predictions: HealthPrediction[],
+    userProfile: any
+  ): Promise<AIRecommendation[]> {
+    try {
+      const recommendations: AIRecommendation[] = [];
+
+      // 基於洞察生成建議
+      insights.forEach(insight => {
+        if (insight.actionable && insight.actionItems) {
+          insight.actionItems.forEach((action, index) => {
+            recommendations.push({
+              id: `rec_${Date.now()}_${insight.type}_${index}`,
+              category: this.mapInsightToCategory(insight.type),
+              title: action,
+              description: `基於${insight.title}的建議`,
+              priority: this.mapSeverityToPriority(insight.severity),
+              difficulty: 'moderate',
+              estimatedImpact: 'medium',
+              timeToImplement: '1-2週',
+              trackingMetrics: [insight.type],
+              createdAt: new Date(),
+              isCompleted: false
+            });
+          });
+        }
+      });
+
+      // 基於預測生成建議
+      predictions.forEach(prediction => {
+        if (prediction.riskLevel === 'high' || prediction.riskLevel === 'medium') {
+          prediction.recommendations.forEach((rec, index) => {
+            recommendations.push({
+              id: `rec_${Date.now()}_prediction_${index}`,
+              category: 'prevention',
+              title: rec,
+              description: `預防${prediction.metric}問題的建議`,
+              priority: prediction.riskLevel === 'high' ? 'high' : 'medium',
+              difficulty: 'moderate',
+              estimatedImpact: 'high',
+              timeToImplement: '2-4週',
+              trackingMetrics: [prediction.metric],
+              createdAt: new Date(),
+              isCompleted: false
+            });
+          });
+        }
+      });
+
+      // 保存建議
+      this.recommendations.push(...recommendations);
+      return recommendations;
+    } catch (error) {
+      console.error('生成個性化建議失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 映射洞察類型到建議類別
+   */
+  private mapInsightToCategory(insightType: string): AIRecommendation['category'] {
+    const categoryMap: { [key: string]: AIRecommendation['category'] } = {
+      'trend': 'lifestyle',
+      'anomaly': 'monitoring',
+      'recommendation': 'lifestyle',
+      'prediction': 'prevention',
+      'risk_assessment': 'prevention'
+    };
+    return categoryMap[insightType] || 'lifestyle';
+  }
+
+  /**
+   * 映射嚴重程度到優先級
+   */
+  private mapSeverityToPriority(severity: string): AIRecommendation['priority'] {
+    const priorityMap: { [key: string]: AIRecommendation['priority'] } = {
+      'low': 'low',
+      'medium': 'medium',
+      'high': 'high',
+      'critical': 'urgent'
+    };
+    return priorityMap[severity] || 'medium';
+  }
+
+  /**
+   * 進行健康風險評估
+   */
+  async performHealthRiskAssessment(
+    metrics: HealthMetrics,
+    userProfile: any
+  ): Promise<HealthRiskAssessment> {
+    try {
+      let totalScore = 0;
+      const factors: any[] = [];
+
+      // 體重風險評估
+      if (metrics.weight.current > 0) {
+        const bmi = metrics.weight.current / Math.pow(1.7, 2);
+        let weightScore = 0;
+        let weightFactor = '';
+
+        if (bmi < 18.5) {
+          weightScore = 20;
+          weightFactor = '體重偏低';
+        } else if (bmi > 24.9) {
+          weightScore = 30;
+          weightFactor = '體重偏高';
+        } else {
+          weightScore = 10;
+          weightFactor = '體重正常';
+        }
+
+        totalScore += weightScore;
+        factors.push({
+          factor: weightFactor,
+          contribution: weightScore,
+          modifiable: true
+        });
+      }
+
+      // 血壓風險評估
+      if (metrics.bloodPressure.systolic.current > 0) {
+        const systolic = metrics.bloodPressure.systolic.current;
+        const diastolic = metrics.bloodPressure.diastolic.current;
+        let bpScore = 0;
+        let bpFactor = '';
+
+        if (systolic >= 140 || diastolic >= 90) {
+          bpScore = 40;
+          bpFactor = '高血壓';
+        } else if (systolic >= 130 || diastolic >= 85) {
+          bpScore = 25;
+          bpFactor = '血壓偏高';
+        } else {
+          bpScore = 10;
+          bpFactor = '血壓正常';
+        }
+
+        totalScore += bpScore;
+        factors.push({
+          factor: bpFactor,
+          contribution: bpScore,
+          modifiable: true
+        });
+      }
+
+      // 血糖風險評估
+      if (metrics.bloodSugar.current > 0) {
+        const bloodSugar = metrics.bloodSugar.current;
+        let bsScore = 0;
+        let bsFactor = '';
+
+        if (bloodSugar > 7.0) {
+          bsScore = 35;
+          bsFactor = '血糖偏高';
+        } else if (bloodSugar > 6.1) {
+          bsScore = 20;
+          bsFactor = '血糖臨界';
+        } else {
+          bsScore = 10;
+          bsFactor = '血糖正常';
+        }
+
+        totalScore += bsScore;
+        factors.push({
+          factor: bsFactor,
+          contribution: bsScore,
+          modifiable: true
+        });
+      }
+
+      // 確定風險等級
+      let riskLevel: 'low' | 'medium' | 'high' | 'critical' = 'low';
+      if (totalScore >= 80) riskLevel = 'critical';
+      else if (totalScore >= 60) riskLevel = 'high';
+      else if (totalScore >= 40) riskLevel = 'medium';
+      else riskLevel = 'low';
+
+      // 生成建議
+      const recommendations = this.generateRiskBasedRecommendations(riskLevel, factors);
+
+      const assessment: HealthRiskAssessment = {
+        id: `risk_${Date.now()}`,
+        riskType: 'general',
+        riskLevel,
+        score: totalScore,
+        factors,
+        recommendations,
+        nextAssessmentDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30天後
+        createdAt: new Date()
+      };
+
+      this.riskAssessments.push(assessment);
+      return assessment;
+    } catch (error) {
+      console.error('健康風險評估失敗:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 生成基於風險的建議
+   */
+  private generateRiskBasedRecommendations(
+    riskLevel: string,
+    factors: any[]
+  ): string[] {
+    const recommendations: string[] = [];
+
+    if (riskLevel === 'critical' || riskLevel === 'high') {
+      recommendations.push('立即諮詢醫生進行專業評估');
+      recommendations.push('密切監測相關健康指標');
+      recommendations.push('調整生活方式和飲食習慣');
+    } else if (riskLevel === 'medium') {
+      recommendations.push('定期監測健康指標');
+      recommendations.push('改善生活方式');
+      recommendations.push('考慮諮詢醫生建議');
+    } else {
+      recommendations.push('保持現有的健康習慣');
+      recommendations.push('定期進行健康檢查');
+    }
+
+    return recommendations;
+  }
+
+  /**
+   * 獲取健康洞察
+   */
+  async getHealthInsights(userId: string): Promise<HealthInsight[]> {
+    try {
+      return this.insights.filter(i => !i.expiresAt || i.expiresAt > new Date());
+    } catch (error) {
+      console.error('獲取健康洞察失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 獲取健康預測
+   */
+  async getHealthPredictions(userId: string): Promise<HealthPrediction[]> {
+    try {
+      return this.predictions;
+    } catch (error) {
+      console.error('獲取健康預測失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 獲取AI建議
+   */
+  async getAIRecommendations(userId: string): Promise<AIRecommendation[]> {
+    try {
+      return this.recommendations.filter(r => !r.isCompleted);
+    } catch (error) {
+      console.error('獲取AI建議失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 獲取風險評估
+   */
+  async getRiskAssessments(userId: string): Promise<HealthRiskAssessment[]> {
+    try {
+      return this.riskAssessments;
+    } catch (error) {
+      console.error('獲取風險評估失敗:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 標記建議為完成
+   */
+  async markRecommendationCompleted(recommendationId: string): Promise<void> {
+    try {
+      const recommendation = this.recommendations.find(r => r.id === recommendationId);
+      if (recommendation) {
+        recommendation.isCompleted = true;
+        recommendation.completedAt = new Date();
+      }
+    } catch (error) {
+      console.error('標記建議完成失敗:', error);
+    }
+  }
+}
+
+export default AIHealthAssistantService.getInstance();

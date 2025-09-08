@@ -1,0 +1,468 @@
+/* 新增血壓頁面樣式 - Apple 美學標準 */
+
+.add-blood-pressure-page {
+  min-height: 100vh;
+  background: #f2f2f7;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* 自定義導航欄 - Apple 風格 */
+.custom-header {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.1);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  padding-top: max(env(safe-area-inset-top), 60px);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  min-height: 44px;
+  margin-top: 0;
+}
+
+.add-blood-pressure-page .back-button {
+  background: transparent !important;
+  border: none !important;
+  color: #007aff !important;
+  padding: 8px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(10px) !important;
+  -webkit-backdrop-filter: blur(10px) !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.add-blood-pressure-page .back-button span {
+  color: #007aff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.add-blood-pressure-page .back-button:hover {
+  background: rgba(0, 122, 255, 0.08) !important;
+  transform: scale(1.02) !important;
+}
+
+.add-blood-pressure-page .back-button svg {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1d1d1f;
+  margin: 0;
+  flex: 1;
+  text-align: center;
+  letter-spacing: -0.3px;
+}
+
+.add-blood-pressure-page .save-button {
+  background: transparent !important;
+  border: none !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+  -webkit-tap-highlight-color: transparent !important;
+  touch-action: manipulation !important;
+}
+
+.add-blood-pressure-page .save-button.active {
+  color: #007aff !important;
+}
+
+.add-blood-pressure-page .save-button.disabled {
+  color: #8e8e93 !important;
+  cursor: not-allowed !important;
+}
+
+.add-blood-pressure-page .save-button:hover:not(.disabled) {
+  background: rgba(0, 122, 255, 0.08) !important;
+  transform: scale(1.02) !important;
+}
+
+/* 主要內容區域 */
+.main-content {
+  padding: 20px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 120px;
+}
+
+/* 表單樣式 */
+.blood-pressure-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #1d1d1f !important;
+}
+
+.blood-pressure-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.time-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.input-label {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1d1d1f !important;
+}
+
+.form-input {
+  padding: 12px 16px;
+  border: 2px solid #e5e5ea;
+  border-radius: 12px;
+  font-size: 16px;
+  background-color: #ffffff !important;
+  color: #1d1d1f !important;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-family: inherit;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.form-input.error {
+  border-color: #ff3b30;
+  box-shadow: 0 0 0 3px rgba(255, 59, 48, 0.1);
+}
+
+.form-input::placeholder {
+  color: #8e8e93 !important;
+}
+
+.form-textarea {
+  padding: 12px 16px;
+  border: 2px solid #e5e5ea;
+  border-radius: 12px;
+  font-size: 16px;
+  background-color: #ffffff !important;
+  color: #1d1d1f !important;
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-textarea:focus {
+  outline: none;
+  border-color: #007aff;
+  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.1);
+}
+
+.form-textarea::placeholder {
+  color: #8e8e93 !important;
+}
+
+.error-message {
+  color: #ff3b30 !important;
+  font-size: 14px;
+  margin-top: 4px;
+}
+
+/* 響應式設計 */
+@media (max-width: 768px) {
+  .header-content {
+    padding: 12px 16px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .main-content {
+    padding: 16px;
+  }
+  
+  .form-section {
+    padding: 16px;
+  }
+  
+  .blood-pressure-inputs {
+    grid-template-columns: 1fr;
+  }
+  
+  .time-inputs {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 12px;
+  }
+  
+  .form-section {
+    padding: 12px;
+  }
+  
+  .section-title {
+    font-size: 16px;
+  }
+  
+  .form-input,
+  .form-textarea {
+    font-size: 16px; /* 防止 iOS 縮放 */
+  }
+}
+
+/* 全域深色模式強制樣式 */
+@media (prefers-color-scheme: dark) {
+  .add-blood-pressure-page * {
+    color: #ffffff !important;
+  }
+  
+  .add-blood-pressure-page .form-input,
+  .add-blood-pressure-page .form-textarea {
+    background-color: #1c1c1e !important;
+    border-color: #38383a !important;
+    color: #ffffff !important;
+  }
+  
+  .add-blood-pressure-page .input-label,
+  .add-blood-pressure-page .section-title {
+    color: #ffffff !important;
+  }
+  
+  .add-blood-pressure-page .form-input::placeholder,
+  .add-blood-pressure-page .form-textarea::placeholder {
+    color: #8e8e93 !important;
+  }
+}
+
+/* 新的自定義元素樣式 */
+.custom-back-btn {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+  padding: 8px 12px !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+}
+
+.custom-back-btn span {
+  color: #ffffff !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+}
+
+.custom-title {
+  color: #ffffff !important;
+  font-size: 20px !important;
+  font-weight: 600 !important;
+  margin: 0 !important;
+  text-align: center !important;
+  flex: 1 !important;
+  background-color: transparent !important;
+  position: absolute !important;
+  left: 50% !important;
+  top: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  width: 100% !important;
+  z-index: 1000 !important;
+}
+
+/* 強制覆蓋所有可能的樣式 */
+.custom-title * {
+  color: #ffffff !important;
+}
+
+/* 最強力的樣式覆蓋 */
+.custom-title,
+.custom-title *,
+.custom-title::before,
+.custom-title::after {
+  color: #ffffff !important;
+}
+
+.custom-save-btn {
+  background: #000000 !important;
+  border: 1px solid #000000 !important;
+  color: #ffffff !important;
+  padding: 8px 16px !important;
+  border-radius: 8px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  min-width: 60px !important;
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* 淺色模式支援 */
+@media (prefers-color-scheme: light) {
+  .custom-header {
+    background: rgba(255, 255, 255, 0.8) !important;
+    border-bottom: 0.5px solid rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .custom-back-btn {
+    background: transparent !important;
+    border: none !important;
+    color: #007aff !important;
+  }
+  
+  .custom-back-btn span {
+    color: #007aff !important;
+  }
+  
+  .custom-title {
+    color: #1d1d1f !important;
+    background-color: transparent !important;
+  }
+  
+  .custom-title * {
+    color: #1d1d1f !important;
+  }
+  
+  .custom-save-btn {
+    background: #007aff !important;
+    border: none !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-save-btn span {
+    color: #ffffff !important;
+  }
+}
+
+/* 深色模式支援 */
+@media (prefers-color-scheme: dark) {
+  .add-blood-pressure-page {
+    background: #000000 !important;
+  }
+  
+  .custom-header {
+    background: #000000 !important;
+    border-bottom: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .custom-back-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .custom-back-btn span {
+    color: #ffffff !important;
+  }
+  
+  .custom-title {
+    color: #ffffff !important;
+    background-color: transparent !important;
+  }
+  
+  .custom-title * {
+    color: #ffffff !important;
+  }
+  
+  .custom-save-btn {
+    background: #000000 !important;
+    border: 1px solid #000000 !important;
+    color: #ffffff !important;
+  }
+  
+  .form-section {
+    background: #1c1c1e !important;
+    border: 0.5px solid rgba(255, 255, 255, 0.1) !important;
+  }
+  
+  .section-title {
+    color: #ffffff !important;
+  }
+  
+  .input-label {
+    color: #ffffff !important;
+  }
+  
+  .form-input,
+  .form-textarea {
+    background-color: #1c1c1e !important;
+    border-color: #38383a !important;
+    color: #ffffff !important;
+  }
+  
+  .form-input:focus,
+  .form-textarea:focus {
+    border-color: #0a84ff !important;
+    box-shadow: 0 0 0 3px rgba(10, 132, 255, 0.1) !important;
+  }
+  
+  .form-input::placeholder,
+  .form-textarea::placeholder {
+    color: #8e8e93 !important;
+  }
+  
+  .error-message {
+    color: #ff3b30 !important;
+  }
+}

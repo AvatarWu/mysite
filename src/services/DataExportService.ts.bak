@@ -1,0 +1,448 @@
+import * as XLSX from 'xlsx';
+import { saveAs } from 'file-saver';
+import { WeightRecord, BloodPressureRecord, BloodSugarRecord, MedicationRecord } from './HealthDataService';
+
+export interface ExportOptions {
+  format: 'csv' | 'excel';
+  dateRange: {
+    start: Date;
+    end: Date;
+  };
+  dataTypes: ('weight' | 'bloodPressure' | 'bloodSugar' | 'medications')[];
+  includeHeaders: boolean;
+  filename?: string;
+}
+
+export interface ExportResult {
+  success: boolean;
+  filename: string;
+  size: number;
+  message?: string;
+  error?: string;
+}
+
+export class DataExportService {
+  private static instance: DataExportService;
+
+  private constructor() {}
+
+  static getInstance(): DataExportService {
+    if (!DataExportService.instance) {
+      DataExportService.instance = new DataExportService();
+    }
+    return DataExportService.instance;
+  }
+
+  /**
+   * 導出健康數據
+   */
+  async exportHealthData(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[],
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      // 過濾日期範圍內的數據
+      const filteredData = this.filterDataByDateRange(
+        weightRecords,
+        bloodPressureRecords,
+        bloodSugarRecords,
+        medicationRecords,
+        options.dateRange
+      );
+
+      // 根據格式導出
+      if (options.format === 'csv') {
+        return this.exportToCSV(filteredData, options);
+      } else {
+        return this.exportToExcel(filteredData, options);
+      }
+    } catch (error) {
+      console.error('導出健康數據失敗:', error);
+      return {
+        success: false,
+        filename: '',
+        size: 0,
+        error: error instanceof Error ? error.message : '未知錯誤'
+      };
+    }
+  }
+
+  /**
+   * 過濾日期範圍內的數據
+   */
+  private filterDataByDateRange(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[],
+    dateRange: { start: Date; end: Date }
+  ) {
+    const startTime = dateRange.start.getTime();
+    const endTime = dateRange.end.getTime();
+
+    const filterByDate = (date: string) => {
+      const recordTime = new Date(date).getTime();
+      return recordTime >= startTime && recordTime <= endTime;
+    };
+
+    return {
+      weight: weightRecords.filter(r => filterByDate(r.date)),
+      bloodPressure: bloodPressureRecords.filter(r => filterByDate(r.date)),
+      bloodSugar: bloodSugarRecords.filter(r => filterByDate(r.date)),
+      medications: medicationRecords.filter(r => filterByDate(r.date))
+    };
+  }
+
+  /**
+   * 導出為CSV格式
+   */
+  private async exportToCSV(
+    data: any,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      const csvContent = this.generateCSVContent(data, options);
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      
+      const filename = options.filename || `health_data_${new Date().toISOString().split('T')[0]}.csv`;
+      saveAs(blob, filename);
+
+      return {
+        success: true,
+        filename,
+        size: blob.size,
+        message: 'CSV文件導出成功'
+      };
+    } catch (error) {
+      console.error('CSV導出失敗:', error);
+      return {
+        success: false,
+        filename: '',
+        size: 0,
+        error: error instanceof Error ? error.message : 'CSV導出失敗'
+      };
+    }
+  }
+
+  /**
+   * 導出為Excel格式
+   */
+  private async exportToExcel(
+    data: any,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      const workbook = XLSX.utils.book_new();
+      
+      // 為每種數據類型創建工作表
+      if (options.dataTypes.includes('weight') && data.weight.length > 0) {
+        const weightSheet = this.createWeightSheet(data.weight);
+        XLSX.utils.book_append_sheet(workbook, weightSheet, '體重記錄');
+      }
+
+      if (options.dataTypes.includes('bloodPressure') && data.bloodPressure.length > 0) {
+        const bpSheet = this.createBloodPressureSheet(data.bloodPressure);
+        XLSX.utils.book_append_sheet(workbook, bpSheet, '血壓記錄');
+      }
+
+      if (options.dataTypes.includes('bloodSugar') && data.bloodSugar.length > 0) {
+        const bsSheet = this.createBloodSugarSheet(data.bloodSugar);
+        XLSX.utils.book_append_sheet(workbook, bsSheet, '血糖記錄');
+      }
+
+      if (options.dataTypes.includes('medications') && data.medications.length > 0) {
+        const medSheet = this.createMedicationSheet(data.medications);
+        XLSX.utils.book_append_sheet(workbook, medSheet, '用藥記錄');
+      }
+
+      // 創建摘要工作表
+      const summarySheet = this.createSummarySheet(data);
+      XLSX.utils.book_append_sheet(workbook, summarySheet, '健康摘要');
+
+      // 生成Excel文件
+      const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
+      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+      
+      const filename = options.filename || `health_data_${new Date().toISOString().split('T')[0]}.xlsx`;
+      saveAs(blob, filename);
+
+      return {
+        success: true,
+        filename,
+        size: blob.size,
+        message: 'Excel文件導出成功'
+      };
+    } catch (error) {
+      console.error('Excel導出失敗:', error);
+      return {
+        success: false,
+        filename: '',
+        size: 0,
+        error: error instanceof Error ? error.message : 'Excel導出失敗'
+      };
+    }
+  }
+
+  /**
+   * 生成CSV內容
+   */
+  private generateCSVContent(data: any, options: ExportOptions): string {
+    const lines: string[] = [];
+    
+    // 添加標題行
+    if (options.includeHeaders) {
+      lines.push('數據類型,日期,數值,單位,備註');
+    }
+
+    // 體重數據
+    if (options.dataTypes.includes('weight')) {
+      data.weight.forEach((record: WeightRecord) => {
+        lines.push(`體重,${record.date},${record.weight},kg,${record.notes || ''}`);
+      });
+    }
+
+    // 血壓數據
+    if (options.dataTypes.includes('bloodPressure')) {
+      data.bloodPressure.forEach((record: BloodPressureRecord) => {
+        lines.push(`血壓收縮壓,${record.date},${record.systolic},mmHg,${record.notes || ''}`);
+        lines.push(`血壓舒張壓,${record.date},${record.diastolic},mmHg,${record.notes || ''}`);
+      });
+    }
+
+    // 血糖數據
+    if (options.dataTypes.includes('bloodSugar')) {
+      data.bloodSugar.forEach((record: BloodSugarRecord) => {
+        lines.push(`血糖,${record.date},${record.value},mmol/L,${record.notes || ''}`);
+      });
+    }
+
+    // 用藥數據
+    if (options.dataTypes.includes('medications')) {
+      data.medications.forEach((record: MedicationRecord) => {
+        lines.push(`用藥,${record.date},${record.taken ? '已服用' : '未服用'},狀態,${record.medicationName || ''}`);
+      });
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
+   * 創建體重工作表
+   */
+  private createWeightSheet(records: WeightRecord[]): XLSX.WorkSheet {
+    const data = records.map(record => [
+      record.date,
+      record.weight,
+      record.notes || ''
+    ]);
+
+    if (data.length > 0) {
+      data.unshift(['日期', '體重 (kg)', '備註']);
+    }
+
+    return XLSX.utils.aoa_to_sheet(data);
+  }
+
+  /**
+   * 創建血壓工作表
+   */
+  private createBloodPressureSheet(records: BloodPressureRecord[]): XLSX.WorkSheet {
+    const data = records.map(record => [
+      record.date,
+      record.systolic,
+      record.diastolic,
+      record.notes || ''
+    ]);
+
+    if (data.length > 0) {
+      data.unshift(['日期', '收縮壓 (mmHg)', '舒張壓 (mmHg)', '備註']);
+    }
+
+    return XLSX.utils.aoa_to_sheet(data);
+  }
+
+  /**
+   * 創建血糖工作表
+   */
+  private createBloodSugarSheet(records: BloodSugarRecord[]): XLSX.WorkSheet {
+    const data = records.map(record => [
+      record.date,
+      record.value,
+      record.notes || ''
+    ]);
+
+    if (data.length > 0) {
+      data.unshift(['日期', '血糖 (mmol/L)', '備註']);
+    }
+
+    return XLSX.utils.aoa_to_sheet(data);
+  }
+
+  /**
+   * 創建用藥工作表
+   */
+  private createMedicationSheet(records: MedicationRecord[]): XLSX.WorkSheet {
+    const data = records.map(record => [
+      record.date,
+      record.medicationName || '',
+      record.taken ? '已服用' : '未服用',
+      record.notes || ''
+    ]);
+
+    if (data.length > 0) {
+      data.unshift(['日期', '藥物名稱', '服用狀態', '備註']);
+    }
+
+    return XLSX.utils.aoa_to_sheet(data);
+  }
+
+  /**
+   * 創建摘要工作表
+   */
+  private createSummarySheet(data: any): XLSX.WorkSheet {
+    const summaryData = [
+      ['健康數據摘要'],
+      [''],
+      ['數據類型', '記錄數量', '最新記錄', '平均值'],
+      ['體重', data.weight.length, data.weight.length > 0 ? `${data.weight[data.weight.length - 1].weight} kg` : '無', this.calculateAverage(data.weight.map((r: WeightRecord) => r.weight))],
+      ['血壓', data.bloodPressure.length, data.bloodPressure.length > 0 ? `${data.bloodPressure[data.bloodPressure.length - 1].systolic}/${data.bloodPressure[data.bloodPressure.length - 1].diastolic} mmHg` : '無', ''],
+      ['血糖', data.bloodSugar.length, data.bloodSugar.length > 0 ? `${data.bloodSugar[data.bloodSugar.length - 1].value} mmol/L` : '無', this.calculateAverage(data.bloodSugar.map((r: BloodSugarRecord) => r.value))],
+      ['用藥', data.medications.length, data.medications.length > 0 ? (data.medications[data.medications.length - 1].taken ? '已服用' : '未服用') : '無', '']
+    ];
+
+    return XLSX.utils.aoa_to_sheet(summaryData);
+  }
+
+  /**
+   * 計算平均值
+   */
+  private calculateAverage(values: number[]): string {
+    if (values.length === 0) return '無';
+    const avg = values.reduce((sum, value) => sum + value, 0) / values.length;
+    return avg.toFixed(1);
+  }
+
+  /**
+   * 導出單一數據類型
+   */
+  async exportSingleDataType(
+    data: any[],
+    dataType: string,
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    try {
+      const filteredOptions = {
+        ...options,
+        dataTypes: [dataType as any]
+      };
+
+      // 創建模擬數據結構
+      const mockData = {
+        weight: dataType === 'weight' ? data : [],
+        bloodPressure: dataType === 'bloodPressure' ? data : [],
+        bloodSugar: dataType === 'bloodSugar' ? data : [],
+        medications: dataType === 'medications' ? data : []
+      };
+
+      return this.exportHealthData(
+        mockData.weight,
+        mockData.bloodPressure,
+        mockData.bloodSugar,
+        mockData.medications,
+        filteredOptions
+      );
+    } catch (error) {
+      console.error('導出單一數據類型失敗:', error);
+      return {
+        success: false,
+        filename: '',
+        size: 0,
+        error: error instanceof Error ? error.message : '導出失敗'
+      };
+    }
+  }
+
+  /**
+   * 批量導出所有數據
+   */
+  async exportAllData(
+    weightRecords: WeightRecord[],
+    bloodPressureRecords: BloodPressureRecord[],
+    bloodSugarRecords: BloodSugarRecord[],
+    medicationRecords: MedicationRecord[],
+    options: ExportOptions
+  ): Promise<ExportResult> {
+    const allDataTypes = ['weight', 'bloodPressure', 'bloodSugar', 'medications'];
+    const exportOptions = {
+      ...options,
+      dataTypes: allDataTypes
+    };
+
+    return this.exportHealthData(
+      weightRecords,
+      bloodPressureRecords,
+      bloodSugarRecords,
+      medicationRecords,
+      exportOptions
+    );
+  }
+
+  /**
+   * 獲取導出選項模板
+   */
+  getExportOptions(): ExportOptions[] {
+    return [
+      {
+        format: 'csv',
+        dateRange: {
+          start: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30天前
+          end: new Date()
+        },
+        dataTypes: ['weight', 'bloodPressure', 'bloodSugar', 'medications'],
+        includeHeaders: true
+      },
+      {
+        format: 'excel',
+        dateRange: {
+          start: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90天前
+          end: new Date()
+        },
+        dataTypes: ['weight', 'bloodPressure', 'bloodSugar', 'medications'],
+        includeHeaders: true
+      }
+    ];
+  }
+
+  /**
+   * 驗證導出選項
+   */
+  validateExportOptions(options: ExportOptions): { valid: boolean; errors: string[] } {
+    const errors: string[] = [];
+
+    if (!options.dateRange.start || !options.dateRange.end) {
+      errors.push('日期範圍不能為空');
+    }
+
+    if (options.dateRange.start > options.dateRange.end) {
+      errors.push('開始日期不能晚於結束日期');
+    }
+
+    if (options.dataTypes.length === 0) {
+      errors.push('至少選擇一種數據類型');
+    }
+
+    if (!options.format || !['csv', 'excel'].includes(options.format)) {
+      errors.push('導出格式必須是 CSV 或 Excel');
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+}
+
+export default DataExportService.getInstance();

@@ -1,0 +1,118 @@
+import React, { useState, useEffect } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonList,
+  IonItem,
+  IonLabel,
+  IonButton,
+  IonFab,
+  IonFabButton,
+  IonIcon,
+  IonToast,
+  IonChip,
+  IonBadge
+} from '@ionic/react';
+import { add, trash, create } from 'ionicons/icons';
+import axios from 'axios';
+
+interface BloodPressure {
+  _id: string;
+  systolic: number;    // 收縮壓
+  diastolic: number;   // 舒張壓
+  pulse: number;       // 脈搏
+  date: string;
+  time: string;
+  note?: string;
+}
+
+const BloodPressure: React.FC = () => {
+  const [records, setRecords] = useState<BloodPressure[]>([]);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  useEffect(() => {
+    fetchRecords();
+  }, []);
+
+  const fetchRecords = async () => {
+    try {
+      const response = await axios.get('/api/health/blood-pressure', {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+      setRecords(response.data.records);
+    } catch (error) {
+      console.error('獲取血壓記錄失敗:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axios.delete(`/api/health/blood-pressure/${id}`, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+      setToastMessage('已刪除血壓記錄');
+      setShowToast(true);
+      fetchRecords();
+    } catch (error) {
+      console.error('刪除血壓記錄失敗:', error);
+    }
+  };
+
+  const getStatusColor = (systolic: number, diastolic: number) => {
+    if (systolic >= 180 || diastolic >= 120) return 'danger';
+    if (systolic >= 140 || diastolic >= 90) return 'warning';
+    if (systolic >= 120 || diastolic >= 80) return 'success';
+    return 'primary';
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonTitle>血壓記錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <IonList>
+          {records.map(record => (
+            <IonItem key={record._id}>
+              <IonLabel>
+                <h2>
+                  {record.systolic}/{record.diastolic} mmHg
+                  <IonBadge color={getStatusColor(record.systolic, record.diastolic)}>
+                    {record.pulse} bpm
+                  </IonBadge>
+                </h2>
+                <p>{record.date} {record.time}</p>
+                {record.note && <p>{record.note}</p>}
+              </IonLabel>
+              <IonButton fill="clear" color="primary" routerLink={`/blood-pressure/edit/${record._id}`}>
+                <IonIcon icon={create} />
+              </IonButton>
+              <IonButton fill="clear" color="danger" onClick={() => handleDelete(record._id)}>
+                <IonIcon icon={trash} />
+              </IonButton>
+            </IonItem>
+          ))}
+        </IonList>
+        <IonFab vertical="bottom" horizontal="end" slot="fixed">
+          <IonFabButton routerLink="/blood-pressure/add">
+            <IonIcon icon={add} />
+          </IonFabButton>
+        </IonFab>
+        <IonToast
+          isOpen={showToast}
+          onDidDismiss={() => setShowToast(false)}
+          message={toastMessage}
+          duration={1500}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default BloodPressure; 

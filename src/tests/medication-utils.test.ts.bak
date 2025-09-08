@@ -1,0 +1,80 @@
+// 藥物管理工具函數測試
+describe('藥物管理工具函數', () => {
+  test('應該能驗證藥物時間格式', () => {
+    const validateTimeFormat = (time: string) => {
+      const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
+      return timeRegex.test(time);
+    };
+    
+    expect(validateTimeFormat('08:00')).toBe(true);
+    expect(validateTimeFormat('14:30')).toBe(true);
+    expect(validateTimeFormat('23:59')).toBe(true);
+    expect(validateTimeFormat('24:00')).toBe(false);
+    expect(validateTimeFormat('8:5')).toBe(false);
+    expect(validateTimeFormat('invalid')).toBe(false);
+  });
+
+  test('應該能計算藥物提醒時間', () => {
+    const calculateReminderTimes = (baseTime: string, frequency: number) => {
+      const [hours, minutes] = baseTime.split(':').map(Number);
+      const interval = 24 / frequency;
+      const times = [];
+      
+      for (let i = 0; i < frequency; i++) {
+        const reminderHour = (hours + i * interval) % 24;
+        const reminderTime = `${Math.floor(reminderHour).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+        times.push(reminderTime);
+      }
+      
+      return times;
+    };
+    
+    expect(calculateReminderTimes('08:00', 3)).toEqual(['08:00', '16:00', '00:00']);
+    expect(calculateReminderTimes('12:00', 2)).toEqual(['12:00', '00:00']);
+  });
+
+  test('應該能驗證藥物劑量格式', () => {
+    const validateDosage = (dosage: string) => {
+      // 支援格式：數字 + 單位，如 "1 pill", "2 tablets", "5ml"
+      const dosageRegex = /^\d+\s*(pill|tablet|ml|mg|g|片|顆|毫升|毫克|克)$/i;
+      return dosageRegex.test(dosage.trim());
+    };
+    
+    expect(validateDosage('1 pill')).toBe(true);
+    expect(validateDosage('2 tablet')).toBe(true);
+    expect(validateDosage('5ml')).toBe(true);
+    expect(validateDosage('1 片')).toBe(true);
+    expect(validateDosage('2 顆')).toBe(true);
+    expect(validateDosage('invalid')).toBe(false);
+    expect(validateDosage('')).toBe(false);
+  });
+
+  test('應該能格式化藥物名稱', () => {
+    const formatMedicationName = (name: string) => {
+      return name.trim().replace(/\s+/g, ' ').toLowerCase();
+    };
+    
+    expect(formatMedicationName('  阿司匹林  ')).toBe('阿司匹林');
+    expect(formatMedicationName('ASPIRIN  100MG')).toBe('aspirin 100mg');
+    expect(formatMedicationName('維他命  C  片')).toBe('維他命 c 片');
+  });
+
+  test('應該能檢查藥物衝突', () => {
+    const checkDrugInteraction = (medication1: string, medication2: string) => {
+      const interactions: Record<string, string[]> = {
+        '阿司匹林': ['華法林', '布洛芬'],
+        '華法林': ['阿司匹林', '布洛芬'],
+        '布洛芬': ['阿司匹林', '華法林']
+      };
+      
+      const med1 = medication1.toLowerCase();
+      const med2 = medication2.toLowerCase();
+      
+      return interactions[med1]?.includes(med2) || interactions[med2]?.includes(med1) || false;
+    };
+    
+    expect(checkDrugInteraction('阿司匹林', '華法林')).toBe(true);
+    expect(checkDrugInteraction('阿司匹林', '維他命C')).toBe(false);
+    expect(checkDrugInteraction('布洛芬', '華法林')).toBe(true);
+  });
+}); 

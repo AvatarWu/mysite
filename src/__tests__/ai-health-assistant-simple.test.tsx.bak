@@ -1,0 +1,316 @@
+import AIHealthAssistantService from '../services/AIHealthAssistantService';
+
+// 模擬健康數據
+const mockHealthData = {
+  weight: [
+    { date: '2024-01-01', value: 70.0 },
+    { date: '2024-01-02', value: 69.5 },
+    { date: '2024-01-03', value: 69.0 }
+  ],
+  bloodPressure: [
+    { date: '2024-01-01', systolic: 120, diastolic: 80 },
+    { date: '2024-01-02', systolic: 118, diastolic: 78 },
+    { date: '2024-01-03', systolic: 122, diastolic: 80 }
+  ],
+  bloodSugar: [
+    { date: '2024-01-01', value: 5.5 },
+    { date: '2024-01-02', value: 5.3 },
+    { date: '2024-01-03', value: 5.7 }
+  ],
+  medications: [
+    { date: '2024-01-01', taken: true },
+    { date: '2024-01-02', taken: true },
+    { date: '2024-01-03', taken: false }
+  ]
+};
+
+// 模擬健康指標
+const mockMetrics = {
+  weight: { 
+    current: 69.0, 
+    average: 69.5, 
+    min: 69.0, 
+    max: 70.0,
+    trend: { trend: 'down' as const, change: -0.5, percentage: -0.7, period: '3 days' }
+  },
+  bloodPressure: { 
+    systolic: { 
+      current: 122, 
+      average: 120, 
+      trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '3 days' }
+    },
+    diastolic: { 
+      current: 82, 
+      average: 80, 
+      trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '3 days' }
+    }
+  },
+  bloodSugar: { 
+    current: 5.7, 
+    average: 5.5, 
+    trend: { trend: 'up' as const, change: 0.2, percentage: 3.6, period: '3 days' }
+  },
+  medications: { 
+    total: 3, 
+    today: 1, 
+    adherence: 66.7 
+  }
+};
+
+// 模擬趨勢數據
+const mockTrends = {
+  weight: { direction: 'decreasing', rate: -0.5, confidence: 85 },
+  bloodPressure: { direction: 'stable', rate: 0, confidence: 90 },
+  bloodSugar: { direction: 'increasing', rate: 0.2, confidence: 80 },
+  medications: { direction: 'decreasing', rate: -33.3, confidence: 75 }
+};
+
+// 模擬用戶檔案
+const mockUserProfile = {
+  age: 65,
+  gender: 'male',
+  medicalHistory: ['hypertension'],
+  lifestyle: 'moderate'
+};
+
+describe('AI健康助手服務測試', () => {
+  let aiService: typeof AIHealthAssistantService;
+
+  beforeEach(() => {
+    aiService = AIHealthAssistantService;
+  });
+
+  describe('健康數據分析', () => {
+    test('應該能夠分析健康數據並返回洞察', async () => {
+      const insights = await aiService.analyzeHealthData(mockMetrics, mockTrends, []);
+      
+      expect(insights).toBeDefined();
+      expect(Array.isArray(insights)).toBe(true);
+      
+      // 檢查洞察的基本結構
+      if (insights.length > 0) {
+        const firstInsight = insights[0];
+        expect(firstInsight.id).toBeDefined();
+        expect(firstInsight.type).toBeDefined();
+        expect(firstInsight.title).toBeDefined();
+        expect(firstInsight.description).toBeDefined();
+        expect(firstInsight.severity).toBeDefined();
+        expect(firstInsight.confidence).toBeDefined();
+        expect(firstInsight.data).toBeDefined();
+        expect(firstInsight.actionable).toBeDefined();
+      }
+    });
+
+    test('應該能夠分析藥物依從性', async () => {
+      const insights = await aiService.analyzeHealthData(mockMetrics, mockTrends, []);
+      const medInsight = insights.find((i: any) => i.type === 'trend' && i.data?.adherence);
+      
+      expect(medInsight).toBeDefined();
+      expect(medInsight?.data?.adherence).toBeDefined();
+      expect(medInsight?.data?.adherence).toBeGreaterThan(0);
+      expect(medInsight?.data?.adherence).toBeLessThanOrEqual(100);
+    });
+  });
+
+  describe('健康預測', () => {
+    test('應該能夠生成體重預測', async () => {
+      const predictions = await aiService.generateHealthPredictions(mockMetrics, mockTrends, []);
+      const weightPrediction = predictions.find((p: any) => p.metric === 'weight');
+      
+      expect(weightPrediction).toBeDefined();
+      expect(weightPrediction?.predictedValue).toBeDefined();
+      expect(weightPrediction?.confidence).toBeGreaterThan(0);
+      expect(weightPrediction?.confidence).toBeLessThanOrEqual(100);
+    });
+
+    test('應該能夠生成血壓預測', async () => {
+      const predictions = await aiService.generateHealthPredictions(mockMetrics, mockTrends, []);
+      const bpPrediction = predictions.find((p: any) => p.metric === 'bloodPressure');
+      
+      expect(bpPrediction).toBeDefined();
+      expect(bpPrediction?.predictedValue).toBeDefined();
+      expect(bpPrediction?.confidence).toBeGreaterThan(0);
+    });
+
+    test('應該能夠生成血糖預測', async () => {
+      const predictions = await aiService.generateHealthPredictions(mockMetrics, mockTrends, []);
+      const sugarPrediction = predictions.find((p: any) => p.metric === 'bloodSugar');
+      
+      expect(sugarPrediction).toBeDefined();
+      expect(sugarPrediction?.predictedValue).toBeDefined();
+      expect(sugarPrediction?.confidence).toBeGreaterThan(0);
+    });
+  });
+
+  describe('個性化建議', () => {
+    test('應該能夠生成基於洞察的建議', async () => {
+      const insights = await aiService.analyzeHealthData(mockMetrics, mockTrends, []);
+      const recommendations = await aiService.generatePersonalizedRecommendations(insights, [], mockUserProfile);
+      
+      expect(recommendations).toBeDefined();
+      expect(recommendations.length).toBeGreaterThan(0);
+      
+      recommendations.forEach((rec: any) => {
+        expect(rec.category).toBeDefined();
+        expect(rec.description).toBeDefined();
+        expect(rec.priority).toBeDefined();
+        // 檢查優先級是否為有效的字符串值
+        expect(['low', 'medium', 'high', 'urgent']).toContain(rec.priority);
+      });
+    });
+
+    test('應該能夠生成基於預測的建議', async () => {
+      const predictions = await aiService.generateHealthPredictions(mockMetrics, mockTrends, []);
+      const recommendations = await aiService.generatePersonalizedRecommendations([], predictions, mockUserProfile);
+      
+      expect(recommendations).toBeDefined();
+      // 如果沒有高風險預測，可能不會生成建議
+      if (predictions.some((p: any) => p.riskLevel === 'high' || p.riskLevel === 'medium')) {
+        expect(recommendations.length).toBeGreaterThan(0);
+      }
+    });
+
+    test('應該能夠標記建議為完成', async () => {
+      const insights = await aiService.analyzeHealthData(mockMetrics, mockTrends, []);
+      const recommendations = await aiService.generatePersonalizedRecommendations(insights, [], mockUserProfile);
+      
+      if (recommendations.length > 0) {
+        const firstRec = recommendations[0];
+        await aiService.markRecommendationCompleted(firstRec.id);
+        
+        // 重新獲取建議來檢查狀態
+        const updatedRecommendations = await aiService.getAIRecommendations('test-user');
+        const updatedRec = updatedRecommendations.find(r => r.id === firstRec.id);
+        
+        if (updatedRec) {
+          expect(updatedRec.isCompleted).toBe(true);
+          expect(updatedRec.completedAt).toBeDefined();
+        }
+      }
+    });
+  });
+
+  describe('健康風險評估', () => {
+    test('應該能夠進行綜合風險評估', async () => {
+      const riskAssessment = await aiService.performHealthRiskAssessment(mockMetrics, mockUserProfile);
+      
+      expect(riskAssessment).toBeDefined();
+      expect(riskAssessment.score).toBeDefined();
+      expect(riskAssessment.score).toBeGreaterThan(0);
+      expect(riskAssessment.score).toBeLessThanOrEqual(100);
+      expect(riskAssessment.factors).toBeDefined();
+      expect(riskAssessment.recommendations).toBeDefined();
+    });
+
+    test('應該能夠評估風險因素', async () => {
+      const riskAssessment = await aiService.performHealthRiskAssessment(mockMetrics, mockUserProfile);
+      
+      expect(riskAssessment.factors).toBeDefined();
+      expect(riskAssessment.factors.length).toBeGreaterThan(0);
+      
+      // 檢查是否有任何風險因素
+      const hasRiskFactors = riskAssessment.factors.length > 0;
+      expect(hasRiskFactors).toBe(true);
+    });
+  });
+
+  describe('數據驗證', () => {
+    test('應該能夠處理空數據', async () => {
+      const emptyMetrics = {
+        weight: { 
+          current: 0, 
+          average: 0, 
+          min: 0, 
+          max: 0,
+          trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '0 days' }
+        },
+        bloodPressure: { 
+          systolic: { 
+            current: 0, 
+            average: 0, 
+            trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '0 days' }
+          },
+          diastolic: { 
+            current: 0, 
+            average: 0, 
+            trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '0 days' }
+          }
+        },
+        bloodSugar: { 
+          current: 0, 
+          average: 0, 
+          trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '0 days' }
+        },
+        medications: { 
+          total: 0, 
+          today: 0, 
+          adherence: 0 
+        }
+      };
+      
+      const emptyTrends = {
+        weight: { direction: 'stable', rate: 0, confidence: 0 },
+        bloodPressure: { direction: 'stable', rate: 0, confidence: 0 },
+        bloodSugar: { direction: 'stable', rate: 0, confidence: 0 },
+        medications: { direction: 'stable', rate: 0, confidence: 0 }
+      };
+      
+      const insights = await aiService.analyzeHealthData(emptyMetrics, emptyTrends, []);
+      const predictions = await aiService.generateHealthPredictions(emptyMetrics, emptyTrends, []);
+      const riskAssessment = await aiService.performHealthRiskAssessment(emptyMetrics, mockUserProfile);
+      
+      expect(insights).toBeDefined();
+      expect(predictions).toBeDefined();
+      expect(riskAssessment).toBeDefined();
+    });
+
+    test('應該能夠處理單一數據點', async () => {
+      const singleMetrics = {
+        weight: { 
+          current: 70.0, 
+          average: 70.0, 
+          min: 70.0, 
+          max: 70.0,
+          trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '1 day' }
+        },
+        bloodPressure: { 
+          systolic: { 
+            current: 120, 
+            average: 120, 
+            trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '1 day' }
+          },
+          diastolic: { 
+            current: 80, 
+            average: 80, 
+            trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '1 day' }
+          }
+        },
+        bloodSugar: { 
+          current: 5.5, 
+          average: 5.5, 
+          trend: { trend: 'stable' as const, change: 0, percentage: 0, period: '1 day' }
+        },
+        medications: { 
+          total: 1, 
+          today: 1, 
+          adherence: 100 
+        }
+      };
+      
+      const singleTrends = {
+        weight: { direction: 'stable', rate: 0, confidence: 100 },
+        bloodPressure: { direction: 'stable', rate: 0, confidence: 100 },
+        bloodSugar: { direction: 'stable', rate: 0, confidence: 100 },
+        medications: { direction: 'stable', rate: 0, confidence: 100 }
+      };
+      
+      const insights = await aiService.analyzeHealthData(singleMetrics, singleTrends, []);
+      const predictions = await aiService.generateHealthPredictions(singleMetrics, singleTrends, []);
+      const riskAssessment = await aiService.performHealthRiskAssessment(singleMetrics, mockUserProfile);
+      
+      expect(insights).toBeDefined();
+      expect(predictions).toBeDefined();
+      expect(riskAssessment).toBeDefined();
+    });
+  });
+});

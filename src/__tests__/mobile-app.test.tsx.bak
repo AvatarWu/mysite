@@ -1,0 +1,237 @@
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import { MobileAppService } from '../services/MobileAppService';
+
+// Mock Capacitor modules
+jest.mock('@capacitor/core', () => ({
+  Capacitor: {
+    getPlatform: jest.fn(() => 'ios'),
+    isNativePlatform: jest.fn(() => true)
+  }
+}));
+
+jest.mock('@capacitor/network', () => ({
+  Network: {
+    getStatus: jest.fn(() => Promise.resolve({ connected: true, connectionType: 'wifi' })),
+    addListener: jest.fn(() => Promise.resolve()),
+    removeAllListeners: jest.fn(() => Promise.resolve())
+  }
+}));
+
+jest.mock('@capacitor/preferences', () => ({
+  Preferences: {
+    get: jest.fn(() => Promise.resolve({ value: 'test' })),
+    set: jest.fn(() => Promise.resolve()),
+    remove: jest.fn(() => Promise.resolve())
+  }
+}));
+
+jest.mock('@capacitor/local-notifications', () => ({
+  LocalNotifications: {
+    schedule: jest.fn(() => Promise.resolve()),
+    cancel: jest.fn(() => Promise.resolve()),
+    getPending: jest.fn(() => Promise.resolve({ notifications: [] }))
+  }
+}));
+
+jest.mock('@capacitor/device', () => ({
+  Device: {
+    getInfo: jest.fn(() => Promise.resolve({
+      name: 'iPhone',
+      model: 'iPhone 15',
+      platform: 'ios',
+      operatingSystem: 'ios',
+      osVersion: '17.0',
+      webViewVersion: '17.0'
+    }))
+  }
+}));
+
+describe('MobileAppService - 移動應用服務測試', () => {
+  let mobileAppService: MobileAppService;
+
+  beforeEach(async () => {
+    mobileAppService = MobileAppService.getInstance();
+    await mobileAppService.initialize();
+    jest.clearAllMocks();
+  });
+
+  describe('基礎功能測試', () => {
+    test('應該正確初始化移動應用服務', async () => {
+      await mobileAppService.initialize();
+      
+      const appInfo = mobileAppService.getAppInfo();
+      expect(appInfo).toBeTruthy();
+      expect(appInfo?.platform).toBe('ios');
+      expect(appInfo?.isNative).toBe(true);
+      expect(appInfo?.deviceInfo.name).toBe('iPhone');
+    });
+
+    test('應該正確識別原生平台', () => {
+      const isNative = mobileAppService.isNativePlatform();
+      expect(isNative).toBe(true);
+    });
+
+    test('應該返回正確的平台信息', () => {
+      const platform = mobileAppService.getPlatform();
+      expect(platform).toBe('ios');
+    });
+  });
+
+  describe('通知功能測試', () => {
+    test('應該能夠安排本地通知', async () => {
+      const notificationConfig = {
+        id: 1,
+        title: '測試通知',
+        body: '這是一個測試通知',
+        schedule: { at: new Date() }
+      };
+
+      await mobileAppService.scheduleNotification(notificationConfig);
+      
+      // 驗證 LocalNotifications.schedule 被調用
+      const { LocalNotifications } = require('@capacitor/local-notifications');
+      expect(LocalNotifications.schedule).toHaveBeenCalledWith({
+        notifications: [notificationConfig]
+      });
+    });
+
+    test('應該能夠取消通知', async () => {
+      await mobileAppService.cancelNotification(1);
+      
+      const { LocalNotifications } = require('@capacitor/local-notifications');
+      expect(LocalNotifications.cancel).toHaveBeenCalledWith({
+        notifications: [{ id: 1 }]
+      });
+    });
+
+    test('應該能夠獲取待處理通知', async () => {
+      const notifications = await mobileAppService.getPendingNotifications();
+      expect(notifications).toEqual([]);
+      
+      const { LocalNotifications } = require('@capacitor/local-notifications');
+      expect(LocalNotifications.getPending).toHaveBeenCalled();
+    });
+  });
+
+  describe('網絡功能測試', () => {
+    test('應該能夠獲取網絡狀態', async () => {
+      const networkStatus = await mobileAppService.getNetworkStatus();
+      
+      expect(networkStatus.connected).toBe(true);
+      expect(networkStatus.connectionType).toBe('wifi');
+      
+      const { Network } = require('@capacitor/network');
+      expect(Network.getStatus).toHaveBeenCalled();
+    });
+
+    test('應該能夠添加網絡監聽器', async () => {
+      const mockCallback = jest.fn();
+      await mobileAppService.addNetworkListener(mockCallback);
+      
+      const { Network } = require('@capacitor/network');
+      expect(Network.addListener).toHaveBeenCalledWith('networkStatusChange', expect.any(Function));
+    });
+  });
+
+  describe('設備信息測試', () => {
+    test('應該能夠獲取存儲信息', async () => {
+      const storageInfo = await mobileAppService.getStorageInfo();
+      
+      expect(storageInfo.used).toBeGreaterThan(0);
+      expect(storageInfo.total).toBeGreaterThan(0);
+      expect(storageInfo.used).toBeLessThan(storageInfo.total);
+    });
+
+    test('應該能夠檢查應用權限', async () => {
+      const permissions = await mobileAppService.checkPermissions();
+      
+      expect(permissions.notifications).toBe(true);
+      expect(permissions.storage).toBe(true);
+      expect(permissions.network).toBe(true);
+    });
+  });
+
+  describe('錯誤處理測試', () => {
+    test('應該優雅地處理初始化錯誤', async () => {
+      const { Device } = require('@capacitor/device');
+      Device.getInfo.mockRejectedValueOnce(new Error('設備信息獲取失敗'));
+      
+      // 不應該拋出錯誤
+      await expect(mobileAppService.initialize()).resolves.not.toThrow();
+      
+      const appInfo = mobileAppService.getAppInfo();
+      expect(appInfo).toBeNull();
+    });
+
+    test('應該優雅地處理通知錯誤', async () => {
+      const { LocalNotifications } = require('@capacitor/local-notifications');
+      LocalNotifications.schedule.mockRejectedValueOnce(new Error('通知安排失敗'));
+      
+      const notificationConfig = {
+        id: 1,
+        title: '測試通知',
+        body: '這是一個測試通知'
+      };
+
+      // 不應該拋出錯誤
+      await expect(mobileAppService.scheduleNotification(notificationConfig)).resolves.not.toThrow();
+    });
+  });
+
+  describe('資源清理測試', () => {
+    test('應該能夠正確清理資源', async () => {
+      await mobileAppService.destroy();
+      
+      const { Network } = require('@capacitor/network');
+      expect(Network.removeAllListeners).toHaveBeenCalled();
+    });
+  });
+
+  describe('跨平台兼容性測試', () => {
+    test('應該在非原生平台上模擬功能', async () => {
+      const { Capacitor } = require('@capacitor/core');
+      Capacitor.isNativePlatform.mockReturnValueOnce(false);
+      
+      const notificationConfig = {
+        id: 1,
+        title: '測試通知',
+        body: '這是一個測試通知'
+      };
+
+      // 在非原生平台上應該模擬通知功能
+      await mobileAppService.scheduleNotification(notificationConfig);
+      
+      // 不應該調用原生 API
+      const { LocalNotifications } = require('@capacitor/local-notifications');
+      expect(LocalNotifications.schedule).not.toHaveBeenCalled();
+    });
+  });
+});
+
+describe('MobileAppService - 集成測試', () => {
+  test('應該與其他服務正確集成', async () => {
+    const mobileAppService = MobileAppService.getInstance();
+    
+    // 初始化服務
+    await mobileAppService.initialize();
+    
+    // 檢查服務狀態
+    expect(mobileAppService.getAppInfo()).toBeTruthy();
+    expect(mobileAppService.isNativePlatform()).toBe(true);
+    
+    // 測試通知集成
+    await mobileAppService.scheduleNotification({
+      id: 1,
+      title: '健康提醒',
+      body: '請記得記錄今天的健康數據'
+    });
+    
+    // 測試網絡監聽
+    const mockCallback = jest.fn();
+    await mobileAppService.addNetworkListener(mockCallback);
+    
+    // 驗證所有功能都正常工作
+    expect(mobileAppService.getPlatform()).toBe('ios');
+  });
+});

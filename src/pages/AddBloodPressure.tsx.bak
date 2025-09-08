@@ -1,0 +1,126 @@
+import React, { useState } from 'react';
+import {
+  IonPage,
+  IonHeader,
+  IonToolbar,
+  IonTitle,
+  IonContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonDatetime,
+  IonTextarea,
+  IonList,
+  IonBackButton,
+  IonButtons
+} from '@ionic/react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
+
+const AddBloodPressure: React.FC = () => {
+  const navigate = useNavigate();
+  const [systolic, setSystolic] = useState('');
+  const [diastolic, setDiastolic] = useState('');
+  const [pulse, setPulse] = useState('');
+  const [date, setDate] = useState(new Date().toISOString());
+  const [time, setTime] = useState(new Date().toISOString());
+  const [note, setNote] = useState('');
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await axios.post('/api/health/blood-pressure', {
+        systolic: parseInt(systolic),
+        diastolic: parseInt(diastolic),
+        pulse: parseInt(pulse),
+        date: new Date(date).toISOString().split('T')[0],
+        time: new Date(time).toISOString().split('T')[1].substring(0, 5),
+        note
+      }, {
+        headers: { Authorization: 'Bearer ' + localStorage.getItem('token') }
+      });
+
+      navigate('/tab2');
+    } catch (error) {
+      console.error('新增血壓記錄失敗:', error);
+    }
+  };
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/tab2" />
+          </IonButtons>
+          <IonTitle>新增血壓記錄</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+      <IonContent>
+        <form onSubmit={handleSubmit}>
+          <IonList>
+            <IonItem>
+              <IonLabel position="stacked">收縮壓 (mmHg)</IonLabel>
+              <IonInput
+                type="number"
+                value={systolic}
+                onIonChange={e => setSystolic(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">舒張壓 (mmHg)</IonLabel>
+              <IonInput
+                type="number"
+                value={diastolic}
+                onIonChange={e => setDiastolic(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">脈搏 (bpm)</IonLabel>
+              <IonInput
+                type="number"
+                value={pulse}
+                onIonChange={e => setPulse(e.detail.value!)}
+                required
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">日期</IonLabel>
+              <IonDatetime
+                value={date}
+                onIonChange={e => setDate(e.detail.value!)}
+                presentation="date"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">時間</IonLabel>
+              <IonDatetime
+                value={time}
+                onIonChange={e => setTime(e.detail.value!)}
+                presentation="time"
+              />
+            </IonItem>
+            <IonItem>
+              <IonLabel position="stacked">備註</IonLabel>
+              <IonTextarea
+                value={note}
+                onIonChange={e => setNote(e.detail.value!)}
+                rows={3}
+              />
+            </IonItem>
+          </IonList>
+          <div style={{ padding: '16px' }}>
+            <IonButton expand="block" type="submit">
+              儲存
+            </IonButton>
+          </div>
+        </form>
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default AddBloodPressure; 

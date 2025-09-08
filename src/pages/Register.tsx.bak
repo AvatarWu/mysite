@@ -1,0 +1,407 @@
+import React, { useState } from 'react';
+import {
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonCard,
+  IonCardContent,
+  IonItem,
+  IonLabel,
+  IonInput,
+  IonButton,
+  IonText,
+  IonLoading,
+  IonAlert,
+  IonIcon,
+  IonGrid,
+  IonRow,
+  IonCol,
+  IonBackButton,
+  IonButtons,
+  IonCheckbox,
+  IonNote
+} from '@ionic/react';
+import { 
+  personOutline, 
+  lockClosedOutline, 
+  mailOutline,
+  callOutline,
+  eyeOutline,
+  eyeOffOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline
+} from 'ionicons/icons';
+import { useNavigate } from 'react-router-dom';
+import AuthService, { RegisterData } from '../services/AuthService';
+import './Register.css';
+
+const Register: React.FC = () => {
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<RegisterData>({
+    email: '',
+    password: '',
+    name: '',
+    phone: ''
+  });
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [showAlert, setShowAlert] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [validationErrors, setValidationErrors] = useState<{[key: string]: string}>({});
+
+  const handleInputChange = (field: keyof RegisterData, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
+    // 清除相關錯誤信息
+    if (validationErrors[field]) {
+      setValidationErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
+    }
+    if (error) {
+      setError(null);
+    }
+  };
+
+  const validateForm = (): boolean => {
+    const errors: {[key: string]: string} = {};
+
+    // 姓名驗證
+    if (!formData.name.trim()) {
+      errors.name = '請輸入姓名';
+    } else if (formData.name.trim().length < 2) {
+      errors.name = '姓名至少2個字符';
+    }
+
+    // 郵箱驗證
+    if (!formData.email.trim()) {
+      errors.email = '請輸入電子郵箱';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = '請輸入有效的電子郵箱';
+    }
+
+    // 密碼驗證
+    if (!formData.password) {
+      errors.password = '請輸入密碼';
+    } else if (formData.password.length < 8) {
+      errors.password = '密碼至少8位';
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(formData.password)) {
+      errors.password = '密碼必須包含大小寫字母和數字';
+    }
+
+    // 確認密碼驗證
+    if (!confirmPassword) {
+      errors.confirmPassword = '請確認密碼';
+    } else if (formData.password !== confirmPassword) {
+      errors.confirmPassword = '兩次輸入的密碼不一致';
+    }
+
+    // 手機號驗證（可選）
+    if (formData.phone && !/^1[3-9]\d{9}$/.test(formData.phone)) {
+      errors.phone = '請輸入有效的手機號';
+    }
+
+    // 條款同意驗證
+    if (!agreedToTerms) {
+      errors.terms = '請同意用戶條款和隱私政策';
+    }
+
+    setValidationErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleRegister = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await AuthService.register(formData);
+      
+      if (response.success) {
+        // 註冊成功，顯示成功信息並跳轉到登錄頁面
+        setShowAlert(true);
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        setError(response.message || '註冊失敗');
+        setShowAlert(true);
+      }
+    } catch (error) {
+      console.error('註冊錯誤:', error);
+      setError('註冊失敗，請檢查網絡連接');
+      setShowAlert(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleBackToLogin = () => {
+            navigate('/login');
+  };
+
+  const getPasswordStrength = (password: string): { strength: string; color: string; icon: any } => {
+    if (!password) return { strength: '', color: '', icon: null };
+    
+    let score = 0;
+    if (password.length >= 8) score++;
+    if (/[a-z]/.test(password)) score++;
+    if (/[A-Z]/.test(password)) score++;
+    if (/\d/.test(password)) score++;
+    if (/[^A-Za-z0-9]/.test(password)) score++;
+
+    if (score <= 2) return { strength: '弱', color: 'danger', icon: closeCircleOutline };
+    if (score <= 3) return { strength: '中等', color: 'warning', icon: closeCircleOutline };
+    return { strength: '強', color: 'success', icon: checkmarkCircleOutline };
+  };
+
+  const passwordStrength = getPasswordStrength(formData.password);
+
+  return (
+    <IonPage>
+      <IonHeader>
+        <IonToolbar>
+          <IonButtons slot="start">
+            <IonBackButton defaultHref="/login" />
+          </IonButtons>
+          <IonTitle>註冊賬戶</IonTitle>
+        </IonToolbar>
+      </IonHeader>
+
+      <IonContent className="ion-padding">
+        <IonGrid>
+          <IonRow className="ion-justify-content-center">
+            <IonCol size="12" sizeMd="8" sizeLg="6">
+              {/* 標題 */}
+              <div className="register-header">
+                <h1 className="page-title">創建新賬戶</h1>
+                <p className="page-subtitle">加入 CareOld Health，開始您的健康管理之旅</p>
+              </div>
+
+              {/* 註冊表單 */}
+              <IonCard className="register-card">
+                <IonCardContent>
+                  <form onSubmit={(e) => { e.preventDefault(); handleRegister(); }}>
+                    {/* 姓名輸入 */}
+                    <IonItem className={`input-item ${validationErrors.name ? 'ion-invalid' : ''}`}>
+                      <IonIcon icon={personOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">姓名 *</IonLabel>
+                      <IonInput
+                        type="text"
+                        value={formData.name}
+                        onIonChange={(e) => handleInputChange('name', e.detail.value!)}
+                        placeholder="請輸入您的姓名"
+                        required
+                        clearInput
+                      />
+                    </IonItem>
+                    {validationErrors.name && (
+                      <IonNote color="danger" className="error-note">
+                        {validationErrors.name}
+                      </IonNote>
+                    )}
+
+                    {/* 電子郵箱輸入 */}
+                    <IonItem className={`input-item ${validationErrors.email ? 'ion-invalid' : ''}`}>
+                      <IonIcon icon={mailOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">電子郵箱 *</IonLabel>
+                      <IonInput
+                        type="email"
+                        value={formData.email}
+                        onIonChange={(e) => handleInputChange('email', e.detail.value!)}
+                        placeholder="請輸入您的電子郵箱"
+                        required
+                        clearInput
+                      />
+                    </IonItem>
+                    {validationErrors.email && (
+                      <IonNote color="danger" className="error-note">
+                        {validationErrors.email}
+                      </IonNote>
+                    )}
+
+                    {/* 手機號輸入（可選） */}
+                    <IonItem className={`input-item ${validationErrors.phone ? 'ion-invalid' : ''}`}>
+                      <IonIcon icon={callOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">手機號（可選）</IonLabel>
+                      <IonInput
+                        type="tel"
+                        value={formData.phone}
+                        onIonChange={(e) => handleInputChange('phone', e.detail.value!)}
+                        placeholder="請輸入您的手機號"
+                        clearInput
+                      />
+                    </IonItem>
+                    {validationErrors.phone && (
+                      <IonNote color="danger" className="error-note">
+                        {validationErrors.phone}
+                      </IonNote>
+                    )}
+
+                    {/* 密碼輸入 */}
+                    <IonItem className={`input-item ${validationErrors.password ? 'ion-invalid' : ''}`}>
+                      <IonIcon icon={lockClosedOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">密碼 *</IonLabel>
+                      <IonInput
+                        type={showPassword ? 'text' : 'password'}
+                        value={formData.password}
+                        onIonChange={(e) => handleInputChange('password', e.detail.value!)}
+                        placeholder="請輸入密碼"
+                        required
+                        clearInput
+                      />
+                      <IonButton
+                        fill="clear"
+                        slot="end"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="password-toggle"
+                      >
+                        <IonIcon icon={showPassword ? eyeOffOutline : eyeOutline} />
+                      </IonButton>
+                    </IonItem>
+                    {validationErrors.password && (
+                      <IonNote color="danger" className="error-note">
+                        {validationErrors.password}
+                      </IonNote>
+                    )}
+
+                    {/* 密碼強度指示器 */}
+                    {formData.password && (
+                      <div className="password-strength">
+                        <IonText color={passwordStrength.color}>
+                          <small>
+                            <IonIcon icon={passwordStrength.icon} />
+                            密碼強度: {passwordStrength.strength}
+                          </small>
+                        </IonText>
+                      </div>
+                    )}
+
+                    {/* 確認密碼輸入 */}
+                    <IonItem className={`input-item ${validationErrors.confirmPassword ? 'ion-invalid' : ''}`}>
+                      <IonIcon icon={lockClosedOutline} slot="start" className="input-icon" />
+                      <IonLabel position="floating">確認密碼 *</IonLabel>
+                      <IonInput
+                        type={showConfirmPassword ? 'text' : 'password'}
+                        value={confirmPassword}
+                        onIonChange={(e) => setConfirmPassword(e.detail.value!)}
+                        placeholder="請再次輸入密碼"
+                        required
+                        clearInput
+                      />
+                      <IonButton
+                        fill="clear"
+                        slot="end"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="password-toggle"
+                      >
+                        <IonIcon icon={showConfirmPassword ? eyeOffOutline : eyeOutline} />
+                      </IonButton>
+                    </IonItem>
+                    {validationErrors.confirmPassword && (
+                      <IonNote color="danger" className="error-note">
+                        {validationErrors.confirmPassword}
+                      </IonNote>
+                    )}
+
+                    {/* 條款同意 */}
+                    <div className="terms-section">
+                      <IonItem lines="none" className="terms-item">
+                        <IonCheckbox
+                          checked={agreedToTerms}
+                          onIonChange={(e) => setAgreedToTerms(e.detail.checked)}
+                          slot="start"
+                        />
+                        <IonLabel className="terms-label">
+                          我同意
+                          <IonButton
+                            fill="clear"
+                            size="small"
+                            className="link-button"
+                            onClick={() => {/* 打開條款頁面 */}}
+                          >
+                            用戶條款
+                          </IonButton>
+                          和
+                          <IonButton
+                            fill="clear"
+                            size="small"
+                            className="link-button"
+                            onClick={() => {/* 打開隱私政策頁面 */}}
+                          >
+                            隱私政策
+                          </IonButton>
+                        </IonLabel>
+                      </IonItem>
+                      {validationErrors.terms && (
+                        <IonNote color="danger" className="error-note">
+                          {validationErrors.terms}
+                        </IonNote>
+                      )}
+                    </div>
+
+                    {/* 註冊按鈕 */}
+                    <IonButton
+                      expand="block"
+                      type="submit"
+                      className="register-button"
+                      disabled={loading}
+                    >
+                      {loading ? '註冊中...' : '創建賬戶'}
+                    </IonButton>
+                  </form>
+                </IonCardContent>
+              </IonCard>
+
+              {/* 返回登錄鏈接 */}
+              <div className="login-section">
+                <p className="login-text">
+                  已有賬戶？
+                  <IonButton
+                    fill="clear"
+                    size="small"
+                    onClick={handleBackToLogin}
+                    className="link-button"
+                  >
+                    立即登錄
+                  </IonButton>
+                </p>
+              </div>
+            </IonCol>
+          </IonRow>
+        </IonGrid>
+
+        {/* 加載指示器 */}
+        <IonLoading
+          isOpen={loading}
+          message="正在創建賬戶..."
+          duration={0}
+        />
+
+        {/* 提示框 */}
+        <IonAlert
+          isOpen={showAlert}
+          onDidDismiss={() => setShowAlert(false)}
+          header={error ? "註冊失敗" : "註冊成功"}
+          message={error || "賬戶創建成功！正在跳轉到登錄頁面..."}
+          buttons={['確定']}
+        />
+      </IonContent>
+    </IonPage>
+  );
+};
+
+export default Register;
