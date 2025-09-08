@@ -103,6 +103,206 @@ const Settings: React.FC = () => {
     document.documentElement.setAttribute('data-font-size', fontSize);
   };
 
+  // 多語言文字對應
+  const getText = (key: string) => {
+    const texts = {
+      'zh-TW': {
+        'settings': '設定',
+        'general': '一般',
+        'appearance': '外觀',
+        'appearanceDesc': '選擇應用程式的外觀',
+        'auto': '自動',
+        'light': '淺色',
+        'dark': '深色',
+        'language': '語言',
+        'languageDesc': '選擇應用程式的顯示語言',
+        'tradChinese': '繁體中文',
+        'simpChinese': '簡體中文',
+        'english': 'English',
+        'notifications': '通知',
+        'notificationsDesc': '接收健康提醒和更新通知',
+        'autoSync': '自動同步',
+        'autoSyncDesc': '自動同步健康數據到雲端',
+        'syncFrequency': '同步頻率',
+        'syncFrequencyDesc': '選擇數據同步的頻率',
+        'realtime': '即時',
+        'realtimeDesc': '數據變更時立即同步',
+        'hourly': '每小時',
+        'hourlyDesc': '每小時同步一次',
+        'daily': '每天',
+        'dailyDesc': '每天同步一次',
+        'weekly': '每週',
+        'weeklyDesc': '每週同步一次',
+        'accessibility': '無障礙',
+        'highContrast': '高對比度',
+        'highContrastDesc': '提高文字和背景的對比度',
+        'fontSize': '字體大小',
+        'fontSizeDesc': '調整應用程式中的文字大小',
+        'small': '小',
+        'smallDesc': '14px - 適合小螢幕',
+        'medium': '中',
+        'mediumDesc': '16px - 標準大小',
+        'large': '大',
+        'largeDesc': '18px - 易於閱讀',
+        'extraLarge': '特大',
+        'extraLargeDesc': '20px - 最大字體',
+        'voiceNavigation': '語音導航',
+        'voiceNavigationDesc': '啟用語音導航功能',
+        'reduceMotion': '減少動畫',
+        'reduceMotionDesc': '減少界面動畫效果',
+        'privacy': '隱私與安全',
+        'dataSharing': '數據分享',
+        'dataSharingDesc': '允許與醫療機構分享數據',
+        'back': '返回',
+        'save': '儲存',
+        'healthReminders': '健康提醒',
+        'healthRemindersDesc': '日常健康檢查提醒',
+        'medicationAlerts': '用藥提醒',
+        'medicationAlertsDesc': '藥物服用時間提醒',
+        'appointmentReminders': '預約提醒',
+        'appointmentRemindersDesc': '醫療預約和檢查提醒',
+        'systemUpdates': '系統更新',
+        'systemUpdatesDesc': '應用程式更新通知',
+        'emergencyAlerts': '緊急警報',
+        'emergencyAlertsDesc': '重要健康警報和緊急通知',
+        'weeklyReports': '週報',
+        'weeklyReportsDesc': '每週健康報告摘要'
+      },
+      'zh-CN': {
+        'settings': '设置',
+        'general': '一般',
+        'appearance': '外观',
+        'appearanceDesc': '选择应用程序的外观',
+        'auto': '自动',
+        'light': '浅色',
+        'dark': '深色',
+        'language': '语言',
+        'languageDesc': '选择应用程序的显示语言',
+        'tradChinese': '繁体中文',
+        'simpChinese': '简体中文',
+        'english': 'English',
+        'notifications': '通知',
+        'notificationsDesc': '接收健康提醒和更新通知',
+        'autoSync': '自动同步',
+        'autoSyncDesc': '自动同步健康数据到云端',
+        'syncFrequency': '同步频率',
+        'syncFrequencyDesc': '选择数据同步的频率',
+        'realtime': '实时',
+        'realtimeDesc': '数据变更时立即同步',
+        'hourly': '每小时',
+        'hourlyDesc': '每小时同步一次',
+        'daily': '每天',
+        'dailyDesc': '每天同步一次',
+        'weekly': '每周',
+        'weeklyDesc': '每周同步一次',
+        'accessibility': '无障碍',
+        'highContrast': '高对比度',
+        'highContrastDesc': '提高文字和背景的对比度',
+        'fontSize': '字体大小',
+        'fontSizeDesc': '调整应用程序中的文字大小',
+        'small': '小',
+        'smallDesc': '14px - 适合小屏幕',
+        'medium': '中',
+        'mediumDesc': '16px - 标准大小',
+        'large': '大',
+        'largeDesc': '18px - 易于阅读',
+        'extraLarge': '特大',
+        'extraLargeDesc': '20px - 最大字体',
+        'voiceNavigation': '语音导航',
+        'voiceNavigationDesc': '启用语音导航功能',
+        'reduceMotion': '减少动画',
+        'reduceMotionDesc': '减少界面动画效果',
+        'privacy': '隐私与安全',
+        'dataSharing': '数据分享',
+        'dataSharingDesc': '允许与医疗机构分享数据',
+        'back': '返回',
+        'save': '保存',
+        'healthReminders': '健康提醒',
+        'healthRemindersDesc': '日常健康检查提醒',
+        'medicationAlerts': '用药提醒',
+        'medicationAlertsDesc': '药物服用时间提醒',
+        'appointmentReminders': '预约提醒',
+        'appointmentRemindersDesc': '医疗预约和检查提醒',
+        'systemUpdates': '系统更新',
+        'systemUpdatesDesc': '应用程序更新通知',
+        'emergencyAlerts': '紧急警报',
+        'emergencyAlertsDesc': '重要健康警报和紧急通知',
+        'weeklyReports': '周报',
+        'weeklyReportsDesc': '每周健康报告摘要'
+      },
+      'en': {
+        'settings': 'Settings',
+        'general': 'General',
+        'appearance': 'Appearance',
+        'appearanceDesc': 'Choose the appearance of the app',
+        'auto': 'Auto',
+        'light': 'Light',
+        'dark': 'Dark',
+        'language': 'Language',
+        'languageDesc': 'Choose the display language of the app',
+        'tradChinese': 'Traditional Chinese',
+        'simpChinese': 'Simplified Chinese',
+        'english': 'English',
+        'notifications': 'Notifications',
+        'notificationsDesc': 'Receive health reminders and update notifications',
+        'autoSync': 'Auto Sync',
+        'autoSyncDesc': 'Automatically sync health data to cloud',
+        'syncFrequency': 'Sync Frequency',
+        'syncFrequencyDesc': 'Choose the frequency of data sync',
+        'realtime': 'Realtime',
+        'realtimeDesc': 'Sync immediately when data changes',
+        'hourly': 'Hourly',
+        'hourlyDesc': 'Sync once per hour',
+        'daily': 'Daily',
+        'dailyDesc': 'Sync once per day',
+        'weekly': 'Weekly',
+        'weeklyDesc': 'Sync once per week',
+        'accessibility': 'Accessibility',
+        'highContrast': 'High Contrast',
+        'highContrastDesc': 'Increase contrast between text and background',
+        'fontSize': 'Font Size',
+        'fontSizeDesc': 'Adjust text size in the app',
+        'small': 'Small',
+        'smallDesc': '14px - Suitable for small screens',
+        'medium': 'Medium',
+        'mediumDesc': '16px - Standard size',
+        'large': 'Large',
+        'largeDesc': '18px - Easy to read',
+        'extraLarge': 'Extra Large',
+        'extraLargeDesc': '20px - Maximum font size',
+        'voiceNavigation': 'Voice Navigation',
+        'voiceNavigationDesc': 'Enable voice navigation features',
+        'reduceMotion': 'Reduce Motion',
+        'reduceMotionDesc': 'Reduce interface animation effects',
+        'privacy': 'Privacy & Security',
+        'dataSharing': 'Data Sharing',
+        'dataSharingDesc': 'Allow sharing data with medical institutions',
+        'back': 'Back',
+        'save': 'Save',
+        'healthReminders': 'Health Reminders',
+        'healthRemindersDesc': 'Daily health check reminders',
+        'medicationAlerts': 'Medication Alerts',
+        'medicationAlertsDesc': 'Medication time reminders',
+        'appointmentReminders': 'Appointment Reminders',
+        'appointmentRemindersDesc': 'Medical appointment and checkup reminders',
+        'systemUpdates': 'System Updates',
+        'systemUpdatesDesc': 'App update notifications',
+        'emergencyAlerts': 'Emergency Alerts',
+        'emergencyAlertsDesc': 'Important health alerts and emergency notifications',
+        'weeklyReports': 'Weekly Reports',
+        'weeklyReportsDesc': 'Weekly health report summary'
+      }
+    };
+    
+    return (texts as any)[tempSettings.general.language]?.[key] || (texts as any)['zh-TW'][key] || key;
+  };
+
+  // 應用語言設定
+  const applyLanguage = (language: 'zh-TW' | 'zh-CN' | 'en') => {
+    document.documentElement.setAttribute('lang', language);
+    console.log('語言已切換至:', language);
+  };
+
   const loadSettings = () => {
     try {
       const savedSettings = localStorage.getItem('careold-settings');
@@ -130,6 +330,9 @@ const Settings: React.FC = () => {
         
         // 應用字體大小設定
         applyFontSize(parsedSettings.accessibility.fontSize);
+        
+        // 應用語言設定
+        applyLanguage(parsedSettings.general.language);
       }
     } catch (error) {
       console.error('載入設定失敗:', error);
@@ -173,6 +376,43 @@ const Settings: React.FC = () => {
       },
     }));
     setHasChanges(true);
+    
+    // 立即應用外觀設定變更
+    if (category === 'general' && key === 'appearance') {
+      if (value === 'dark') {
+        setIsDark(true);
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        // 強制應用深色主題到所有元素
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+      } else if (value === 'light') {
+        setIsDark(false);
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        // 強制應用淺色主題到所有元素
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+      } else {
+        // 自動模式
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        setIsDark(prefersDark);
+        document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        if (prefersDark) {
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        } else {
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        }
+      }
+    }
+    
+    // 立即應用語言設定變更
+    if (category === 'general' && key === 'language') {
+      applyLanguage(value as 'zh-TW' | 'zh-CN' | 'en');
+    }
   };
 
   const handleSave = () => {
@@ -186,14 +426,28 @@ const Settings: React.FC = () => {
       if (tempSettings.general.appearance === 'dark') {
         setIsDark(true);
         document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
       } else if (tempSettings.general.appearance === 'light') {
         setIsDark(false);
         document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
       } else {
         // 自動模式
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
         setIsDark(prefersDark);
         document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
+        if (prefersDark) {
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        } else {
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        }
       }
       
       // 應用高對比度設定
@@ -201,6 +455,9 @@ const Settings: React.FC = () => {
       
       // 應用字體大小設定
       applyFontSize(tempSettings.accessibility.fontSize);
+      
+      // 應用語言設定
+      applyLanguage(tempSettings.general.language);
       
       alert('設定已儲存！');
       navigate('/');
@@ -316,7 +573,7 @@ const Settings: React.FC = () => {
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
               <path d="M19 12H5M12 19l-7-7 7-7"></path>
             </svg>
-            返回
+            {getText('back')}
           </button>
           
           <h1 style={{
@@ -330,7 +587,7 @@ const Settings: React.FC = () => {
             transform: 'translateX(-50%)',
             textShadow: isDark ? '0 1px 2px rgba(0, 0, 0, 0.3)' : 'none',
           }}>
-            設定
+            {getText('settings')}
           </h1>
           
           <button
@@ -366,7 +623,7 @@ const Settings: React.FC = () => {
               }
             }}
           >
-            儲存
+            {getText('save')}
           </button>
         </div>
       </div>
@@ -387,7 +644,7 @@ const Settings: React.FC = () => {
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}>
-            一般
+            {getText('general')}
           </h2>
           
           <div style={{
@@ -419,13 +676,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  外觀
+                  {getText('appearance')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  選擇應用程式的外觀
+                  {getText('appearanceDesc')}
                 </div>
               </div>
               <button
@@ -451,8 +708,8 @@ const Settings: React.FC = () => {
                 }}
               >
                 <span>
-                  {tempSettings.general.appearance === 'auto' ? '自動' : 
-                   tempSettings.general.appearance === 'light' ? '淺色' : '深色'}
+                  {tempSettings.general.appearance === 'auto' ? getText('auto') : 
+                   tempSettings.general.appearance === 'light' ? getText('light') : getText('dark')}
                 </span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 9l6 6 6-6"></path>
@@ -476,14 +733,16 @@ const Settings: React.FC = () => {
                     ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
                     : '1px solid rgba(0, 0, 0, 0.1)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  zIndex: 1000,
-                  overflow: 'hidden',
+                  zIndex: 9999,
+                  overflow: 'visible',
                   marginTop: '4px',
+                  minHeight: 'auto',
+                  maxHeight: 'none',
                 }}>
                   {[
-                    { value: 'auto', label: '自動' },
-                    { value: 'light', label: '淺色' },
-                    { value: 'dark', label: '深色' }
+                    { value: 'auto', label: getText('auto') },
+                    { value: 'light', label: getText('light') },
+                    { value: 'dark', label: getText('dark') }
                   ].map((option, index) => (
                     <button
                       key={option.value}
@@ -545,13 +804,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  語言
+                  {getText('language')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  選擇應用程式的顯示語言
+                  {getText('languageDesc')}
                 </div>
               </div>
               <button
@@ -577,8 +836,8 @@ const Settings: React.FC = () => {
                 }}
               >
                 <span>
-                  {tempSettings.general.language === 'zh-TW' ? '繁體中文' : 
-                   tempSettings.general.language === 'zh-CN' ? '簡體中文' : 'English'}
+                  {tempSettings.general.language === 'zh-TW' ? getText('tradChinese') : 
+                   tempSettings.general.language === 'zh-CN' ? getText('simpChinese') : getText('english')}
                 </span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 9l6 6 6-6"></path>
@@ -588,10 +847,11 @@ const Settings: React.FC = () => {
               {/* 語言選單 */}
               {showLanguageMenu && (
                 <div className="dropdown-menu" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  left: '0',
+                  position: 'fixed',
+                  top: 'auto',
+                  bottom: 'auto',
+                  left: 'auto',
+                  right: 'auto',
                   background: isHighContrast
                     ? (isDark ? '#000000' : '#ffffff')
                     : (isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)'),
@@ -602,14 +862,17 @@ const Settings: React.FC = () => {
                     ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
                     : '1px solid rgba(0, 0, 0, 0.1)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  zIndex: 1000,
-                  overflow: 'hidden',
+                  zIndex: 99999,
+                  overflow: 'visible',
                   marginTop: '4px',
+                  minHeight: 'auto',
+                  maxHeight: 'none',
+                  width: '100%',
                 }}>
                   {[
-                    { value: 'zh-TW', label: '繁體中文' },
-                    { value: 'zh-CN', label: '簡體中文' },
-                    { value: 'en', label: 'English' }
+                    { value: 'zh-TW', label: getText('tradChinese') },
+                    { value: 'zh-CN', label: getText('simpChinese') },
+                    { value: 'en', label: getText('english') }
                   ].map((option, index) => (
                     <button
                       key={option.value}
@@ -670,13 +933,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  通知
+                  {getText('notifications')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  接收健康提醒和更新通知
+                  {getText('notificationsDesc')}
                 </div>
               </div>
               <AppleToggle
@@ -702,13 +965,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  自動同步
+                  {getText('autoSync')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  自動同步健康數據到雲端
+                  {getText('autoSyncDesc')}
                 </div>
               </div>
               <AppleToggle
@@ -795,8 +1058,10 @@ const Settings: React.FC = () => {
                       : '1px solid rgba(0, 0, 0, 0.1)',
                     boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
                     zIndex: 1000,
-                    overflow: 'hidden',
+                    overflow: 'visible',
                     marginTop: '4px',
+                    minHeight: 'auto',
+                    maxHeight: 'none',
                   }}>
                     {[
                       { value: 'realtime', label: '即時', description: '數據變更時立即同步' },
@@ -868,7 +1133,7 @@ const Settings: React.FC = () => {
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}>
-            無障礙
+            {getText('accessibility')}
           </h2>
           
           <div style={{
@@ -899,13 +1164,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  高對比度
+                  {getText('highContrast')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  提高文字和背景的對比度
+                  {getText('highContrastDesc')}
                 </div>
               </div>
               <AppleToggle
@@ -932,13 +1197,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  字體大小
+                  {getText('fontSize')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  調整應用程式中的文字大小
+                  {getText('fontSizeDesc')}
                 </div>
               </div>
               <button
@@ -964,9 +1229,9 @@ const Settings: React.FC = () => {
                 }}
               >
                 <span>
-                  {tempSettings.accessibility.fontSize === 'small' ? '小' :
-                   tempSettings.accessibility.fontSize === 'medium' ? '中' :
-                   tempSettings.accessibility.fontSize === 'large' ? '大' : '特大'}
+                  {tempSettings.accessibility.fontSize === 'small' ? getText('small') :
+                   tempSettings.accessibility.fontSize === 'medium' ? getText('medium') :
+                   tempSettings.accessibility.fontSize === 'large' ? getText('large') : getText('extraLarge')}
                 </span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 9l6 6 6-6"></path>
@@ -990,15 +1255,17 @@ const Settings: React.FC = () => {
                     ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
                     : '1px solid rgba(0, 0, 0, 0.1)',
                   boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  zIndex: 1000,
-                  overflow: 'hidden',
+                  zIndex: 9999,
+                  overflow: 'visible',
                   marginTop: '4px',
+                  minHeight: 'auto',
+                  maxHeight: 'none',
                 }}>
                   {[
-                    { value: 'small', label: '小', description: '14px - 適合小螢幕' },
-                    { value: 'medium', label: '中', description: '16px - 標準大小' },
-                    { value: 'large', label: '大', description: '18px - 易於閱讀' },
-                    { value: 'extra-large', label: '特大', description: '20px - 最大字體' }
+                    { value: 'small', label: getText('small'), description: getText('smallDesc') },
+                    { value: 'medium', label: getText('medium'), description: getText('mediumDesc') },
+                    { value: 'large', label: getText('large'), description: getText('largeDesc') },
+                    { value: 'extra-large', label: getText('extraLarge'), description: getText('extraLargeDesc') }
                   ].map((option, index) => (
                     <button
                       key={option.value}
@@ -1068,13 +1335,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  語音導航
+                  {getText('voiceNavigation')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  啟用語音導航功能
+                  {getText('voiceNavigationDesc')}
                 </div>
               </div>
               <AppleToggle
@@ -1097,13 +1364,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  減少動畫
+                  {getText('reduceMotion')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  減少界面動畫效果
+                  {getText('reduceMotionDesc')}
                 </div>
               </div>
               <AppleToggle
@@ -1169,13 +1436,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    健康提醒
+                    {getText('healthReminders')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    日常健康檢查提醒
+                    {getText('healthRemindersDesc')}
                   </div>
                 </div>
               </div>
@@ -1218,13 +1485,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    用藥提醒
+                    {getText('medicationAlerts')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    藥物服用時間提醒
+                    {getText('medicationAlertsDesc')}
                   </div>
                 </div>
               </div>
@@ -1268,13 +1535,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    預約提醒
+                    {getText('appointmentReminders')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    醫療預約和檢查提醒
+                    {getText('appointmentRemindersDesc')}
                   </div>
                 </div>
               </div>
@@ -1316,13 +1583,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    系統更新
+                    {getText('systemUpdates')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    應用程式更新通知
+                    {getText('systemUpdatesDesc')}
                   </div>
                 </div>
               </div>
@@ -1365,13 +1632,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    緊急警報
+                    {getText('emergencyAlerts')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    重要健康警報和緊急通知
+                    {getText('emergencyAlertsDesc')}
                   </div>
                 </div>
               </div>
@@ -1413,13 +1680,13 @@ const Settings: React.FC = () => {
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                     marginBottom: '2px',
                   }}>
-                    週報
+                    {getText('weeklyReports')}
                   </div>
                   <div style={{
                     fontSize: '13px',
                     color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                   }}>
-                    每週健康報告摘要
+                    {getText('weeklyReportsDesc')}
                   </div>
                 </div>
               </div>
@@ -1441,7 +1708,7 @@ const Settings: React.FC = () => {
             textTransform: 'uppercase',
             letterSpacing: '0.5px',
           }}>
-            隱私與安全
+            {getText('privacy')}
           </h2>
           
           <div style={{
@@ -1469,13 +1736,13 @@ const Settings: React.FC = () => {
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
                   marginBottom: '2px',
                 }}>
-                  數據分享
+                  {getText('dataSharing')}
                 </div>
                 <div style={{
                   fontSize: '13px',
                   color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
                 }}>
-                  允許與醫療機構分享數據
+                  {getText('dataSharingDesc')}
                 </div>
               </div>
               <AppleToggle
