@@ -176,6 +176,44 @@ const Medications: React.FC = () => {
         'confirmDeleteMedication': 'Are you sure you want to delete this medication reminder?',
         'deleteFailed': 'Delete failed, please try again',
         'loadFailed': 'Failed to load medication data'
+      },
+      'ja': {
+        'back': '戻る',
+        'medicationManagement': '薬物管理',
+        'medicationOverview': '薬物概要',
+        'healthManagementStatus': 'あなたの健康管理状態',
+        'totalMedications': '総薬物数',
+        'activeMedications': 'アクティブな薬物',
+        'todayDoses': '今日の用量',
+        'completionRate': '完了率',
+        'addMedication': '薬物を追加',
+        'noMedications': '薬物記録がありません',
+        'addFirstMedication': '最初の薬物を追加してください',
+        'loading': '読み込み中...',
+        'error': '読み込み失敗',
+        'retry': '再試行',
+        'mg': 'ミリグラム',
+        'timesPerDay': '回/日',
+        'morning': '朝',
+        'afternoon': '午後',
+        'evening': '夕方',
+        'night': '夜間',
+        'totalMedicationsCount': '総薬物数',
+        'reminderCount': 'リマインダー回数',
+        'medicationList': '薬物リスト',
+        'manageAllMedications': 'すべての薬物リマインダーを管理',
+        'noMedicationRecords': '薬物記録がありません',
+        'addFirstMedicationReminder': '下のボタンをクリックして最初の薬物リマインダーを追加',
+        'editMedication': '編集',
+        'deleteMedication': '削除',
+        'reminderTime': 'リマインダー時間',
+        'morningTime': '午前',
+        'noon': '正午',
+        'afternoonTime': '午後',
+        'eveningTime': '夕方',
+        'confirmDeleteMedication': 'この薬物リマインダーを削除してもよろしいですか？',
+        'deleteFailed': '削除に失敗しました。再試行してください',
+        'loadFailed': '薬物データの読み込みに失敗しました'
       }
     };
     
@@ -225,8 +263,35 @@ const Medications: React.FC = () => {
     applyTheme();
 
     // 監聽主題變更事件
-    const handleThemeChange = (_event: CustomEvent) => {
-      applyTheme();
+    const handleThemeChange = (event: CustomEvent) => {
+      console.log('Medications.tsx: 收到主題變更事件:', event.detail);
+      // 直接應用主題，不重新讀取localStorage
+      const theme = event.detail.theme;
+      const isDark = event.detail.isDark;
+      
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+      } else if (theme === 'auto') {
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.setAttribute('data-theme', 'dark');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        }
+      }
     };
     
     const handleLanguageChange = (_event: CustomEvent) => {

@@ -118,6 +118,37 @@ const Home: React.FC = () => {
         'bloodPressure': 'Blood Pressure (mmHg)',
         'weightValue': '72.5',
         'bloodPressureValue': '120/80'
+      },
+      'ja': {
+        'medicationManagement': '薬物管理',
+        'medicationManagementDesc': '日常の薬物リマインダーを管理',
+        'weightManagement': '体重管理',
+        'weightManagementDesc': '体重変化の傾向を追跡',
+        'bloodPressureManagement': '血圧管理',
+        'bloodPressureManagementDesc': '血圧の健康状態を監視',
+        'bloodSugarManagement': '血糖管理',
+        'bloodSugarManagementDesc': '血糖コントロールを追跡',
+        'aiHealthAssistant': 'AI健康アシスタント',
+        'aiHealthAssistantDesc': 'インテリジェントな健康相談とアドバイス',
+        'emergencyHelp': '緊急支援',
+        'emergencyHelpDesc': '緊急サービスに迅速に連絡',
+        'setReminder': 'リマインダー設定',
+        'setReminderDesc': '健康リマインダーを管理',
+        'home': 'ホーム',
+        'medication': '薬物',
+        'profile': 'プロフィール',
+        'settings': '設定',
+        'appTitle': 'CareOld',
+        'appSubtitle': 'あなたの健康管理アシスタント',
+        'welcomeBack': 'おかえりなさい！',
+        'welcomeMessage': '今日も健康に気をつけましょう',
+        'mainFeatures': '主要機能',
+        'quickActions': 'クイックアクション',
+        'healthSummary': '健康サマリー',
+        'currentWeight': '現在の体重(kg)',
+        'bloodPressure': '血圧(mmHg)',
+        'weightValue': '72.5',
+        'bloodPressureValue': '120/80'
       }
     };
     
@@ -277,8 +308,48 @@ const Home: React.FC = () => {
   // 監聽全局主題變更事件
   useEffect(() => {
     const handleThemeChange = (event: CustomEvent) => {
-      console.log('Home.tsx: 收到主題變更事件:', event.detail.theme);
-      applyThemeToHome(event.detail.theme);
+      console.log('Home.tsx: 收到主題變更事件:', event.detail);
+      // 直接應用主題，不重新讀取localStorage
+      const theme = event.detail.theme;
+      const isDark = event.detail.isDark;
+      
+      if (theme === 'dark') {
+        console.log('Home.tsx: 應用深色模式到首頁');
+        const darkBg = 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)';
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', darkBg);
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        document.body.style.setProperty('background', darkBg, 'important');
+        document.body.style.setProperty('color', '#ffffff', 'important');
+        console.log('Home.tsx: 設定深色背景:', darkBg);
+        console.log('Home.tsx: 檢查CSS變數值:', getComputedStyle(document.documentElement).getPropertyValue('--theme-bg'));
+      } else if (theme === 'light') {
+        console.log('Home.tsx: 應用淺色模式到首頁');
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        document.body.style.setProperty('background', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)', 'important');
+        document.body.style.setProperty('color', '#1d1d1f', 'important');
+      } else if (theme === 'auto') {
+        console.log('Home.tsx: 應用自動模式到首頁:', isDark ? 'dark' : 'light');
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.setAttribute('data-theme', 'dark');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          document.body.style.setProperty('background', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)', 'important');
+          document.body.style.setProperty('color', '#ffffff', 'important');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          document.body.style.setProperty('background', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)', 'important');
+          document.body.style.setProperty('color', '#1d1d1f', 'important');
+        }
+      }
     };
     
     const handleLanguageChange = (event: CustomEvent) => {
@@ -352,13 +423,13 @@ const Home: React.FC = () => {
         }}>
           <div>
             <h1 style={{
-              fontSize: '28px',
+              fontSize: 'calc(var(--base-font-size, 16px) * 1.75)',
               fontWeight: '700',
               color: '#1d1d1f',
               margin: '0 0 4px 0'
             }}>{getText('appTitle')}</h1>
             <p style={{
-              fontSize: '14px',
+              fontSize: 'calc(var(--base-font-size, 16px) * 0.875)',
               color: '#6b7280',
               margin: '0'
             }}>{getText('appSubtitle')}</p>
@@ -396,13 +467,13 @@ const Home: React.FC = () => {
             WebkitBackdropFilter: 'blur(20px)'
           }}>
             <h2 style={{
-              fontSize: '24px',
+              fontSize: 'calc(var(--base-font-size, 16px) * 1.5)',
               fontWeight: '700',
               color: '#495057',
               margin: '0 0 8px 0'
             }}>{getText('welcomeBack')}</h2>
             <p style={{
-              fontSize: '16px',
+              fontSize: 'var(--base-font-size, 16px)',
               color: '#6c757d',
               margin: '0',
               fontWeight: '500'
@@ -413,7 +484,7 @@ const Home: React.FC = () => {
         {/* 功能卡片區域 */}
         <section style={{ marginBottom: '32px' }}>
           <h2 style={{
-            fontSize: '24px',
+            fontSize: 'calc(var(--base-font-size, 16px) * 1.5)',
             fontWeight: '700',
             color: '#495057',
             margin: '0 0 24px 0',
@@ -459,13 +530,13 @@ const Home: React.FC = () => {
                   {card.icon}
                 </div>
                 <h3 style={{
-                  fontSize: '18px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 1.125)',
                   fontWeight: '600',
                   margin: '0 0 8px 0',
                   lineHeight: '1.2'
                 }}>{card.title}</h3>
                 <p style={{
-                  fontSize: '14px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 0.875)',
                   opacity: '0.9',
                   margin: '0',
                   lineHeight: '1.4'
@@ -478,7 +549,7 @@ const Home: React.FC = () => {
         {/* 快速操作區域 */}
         <section style={{ marginBottom: '32px' }}>
           <h2 style={{
-            fontSize: '20px',
+            fontSize: 'calc(var(--base-font-size, 16px) * 1.25)',
             fontWeight: '600',
             color: '#1d1d1f',
             margin: '0 0 20px 0',
@@ -519,13 +590,13 @@ const Home: React.FC = () => {
                   {action.icon}
                 </div>
                 <h3 style={{
-                  fontSize: '16px',
+                  fontSize: 'var(--base-font-size, 16px)',
                   fontWeight: '600',
                   color: '#1d1d1f',
                   margin: '0 0 8px 0'
                 }}>{action.title}</h3>
                 <p style={{
-                  fontSize: '14px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 0.875)',
                   color: '#6b7280',
                   margin: '0'
                 }}>{action.description}</p>
@@ -537,7 +608,7 @@ const Home: React.FC = () => {
         {/* 健康摘要區域 */}
         <section style={{ marginBottom: '32px' }}>
           <h2 style={{
-            fontSize: '20px',
+            fontSize: 'calc(var(--base-font-size, 16px) * 1.25)',
             fontWeight: '600',
             color: '#1d1d1f',
             margin: '0 0 20px 0',
@@ -562,13 +633,13 @@ const Home: React.FC = () => {
                 borderRadius: '12px'
               }}>
                 <div style={{
-                  fontSize: '24px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 1.5)',
                   fontWeight: '700',
                   color: '#3b82f6',
                   marginBottom: '8px'
                 }}>{getText('weightValue')}</div>
                 <div style={{
-                  fontSize: '14px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 0.875)',
                   color: '#6b7280'
                 }}>{getText('currentWeight')}</div>
               </div>
@@ -579,13 +650,13 @@ const Home: React.FC = () => {
                 borderRadius: '12px'
               }}>
                 <div style={{
-                  fontSize: '24px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 1.5)',
                   fontWeight: '700',
                   color: '#16a34a',
                   marginBottom: '8px'
                 }}>{getText('bloodPressureValue')}</div>
                 <div style={{
-                  fontSize: '14px',
+                  fontSize: 'calc(var(--base-font-size, 16px) * 0.875)',
                   color: '#6b7280'
                 }}>{getText('bloodPressure')}</div>
               </div>
@@ -632,7 +703,7 @@ const Home: React.FC = () => {
             >
               <div style={{ fontSize: '24px' }}>{item.icon}</div>
               <span style={{
-                fontSize: '12px',
+                fontSize: 'calc(var(--base-font-size, 16px) * 0.75)',
                 fontWeight: '500'
               }}>{item.label}</span>
             </div>

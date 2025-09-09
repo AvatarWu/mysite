@@ -2,7 +2,8 @@
 
 .add-blood-pressure-page {
   min-height: 100vh;
-  background: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
+  color: var(--theme-text, #1d1d1f);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
@@ -126,10 +127,14 @@
 }
 
 .form-section {
-  background: #ffffff;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  color: var(--theme-text, #1d1d1f);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--theme-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  border: var(--theme-card-border, 0.5px solid rgba(0, 0, 0, 0.04));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 0.5px solid rgba(0, 0, 0, 0.1);
 }
 
@@ -170,7 +175,7 @@
   border: 2px solid #e5e5ea;
   border-radius: 12px;
   font-size: 16px;
-  background-color: #ffffff !important;
+  background-color: var(--theme-input-bg, rgba(255, 255, 255, 0.9)) !important;
   color: #1d1d1f !important;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
   font-family: inherit;
@@ -196,7 +201,7 @@
   border: 2px solid #e5e5ea;
   border-radius: 12px;
   font-size: 16px;
-  background-color: #ffffff !important;
+  background-color: var(--theme-input-bg, rgba(255, 255, 255, 0.9)) !important;
   color: #1d1d1f !important;
   resize: vertical;
   min-height: 80px;
@@ -398,7 +403,7 @@
 /* 深色模式支援 */
 @media (prefers-color-scheme: dark) {
   .add-blood-pressure-page {
-    background: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   .custom-header {

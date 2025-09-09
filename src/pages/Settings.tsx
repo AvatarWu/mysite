@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 interface SettingsData {
   general: {
     appearance: 'auto' | 'light' | 'dark';
-    language: 'zh-TW' | 'zh-CN' | 'en';
+    language: 'zh-TW' | 'zh-CN' | 'en' | 'ja';
     notifications: boolean;
     autoSync: boolean;
     syncFrequency: 'realtime' | 'hourly' | 'daily' | 'weekly';
@@ -119,6 +119,7 @@ const Settings: React.FC = () => {
         'tradChinese': '繁體中文',
         'simpChinese': '簡體中文',
         'english': 'English',
+        'japanese': '日本語',
         'notifications': '通知',
         'notificationsDesc': '接收健康提醒和更新通知',
         'autoSync': '自動同步',
@@ -181,6 +182,7 @@ const Settings: React.FC = () => {
         'tradChinese': '繁体中文',
         'simpChinese': '简体中文',
         'english': 'English',
+        'japanese': '日本語',
         'notifications': '通知',
         'notificationsDesc': '接收健康提醒和更新通知',
         'autoSync': '自动同步',
@@ -243,6 +245,7 @@ const Settings: React.FC = () => {
         'tradChinese': 'Traditional Chinese',
         'simpChinese': 'Simplified Chinese',
         'english': 'English',
+        'japanese': 'Japanese',
         'notifications': 'Notifications',
         'notificationsDesc': 'Receive health reminders and update notifications',
         'autoSync': 'Auto Sync',
@@ -291,6 +294,69 @@ const Settings: React.FC = () => {
         'emergencyAlertsDesc': 'Important health alerts and emergency notifications',
         'weeklyReports': 'Weekly Reports',
         'weeklyReportsDesc': 'Weekly health report summary'
+      },
+      'ja': {
+        'settings': '設定',
+        'general': '一般',
+        'appearance': '外観',
+        'appearanceDesc': 'アプリケーションの外観を選択',
+        'auto': '自動',
+        'light': 'ライト',
+        'dark': 'ダーク',
+        'language': '言語',
+        'languageDesc': 'アプリケーションの表示言語を選択',
+        'tradChinese': '繁体中文',
+        'simpChinese': '簡体中文',
+        'english': 'English',
+        'japanese': '日本語',
+        'notifications': '通知',
+        'notificationsDesc': '健康リマインダーと更新通知を受信',
+        'autoSync': '自動同期',
+        'autoSyncDesc': '健康データをクラウドに自動同期',
+        'syncFrequency': '同期頻度',
+        'syncFrequencyDesc': 'データ同期の頻度を選択',
+        'realtime': 'リアルタイム',
+        'realtimeDesc': 'データ変更時に即座に同期',
+        'hourly': '毎時',
+        'hourlyDesc': '1時間ごとに同期',
+        'daily': '毎日',
+        'dailyDesc': '1日1回同期',
+        'weekly': '毎週',
+        'weeklyDesc': '1週間に1回同期',
+        'accessibility': 'アクセシビリティ',
+        'highContrast': 'ハイコントラスト',
+        'highContrastDesc': 'テキストと背景のコントラストを向上',
+        'fontSize': 'フォントサイズ',
+        'fontSizeDesc': 'アプリケーション内のテキストサイズを調整',
+        'small': '小',
+        'smallDesc': '14px - 小画面に適している',
+        'medium': '中',
+        'mediumDesc': '16px - 標準サイズ',
+        'large': '大',
+        'largeDesc': '18px - 読みやすい',
+        'extraLarge': '特大',
+        'extraLargeDesc': '20px - 最大フォント',
+        'voiceNavigation': '音声ナビゲーション',
+        'voiceNavigationDesc': '音声ナビゲーション機能を有効化',
+        'reduceMotion': 'アニメーションを減らす',
+        'reduceMotionDesc': 'インターフェースのアニメーション効果を減らす',
+        'privacy': 'プライバシーとセキュリティ',
+        'dataSharing': 'データ共有',
+        'dataSharingDesc': '医療機関とのデータ共有を許可',
+        'back': '戻る',
+        'save': '保存',
+        'healthReminders': '健康リマインダー',
+        'healthRemindersDesc': '日常の健康チェックリマインダー',
+        'medicationAlerts': '薬物リマインダー',
+        'medicationAlertsDesc': '薬物服用時間のリマインダー',
+        'appointmentReminders': '予約リマインダー',
+        'appointmentRemindersDesc': '医療予約と検査のリマインダー',
+        'systemUpdates': 'システム更新',
+        'systemUpdatesDesc': 'アプリケーション更新通知',
+        'emergencyAlerts': '緊急アラート',
+        'emergencyAlertsDesc': '重要な健康アラートと緊急通知',
+        'weeklyReports': '週次レポート',
+        'weeklyReportsDesc': '週次健康レポートサマリー'
       }
     };
     
@@ -298,7 +364,7 @@ const Settings: React.FC = () => {
   };
 
   // 應用語言設定
-  const applyLanguage = (language: 'zh-TW' | 'zh-CN' | 'en') => {
+  const applyLanguage = (language: 'zh-TW' | 'zh-CN' | 'en' | 'ja') => {
     document.documentElement.setAttribute('lang', language);
     console.log('語言已切換至:', language);
   };
@@ -384,15 +450,29 @@ const Settings: React.FC = () => {
         document.documentElement.setAttribute('data-theme', 'dark');
         document.body.setAttribute('data-theme', 'dark');
         // 強制應用深色主題到所有元素
-        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        const darkBg = 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)';
+        document.documentElement.style.setProperty('--theme-bg', darkBg);
         document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        console.log('Settings: 設定深色主題CSS變數:', darkBg);
+        console.log('Settings: 檢查CSS變數值:', getComputedStyle(document.documentElement).getPropertyValue('--theme-bg'));
+        // 觸發主題變更事件
+        window.dispatchEvent(new CustomEvent('themeChanged', { 
+          detail: { theme: 'dark', isDark: true } 
+        }));
       } else if (value === 'light') {
         setIsDark(false);
         document.documentElement.setAttribute('data-theme', 'light');
         document.body.setAttribute('data-theme', 'light');
         // 強制應用淺色主題到所有元素
-        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        const lightBg = 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)';
+        document.documentElement.style.setProperty('--theme-bg', lightBg);
         document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        console.log('Settings: 設定淺色主題CSS變數:', lightBg);
+        console.log('Settings: 檢查CSS變數值:', getComputedStyle(document.documentElement).getPropertyValue('--theme-bg'));
+        // 觸發主題變更事件
+        window.dispatchEvent(new CustomEvent('themeChanged', { 
+          detail: { theme: 'light', isDark: false } 
+        }));
       } else {
         // 自動模式
         const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -400,12 +480,21 @@ const Settings: React.FC = () => {
         document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         document.body.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         if (prefersDark) {
-          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          const darkBg = 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)';
+          document.documentElement.style.setProperty('--theme-bg', darkBg);
           document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          console.log('Settings: 自動模式-深色主題CSS變數:', darkBg);
         } else {
-          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          const lightBg = 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)';
+          document.documentElement.style.setProperty('--theme-bg', lightBg);
           document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          console.log('Settings: 自動模式-淺色主題CSS變數:', lightBg);
         }
+        console.log('Settings: 檢查CSS變數值:', getComputedStyle(document.documentElement).getPropertyValue('--theme-bg'));
+        // 觸發主題變更事件
+        window.dispatchEvent(new CustomEvent('themeChanged', { 
+          detail: { theme: 'auto', isDark: prefersDark } 
+        }));
       }
     }
     
@@ -748,25 +837,26 @@ const Settings: React.FC = () => {
               {/* 外觀選單 */}
               {showAppearanceMenu && (
                 <div className="dropdown-menu" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  left: '0',
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
                   background: isHighContrast
                     ? (isDark ? '#000000' : '#ffffff')
-                    : (isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)'),
+                    : (isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.98)'),
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  borderRadius: '12px',
+                  borderRadius: '16px',
                   border: isHighContrast
-                    ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
-                    : '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  zIndex: 9999,
+                    ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+                    : '2px solid rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  zIndex: 99999,
                   overflow: 'visible',
-                  marginTop: '4px',
+                  width: '280px',
+                  maxWidth: '90vw',
                   minHeight: 'auto',
-                  maxHeight: 'none',
+                  maxHeight: '80vh',
                 }}>
                   {[
                     { value: 'auto', label: getText('auto') },
@@ -784,7 +874,7 @@ const Settings: React.FC = () => {
                         padding: '16px 20px',
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: index < 2 ? (isHighContrast
+                        borderBottom: index < 3 ? (isHighContrast
                           ? (isDark ? '0.5px solid #ffffff' : '0.5px solid #000000')
                           : '0.5px solid rgba(0, 0, 0, 0.1)') : 'none',
                         color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
@@ -866,7 +956,8 @@ const Settings: React.FC = () => {
               >
                 <span>
                   {tempSettings.general.language === 'zh-TW' ? getText('tradChinese') : 
-                   tempSettings.general.language === 'zh-CN' ? getText('simpChinese') : getText('english')}
+                   tempSettings.general.language === 'zh-CN' ? getText('simpChinese') : 
+                   tempSettings.general.language === 'en' ? getText('english') : getText('japanese')}
                 </span>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M6 9l6 6 6-6"></path>
@@ -877,31 +968,31 @@ const Settings: React.FC = () => {
               {showLanguageMenu && (
                 <div className="dropdown-menu" style={{
                   position: 'fixed',
-                  top: 'auto',
-                  bottom: 'auto',
-                  left: 'auto',
-                  right: 'auto',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
                   background: isHighContrast
                     ? (isDark ? '#000000' : '#ffffff')
-                    : (isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)'),
+                    : (isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.98)'),
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  borderRadius: '12px',
+                  borderRadius: '16px',
                   border: isHighContrast
-                    ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
-                    : '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+                    ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+                    : '2px solid rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
                   zIndex: 99999,
                   overflow: 'visible',
-                  marginTop: '4px',
+                  width: '280px',
+                  maxWidth: '90vw',
                   minHeight: 'auto',
-                  maxHeight: 'none',
-                  width: '100%',
+                  maxHeight: '80vh',
                 }}>
                   {[
                     { value: 'zh-TW', label: getText('tradChinese') },
                     { value: 'zh-CN', label: getText('simpChinese') },
-                    { value: 'en', label: getText('english') }
+                    { value: 'en', label: getText('english') },
+                    { value: 'ja', label: getText('japanese') }
                   ].map((option, index) => (
                     <button
                       key={option.value}
@@ -914,7 +1005,7 @@ const Settings: React.FC = () => {
                         padding: '16px 20px',
                         background: 'transparent',
                         border: 'none',
-                        borderBottom: index < 2 ? (isHighContrast
+                        borderBottom: index < 3 ? (isHighContrast
                           ? (isDark ? '0.5px solid #ffffff' : '0.5px solid #000000')
                           : '0.5px solid rgba(0, 0, 0, 0.1)') : 'none',
                         color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
@@ -1060,9 +1151,9 @@ const Settings: React.FC = () => {
                   }}
                 >
                   <span>
-                    {tempSettings.general.syncFrequency === 'realtime' ? '即時' :
-                     tempSettings.general.syncFrequency === 'hourly' ? '每小時' :
-                     tempSettings.general.syncFrequency === 'daily' ? '每天' : '每週'}
+                    {tempSettings.general.syncFrequency === 'realtime' ? getText('realtime') :
+                     tempSettings.general.syncFrequency === 'hourly' ? getText('hourly') :
+                     tempSettings.general.syncFrequency === 'daily' ? getText('daily') : getText('weekly')}
                   </span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M6 9l6 6 6-6"></path>
@@ -1072,25 +1163,26 @@ const Settings: React.FC = () => {
                 {/* 同步頻率選單 */}
                 {showSyncFrequencyMenu && (
                   <div className="dropdown-menu" style={{
-                    position: 'absolute',
-                    top: '100%',
-                    right: '0',
-                    left: '0',
+                    position: 'fixed',
+                    top: '50%',
+                    left: '50%',
+                    transform: 'translate(-50%, -50%)',
                     background: isHighContrast
                       ? (isDark ? '#000000' : '#ffffff')
-                      : (isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)'),
+                      : (isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.98)'),
                     backdropFilter: 'blur(20px)',
                     WebkitBackdropFilter: 'blur(20px)',
-                    borderRadius: '12px',
+                    borderRadius: '16px',
                     border: isHighContrast
-                      ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
-                      : '1px solid rgba(0, 0, 0, 0.1)',
-                    boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                    zIndex: 1000,
+                      ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+                      : '2px solid rgba(0, 0, 0, 0.1)',
+                    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                    zIndex: 99999,
                     overflow: 'visible',
-                    marginTop: '4px',
+                    width: '320px',
+                    maxWidth: '90vw',
                     minHeight: 'auto',
-                    maxHeight: 'none',
+                    maxHeight: '80vh',
                   }}>
                     {[
                       { value: 'realtime', label: '即時', description: '數據變更時立即同步' },
@@ -1270,25 +1362,26 @@ const Settings: React.FC = () => {
               {/* 字體大小選單 */}
               {showFontSizeMenu && (
                 <div className="dropdown-menu" style={{
-                  position: 'absolute',
-                  top: '100%',
-                  right: '0',
-                  left: '0',
+                  position: 'fixed',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
                   background: isHighContrast
                     ? (isDark ? '#000000' : '#ffffff')
-                    : (isDark ? 'rgba(0, 0, 0, 0.9)' : 'rgba(255, 255, 255, 0.95)'),
+                    : (isDark ? 'rgba(0, 0, 0, 0.95)' : 'rgba(255, 255, 255, 0.98)'),
                   backdropFilter: 'blur(20px)',
                   WebkitBackdropFilter: 'blur(20px)',
-                  borderRadius: '12px',
+                  borderRadius: '16px',
                   border: isHighContrast
-                    ? (isDark ? '1px solid #ffffff' : '1px solid #000000')
-                    : '1px solid rgba(0, 0, 0, 0.1)',
-                  boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
-                  zIndex: 9999,
+                    ? (isDark ? '2px solid #ffffff' : '2px solid #000000')
+                    : '2px solid rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+                  zIndex: 99999,
                   overflow: 'visible',
-                  marginTop: '4px',
+                  width: '320px',
+                  maxWidth: '90vw',
                   minHeight: 'auto',
-                  maxHeight: 'none',
+                  maxHeight: '80vh',
                 }}>
                   {[
                     { value: 'small', label: getText('small'), description: getText('smallDesc') },

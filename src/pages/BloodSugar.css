@@ -2,7 +2,8 @@
 
 .blood-sugar-page {
   min-height: 100vh;
-  background: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
+  color: var(--theme-text, #1d1d1f);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
@@ -45,7 +46,7 @@
   display: flex !important;
   align-items: center !important;
   gap: 6px !important;
-  font-size: 16px !important;
+  font-size: var(--base-font-size, 16px) !important;
   font-weight: 500 !important;
   position: absolute !important;
   left: 20px !important;
@@ -58,7 +59,7 @@
 
 .blood-sugar-page .custom-back-btn span {
   color: #007aff !important;
-  font-size: 16px !important;
+  font-size: var(--base-font-size, 16px) !important;
   font-weight: 500 !important;
 }
 
@@ -88,7 +89,7 @@
   color: #ffffff !important;
   padding: 8px 16px !important;
   border-radius: 8px !important;
-  font-size: 16px !important;
+  font-size: var(--base-font-size, 16px) !important;
   font-weight: 500 !important;
   cursor: pointer !important;
   min-width: 60px !important;
@@ -105,7 +106,7 @@
 
 .blood-sugar-page .custom-add-btn span {
   color: #ffffff !important;
-  font-size: 16px !important;
+  font-size: var(--base-font-size, 16px) !important;
   font-weight: 500 !important;
 }
 
@@ -113,7 +114,7 @@
 .main-content {
   padding: 20px;
   padding-top: 120px;
-  background: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
 }
 
 /* 卡片樣式 */
@@ -121,10 +122,14 @@
 .stat-card,
 .record-card,
 .empty-state {
-  background: #ffffff;
-  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  color: var(--theme-text, #1d1d1f);
+  border: var(--theme-card-border, 0.5px solid rgba(0, 0, 0, 0.1));
   border-radius: 16px;
   padding: 20px;
+  box-shadow: var(--theme-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   margin-bottom: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -141,7 +146,7 @@
 /* 記錄列表 */
 .records-section h2 {
   color: #1d1d1f;
-  font-size: 20px;
+  font-size: calc(var(--base-font-size, 16px) * 1.25);
   font-weight: 600;
   margin-bottom: 16px;
 }
@@ -158,20 +163,20 @@
 
 .record-value {
   color: #1d1d1f;
-  font-size: 20px;
+  font-size: calc(var(--base-font-size, 16px) * 1.25);
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .record-meta {
   color: #8e8e93;
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
 }
 
 .record-status {
   padding: 4px 8px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   font-weight: 500;
   background-color: #34C759;
   color: #ffffff;
@@ -180,33 +185,33 @@
 /* 狀態卡片內容 */
 .status-title {
   color: #1d1d1f;
-  font-size: 24px;
+  font-size: calc(var(--base-font-size, 16px) * 1.5);
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .status-subtitle {
   color: #8e8e93;
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
 }
 
 /* 統計卡片內容 */
 .stat-value {
   color: #1d1d1f;
-  font-size: 24px;
+  font-size: calc(var(--base-font-size, 16px) * 1.5);
   font-weight: 600;
   margin-bottom: 4px;
 }
 
 .stat-label {
   color: #8e8e93;
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   margin-bottom: 2px;
 }
 
 .stat-unit {
   color: #8e8e93;
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
 }
 
 /* 空狀態 */
@@ -247,11 +252,11 @@
 /* 深色模式支援 - 參考血壓管理成功模式 */
 @media (prefers-color-scheme: dark) {
   .blood-sugar-page {
-    background: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   .main-content {
-    background: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   .custom-header {
@@ -336,7 +341,7 @@
   }
   
   .custom-title {
-    font-size: 18px !important;
+    font-size: calc(var(--base-font-size, 16px) * 1.125) !important;
   }
 
   .stats-grid {

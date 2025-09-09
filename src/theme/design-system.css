@@ -18,7 +18,7 @@ html, body {
   font-size: 16px;
   line-height: 1.5;
   color: var(--text-primary);
-  background-color: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
 }
 
 /* 設計系統變量 */
@@ -56,6 +56,15 @@ html, body {
   --warning-700: #b45309;
   --warning-800: #92400e;
   --warning-900: #78350f;
+  
+  /* 主題適配變數 */
+  --theme-card-bg: rgba(255, 255, 255, 0.8);
+  --theme-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+  --theme-card-border: 0.5px solid rgba(0, 0, 0, 0.04);
+  --theme-input-bg: rgba(255, 255, 255, 0.9);
+  --theme-text-secondary: #6b7280;
+  --theme-badge-bg: rgba(243, 244, 246, 0.8);
+  --theme-badge-border: 1px solid rgba(229, 231, 235, 0.5);
   
   --danger-50: #fef2f2;
   --danger-100: #fee2e2;
@@ -179,15 +188,24 @@ html, body {
 /* 深色模式支持 */
 @media (prefers-color-scheme: dark) {
   html, body {
-    background-color: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   .app-container {
-    background-color: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   :root {
     --background-primary: #000000;
+    
+    /* 深色模式主題適配變數 */
+    --theme-card-bg: rgba(28, 28, 30, 0.8);
+    --theme-card-shadow: 0 1px 3px rgba(0, 0, 0, 0.3), 0 1px 2px rgba(0, 0, 0, 0.2);
+    --theme-card-border: 0.5px solid rgba(255, 255, 255, 0.04);
+    --theme-input-bg: rgba(28, 28, 30, 0.9);
+    --theme-text-secondary: #8e8e93;
+    --theme-badge-bg: rgba(44, 44, 46, 0.8);
+    --theme-badge-border: 1px solid rgba(255, 255, 255, 0.1);
     --background-secondary: var(--neutral-800);
     --background-tertiary: var(--neutral-700);
     --background-elevated: var(--neutral-800);
@@ -204,7 +222,7 @@ html, body {
 /* 基礎佈局組件 */
 .app-container {
   min-height: 100vh;
-  background-color: #f2f2f7;
+  background: var(--theme-bg, #f2f2f7);
   display: flex;
   flex-direction: column;
 }

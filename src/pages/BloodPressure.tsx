@@ -134,6 +134,41 @@ const BloodPressure: React.FC = () => {
         'delete': 'Delete',
         'notes': 'Notes',
         'addBloodPressureRecord': 'Add Blood Pressure Record'
+      },
+      'ja': {
+        'back': '戻る',
+        'bloodPressureManagement': '血圧管理',
+        'bloodPressureOverview': '血圧概要',
+        'healthManagementStatus': 'あなたの健康管理状態',
+        'totalRecords': '総記録数',
+        'averageBloodPressure': '平均血圧',
+        'latestStatus': '最新状態',
+        'normal': '正常',
+        'high': '高い',
+        'low': '低い',
+        'hypertension': '高血圧',
+        'hypotension': '低血圧',
+        'mmHg': 'mmHg',
+        'bpm': 'bpm',
+        'records': '記録',
+        'bloodPressureRecords': '血圧記録',
+        'manageAllRecords': 'すべての血圧記録を管理',
+        'loading': '読み込み中...',
+        'noRecords': '記録がありません',
+        'addFirstRecord': '最初の血圧記録を追加',
+        'confirmDelete': 'この記録を削除してもよろしいですか？',
+        'deleteFailed': '削除に失敗しました。再試行してください',
+        'loadFailed': '血圧記録の読み込みに失敗しました',
+        'systolicPressure': '収縮期血圧',
+        'diastolicPressure': '拡張期血圧',
+        'pulse': '脈拍',
+        'noBloodPressureRecords': '血圧記録がありません',
+        'addFirstBloodPressureRecord': '右下または右上の「+」ボタンをクリックして血圧記録を開始',
+        'addFirstRecordButton': '最初の記録を追加',
+        'edit': '編集',
+        'delete': '削除',
+        'notes': 'メモ',
+        'addBloodPressureRecord': '血圧記録を追加'
       }
     };
     
@@ -183,8 +218,35 @@ const BloodPressure: React.FC = () => {
     applyTheme();
 
     // 監聽主題變更事件
-    const handleThemeChange = (_event: CustomEvent) => {
-      applyTheme();
+    const handleThemeChange = (event: CustomEvent) => {
+      console.log('BloodPressure.tsx: 收到主題變更事件:', event.detail);
+      // 直接應用主題，不重新讀取localStorage
+      const theme = event.detail.theme;
+      const isDark = event.detail.isDark;
+      
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+      } else if (theme === 'auto') {
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.setAttribute('data-theme', 'dark');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        }
+      }
     };
     
     const handleLanguageChange = (_event: CustomEvent) => {
@@ -285,20 +347,14 @@ const BloodPressure: React.FC = () => {
   const statistics = getStatistics();
 
   return (
-    <div className="blood-pressure-page" style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
+    <div className="blood-pressure-page" style={{ minHeight: '100vh' }}>
       {/* 自定義導航欄 - Apple 風格 */}
-      <header className="custom-header" style={{ 
-        backgroundColor: '#000000',
-        borderBottom: '0.5px solid rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)'
-      }}>
+      <header className="custom-header">
         <div className="header-content">
           <div 
             onClick={() => navigate('/')} 
             className="custom-back-btn"
             style={{
-              background: '#000000',
-              border: '1px solid #000000',
               color: '#ffffff',
               padding: '8px',
               borderRadius: '8px',
@@ -344,8 +400,6 @@ const BloodPressure: React.FC = () => {
             onClick={() => navigate('/blood-pressure/add')}
             className="custom-add-btn"
             style={{
-              background: '#000000',
-              border: '1px solid #000000',
               color: '#ffffff',
               padding: '8px 16px',
               borderRadius: '8px',
@@ -376,19 +430,19 @@ const BloodPressure: React.FC = () => {
         {statistics && (
           <div className="stats-overview">
             <div className="stats-grid">
-              <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="stat-card" style={{  }}>
                 <div className="stat-icon">📊</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgSystolic}</div>
                 <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageSystolicPressure')}</div>
                 <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mmHg')}</div>
               </div>
-              <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="stat-card" style={{  }}>
                 <div className="stat-icon">📈</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgDiastolic}</div>
                 <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageDiastolicPressure')}</div>
                 <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mmHg')}</div>
               </div>
-              <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="stat-card" style={{  }}>
                 <div className="stat-icon">💓</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgPulse}</div>
                 <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averagePulse')}</div>
@@ -396,7 +450,7 @@ const BloodPressure: React.FC = () => {
               </div>
             </div>
             
-            <div className="status-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+            <div className="status-card" style={{  }}>
               <div className="status-icon" style={{ backgroundColor: statistics.latestStatus.color }}>
                 {statistics.latestStatus.icon}
               </div>
@@ -461,10 +515,7 @@ const BloodPressure: React.FC = () => {
               {records.map((record) => {
                 const status = getBloodPressureStatus(record.systolic, record.diastolic);
                 return (
-                  <div key={record._id} className="record-card" style={{ 
-                    backgroundColor: window.matchMedia('(prefers-color-scheme: dark)').matches ? '#000000' : '#ffffff', 
-                    border: window.matchMedia('(prefers-color-scheme: dark)').matches ? '0.5px solid rgba(255, 255, 255, 0.1)' : '0.5px solid rgba(0, 0, 0, 0.1)'
-                  }}>
+                  <div key={record._id} className="record-card">
                     <div className="record-header">
                       <div className="record-date">
                         <span className="date">{formatDate(record.date)}</span>

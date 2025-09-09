@@ -112,6 +112,33 @@ const BloodSugar: React.FC = () => {
         'confirmDelete': 'Are you sure you want to delete this record?',
         'deleteFailed': 'Delete failed, please try again',
         'loadFailed': 'Failed to load blood sugar records'
+      },
+      'ja': {
+        'back': '戻る',
+        'bloodSugarManagement': '血糖管理',
+        'add': '追加',
+        'averageBloodSugar': '平均血糖',
+        'recordCount': '記録数',
+        'mgdL': 'mg/dL',
+        'records': '記録',
+        'latestStatus': '最新状態',
+        'lowBloodSugar': '低血糖',
+        'normal': '正常',
+        'high': '高い',
+        'highBloodSugar': '高血糖',
+        'bloodSugarRecords': '血糖記録',
+        'loading': '読み込み中...',
+        'noBloodSugarRecords': '血糖記録がありません',
+        'addFirstBloodSugarRecord': '右上の「追加」ボタンをクリックして記録を開始',
+        'addBloodSugarRecord': '血糖記録を追加',
+        'beforeBreakfast': '朝食前',
+        'afterLunch2h': '昼食後2時間',
+        'edit': '編集',
+        'delete': '削除',
+        'notes': 'メモ',
+        'confirmDelete': 'この記録を削除してもよろしいですか？',
+        'deleteFailed': '削除に失敗しました。再試行してください',
+        'loadFailed': '血糖記録の読み込みに失敗しました'
       }
     };
     
@@ -161,8 +188,35 @@ const BloodSugar: React.FC = () => {
     applyTheme();
 
     // 監聽主題變更事件
-    const handleThemeChange = (_event: CustomEvent) => {
-      applyTheme();
+    const handleThemeChange = (event: CustomEvent) => {
+      console.log('BloodSugar.tsx: 收到主題變更事件:', event.detail);
+      // 直接應用主題，不重新讀取localStorage
+      const theme = event.detail.theme;
+      const isDark = event.detail.isDark;
+      
+      if (theme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.body.setAttribute('data-theme', 'dark');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#ffffff');
+      } else if (theme === 'light') {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.body.setAttribute('data-theme', 'light');
+        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+      } else if (theme === 'auto') {
+        if (isDark) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+          document.body.setAttribute('data-theme', 'dark');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#ffffff');
+        } else {
+          document.documentElement.setAttribute('data-theme', 'light');
+          document.body.setAttribute('data-theme', 'light');
+          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+        }
+      }
     };
     
     const handleLanguageChange = (_event: CustomEvent) => {
@@ -260,20 +314,14 @@ const BloodSugar: React.FC = () => {
   const statistics = getStatistics();
 
   return (
-    <div className="blood-sugar-page" style={{ backgroundColor: '#000000', minHeight: '100vh' }}>
+    <div className="blood-sugar-page" style={{ minHeight: '100vh' }}>
       {/* 自定義導航欄 - Apple 風格 */}
-      <header className="custom-header" style={{ 
-        backgroundColor: '#000000',
-        borderBottom: '0.5px solid rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)'
-      }}>
+      <header className="custom-header">
         <div className="header-content">
           <div 
             onClick={() => navigate('/')} 
             className="custom-back-btn"
             style={{
-              background: '#000000',
-              border: '1px solid #000000',
               color: '#ffffff',
               padding: '8px',
               borderRadius: '8px',
@@ -319,8 +367,6 @@ const BloodSugar: React.FC = () => {
             onClick={() => navigate('/blood-sugar/add')}
             className="custom-add-btn"
             style={{
-              background: '#000000',
-              border: '1px solid #000000',
               color: '#ffffff',
               padding: '8px 16px',
               borderRadius: '8px',
@@ -346,18 +392,18 @@ const BloodSugar: React.FC = () => {
       </header>
 
       {/* 主要內容區域 */}
-      <main className="main-content" style={{ backgroundColor: '#000000' }}>
+      <main className="main-content">
         {/* 統計概覽 */}
         {statistics && (
           <div className="stats-overview">
             <div className="stats-grid">
-              <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="stat-card" style={{  }}>
                 <div className="stat-icon">📊</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgValue}</div>
                 <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageBloodSugar')}</div>
                 <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mgdL')}</div>
               </div>
-              <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+              <div className="stat-card" style={{  }}>
                 <div className="stat-icon">📈</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{records.length}</div>
                 <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('recordCount')}</div>
@@ -369,7 +415,7 @@ const BloodSugar: React.FC = () => {
 
         {/* 最新狀態 */}
         {statistics && (
-          <div className="status-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+          <div className="status-card" style={{  }}>
             <div className="status-icon" style={{ backgroundColor: statistics.latestStatus.color }}>
               {statistics.latestStatus.icon}
             </div>
@@ -386,11 +432,11 @@ const BloodSugar: React.FC = () => {
         <div className="records-section">
           <h2 style={{ color: '#ffffff' }}>{getText('bloodSugarRecords')}</h2>
           {loading ? (
-            <div className="loading-state" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+            <div className="loading-state" style={{  }}>
               <div style={{ color: '#ffffff' }}>{getText('loading')}</div>
             </div>
           ) : records.length === 0 ? (
-            <div className="empty-state" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
+            <div className="empty-state" style={{  }}>
               <div style={{ color: '#ffffff' }}>{getText('noBloodSugarRecords')}</div>
               <div style={{ color: '#8e8e93', fontSize: '14px', marginTop: '8px' }}>
                 {getText('addFirstBloodSugarRecord')}
@@ -404,7 +450,7 @@ const BloodSugar: React.FC = () => {
                   <div 
                     key={record.id} 
                     className="record-card"
-                    style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}
+                    style={{  }}
                   >
                     <div className="record-info">
                       <div className="record-value" style={{ color: '#ffffff' }}>

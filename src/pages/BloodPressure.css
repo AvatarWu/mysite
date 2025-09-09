@@ -77,7 +77,7 @@
 }
 
 .header-title {
-  font-size: 20px;
+  font-size: calc(var(--base-font-size, 16px) * 1.25);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0;
@@ -97,7 +97,7 @@
   border: none;
   padding: 8px 16px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--base-font-size, 16px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -115,7 +115,7 @@
 
 .add-button span {
   color: white !important;
-  font-size: 16px;
+  font-size: var(--base-font-size, 16px);
   font-weight: 600;
 }
 
@@ -151,10 +151,15 @@
 }
 
 .stat-card {
-  background: #ffffff;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  color: var(--theme-text, #1d1d1f);
   border-radius: 16px;
   padding: 20px 16px;
   text-align: center;
+  box-shadow: var(--theme-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  border: var(--theme-card-border, 0.5px solid rgba(0, 0, 0, 0.04));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   border: 0.5px solid rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
@@ -182,11 +187,11 @@
   justify-content: center;
   border-radius: 8px;
   background: #f2f2f7;
-  font-size: 20px;
+  font-size: calc(var(--base-font-size, 16px) * 1.25);
 }
 
 .stat-value {
-  font-size: 24px;
+  font-size: calc(var(--base-font-size, 16px) * 1.5);
   font-weight: 700;
   color: #1d1d1f;
   margin: 0 0 4px 0;
@@ -194,24 +199,28 @@
 }
 
 .stat-label {
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   color: #8e8e93;
   margin: 0;
   font-weight: 500;
 }
 
 .stat-unit {
-  font-size: 10px;
+  font-size: calc(var(--base-font-size, 16px) * 0.625);
   color: #8e8e93;
   margin: 0;
 }
 
 /* 狀態卡片 */
 .status-card {
-  background: #ffffff;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  color: var(--theme-text, #1d1d1f);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--theme-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  border: var(--theme-card-border, 0.5px solid rgba(0, 0, 0, 0.04));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 0.5px solid rgba(0, 0, 0, 0.1);
   display: flex;
   align-items: center;
@@ -233,7 +242,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 24px;
+  font-size: calc(var(--base-font-size, 16px) * 1.5);
   color: white;
 }
 
@@ -242,14 +251,14 @@
 }
 
 .status-title {
-  font-size: 18px;
+  font-size: calc(var(--base-font-size, 16px) * 1.125);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0 0 4px 0;
 }
 
 .status-subtitle {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #8e8e93;
   margin: 0;
 }
@@ -274,7 +283,7 @@
   border: none;
   background: transparent;
   color: #8e8e93;
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   font-weight: 500;
   cursor: pointer;
   border-radius: 8px;
@@ -304,14 +313,14 @@
 }
 
 .records-title {
-  font-size: 18px;
+  font-size: calc(var(--base-font-size, 16px) * 1.125);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0;
 }
 
 .records-count {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #8e8e93;
   margin: 0;
 }
@@ -323,10 +332,14 @@
 }
 
 .record-card {
-  background: #ffffff;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  color: var(--theme-text, #1d1d1f);
   border-radius: 12px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--theme-card-shadow, 0 1px 3px rgba(0, 0, 0, 0.1));
+  border: var(--theme-card-border, 0.5px solid rgba(0, 0, 0, 0.04));
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 0.5px solid rgba(0, 0, 0, 0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -350,14 +363,14 @@
 }
 
 .date {
-  font-size: 16px;
+  font-size: var(--base-font-size, 16px);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0;
 }
 
 .time {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #8e8e93;
   margin: 0;
 }
@@ -408,26 +421,26 @@
 }
 
 .bp-label {
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   color: #8e8e93;
   margin: 0;
 }
 
 .bp-number {
-  font-size: 24px;
+  font-size: calc(var(--base-font-size, 16px) * 1.5);
   font-weight: 700;
   color: #1d1d1f;
   margin: 0;
 }
 
 .bp-unit {
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   color: #8e8e93;
   margin: 0;
 }
 
 .bp-separator {
-  font-size: 20px;
+  font-size: calc(var(--base-font-size, 16px) * 1.25);
   font-weight: 600;
   color: #8e8e93;
   margin: 0;
@@ -440,20 +453,20 @@
 }
 
 .pulse-label {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #8e8e93;
   margin: 0;
 }
 
 .pulse-number {
-  font-size: 18px;
+  font-size: calc(var(--base-font-size, 16px) * 1.125);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0;
 }
 
 .pulse-unit {
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   color: #8e8e93;
   margin: 0;
 }
@@ -468,7 +481,7 @@
   color: white;
   padding: 6px 12px;
   border-radius: 12px;
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -482,13 +495,13 @@
 }
 
 .note-label {
-  font-size: 12px;
+  font-size: calc(var(--base-font-size, 16px) * 0.75);
   color: #8e8e93;
   margin: 0;
 }
 
 .note-text {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #1d1d1f;
   margin: 0;
 }
@@ -512,19 +525,19 @@
   justify-content: center;
   border-radius: 32px;
   background: #f2f2f7;
-  font-size: 32px;
+  font-size: calc(var(--base-font-size, 16px) * 2);
   color: #8e8e93;
 }
 
 .empty-title {
-  font-size: 18px;
+  font-size: calc(var(--base-font-size, 16px) * 1.125);
   font-weight: 600;
   color: #1d1d1f;
   margin: 0 0 8px 0;
 }
 
 .empty-message {
-  font-size: 14px;
+  font-size: calc(var(--base-font-size, 16px) * 0.875);
   color: #8e8e93;
   margin: 0 0 24px 0;
   line-height: 1.4;
@@ -536,7 +549,7 @@
   border: none;
   padding: 12px 24px;
   border-radius: 8px;
-  font-size: 16px;
+  font-size: var(--base-font-size, 16px);
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -611,7 +624,7 @@
   }
   
   .header-title {
-    font-size: 18px;
+    font-size: calc(var(--base-font-size, 16px) * 1.125);
   }
   
   .main-content {
@@ -797,7 +810,7 @@
 /* 深色模式支援 */
 @media (prefers-color-scheme: dark) {
   .blood-pressure-page {
-    background: #000000 !important;
+    background: var(--theme-bg, #000000) !important;
   }
   
   .custom-header {
