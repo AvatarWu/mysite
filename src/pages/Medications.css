@@ -230,11 +230,14 @@
 
 .medication-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center; /* 改為 center 確保按鈕垂直居中 */
   justify-content: space-between;
   gap: 16px;
-  min-height: 44px; /* 確保最小高度 */
+  min-height: 52px; /* 更新最小高度 */
   position: relative; /* 確保定位穩定 */
+  /* 確保有足夠空間容納按鈕 */
+  min-width: 100%;
+  overflow: visible;
 }
 
 .medication-name {
@@ -249,56 +252,86 @@
 
 .medication-actions {
   display: flex;
-  gap: 12px; /* 增加間距確保按鈕分離 */
+  flex-direction: row;
+  gap: 20px;
   flex-shrink: 0;
   align-items: center;
   justify-content: flex-end;
-  min-width: 120px; /* 進一步增加最小寬度 */
-  height: 44px; /* 匹配按鈕高度 */
-  /* 添加邊框調試（臨時） */
-  /* border: 1px solid red; */
+  width: 120px;
+  height: 50px;
+  position: relative;
+  z-index: 100;
+  /* 強制顯示 */
+  visibility: visible;
+  overflow: visible;
 }
 
 .action-button {
-  background: transparent;
-  border: none;
-  padding: 10px; /* 增加 padding 提供更多點擊區域 */
-  border-radius: 8px;
+  background: white;
+  border: 2px solid #e5e7eb;
+  padding: 8px;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px; /* 進一步增加寬度 */
-  height: 44px; /* 進一步增加高度 */
-  flex-shrink: 0; /* 防止被壓縮 */
-  box-sizing: border-box; /* 確保 padding 包含在寬度內 */
-  position: relative; /* 確保定位穩定 */
-  /* 添加邊框調試（臨時） */
-  /* border: 1px solid blue; */
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 101;
+  /* 確保點擊區域 */
+  pointer-events: auto;
+  /* 強制顯示 */
+  visibility: visible;
+  opacity: 1;
 }
 
 .edit-button {
   color: #007aff;
+  background: #e3f2fd;
+  border: 3px solid #007aff;
+  box-shadow: 0 2px 4px rgba(0, 122, 255, 0.2);
+  /* 強制顯示 */
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 102 !important;
 }
 
 .edit-button:hover {
-  background: rgba(0, 122, 255, 0.08);
+  background: #bbdefb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 122, 255, 0.3);
 }
 
 .delete-button {
   color: #ff3b30;
+  background: #ffebee;
+  border: 3px solid #ff3b30;
+  box-shadow: 0 2px 4px rgba(255, 59, 48, 0.2);
+  /* 強制顯示 */
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  position: relative !important;
+  z-index: 102 !important;
 }
 
 .delete-button:hover {
-  background: rgba(255, 59, 48, 0.08);
+  background: #ffcdd2;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(255, 59, 48, 0.3);
 }
 
 .action-button svg {
-  width: 20px; /* 稍微增加圖標尺寸 */
-  height: 20px; /* 稍微增加圖標尺寸 */
-  flex-shrink: 0; /* 防止圖標被壓縮 */
-  display: block; /* 確保圖標正確顯示 */
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  display: block;
 }
 
 .medication-details {
@@ -654,11 +687,6 @@
   
   .empty-description {
     color: #8e8e93;
-  }
-  
-  /* 確保按鈕在深色模式下穩定 */
-  .action-button {
-    background: transparent;
   }
   
   .action-button:hover {
