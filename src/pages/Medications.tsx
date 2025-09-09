@@ -54,14 +54,36 @@ const Medications: React.FC = () => {
         'loading': '載入中...',
         'error': '載入失敗',
         'retry': '重試',
-        'edit': '編輯',
-        'delete': '刪除',
         'mg': '毫克',
         'timesPerDay': '次/天',
         'morning': '早上',
         'afternoon': '下午',
         'evening': '晚上',
-        'night': '夜間'
+        'night': '夜間',
+        'totalMedicationsCount': '總用藥數',
+        'reminderCount': '提醒次數',
+        'medicationList': '用藥清單',
+        'manageAllMedications': '管理您的所有用藥提醒',
+        'noMedicationRecords': '還沒有用藥記錄',
+        'addFirstMedicationReminder': '點擊下方按鈕新增您的第一個用藥提醒',
+        'editMedication': '編輯',
+        'deleteMedication': '刪除',
+        'reminderTime': '提醒時間',
+        'notes': '備註',
+        'addNewMedication': '新增用藥',
+        'daily': '每日',
+        'twiceDaily': '每日兩次',
+        'threeTimes': '每日三次',
+        'weekly': '每週',
+        'asNeeded': '需要時',
+        'earlyMorning': '凌晨',
+        'morningTime': '上午',
+        'noon': '中午',
+        'afternoonTime': '下午',
+        'eveningTime': '晚上',
+        'confirmDeleteMedication': '確定要刪除這個用藥提醒嗎？',
+        'deleteFailed': '刪除失敗，請重試',
+        'loadFailed': '載入用藥數據失敗'
       },
       'zh-CN': {
         'back': '返回',
@@ -78,14 +100,36 @@ const Medications: React.FC = () => {
         'loading': '载入中...',
         'error': '载入失败',
         'retry': '重试',
-        'edit': '编辑',
-        'delete': '删除',
         'mg': '毫克',
         'timesPerDay': '次/天',
         'morning': '早上',
         'afternoon': '下午',
         'evening': '晚上',
-        'night': '夜间'
+        'night': '夜间',
+        'totalMedicationsCount': '总用药数',
+        'reminderCount': '提醒次数',
+        'medicationList': '用药清单',
+        'manageAllMedications': '管理您的所有用药提醒',
+        'noMedicationRecords': '还没有用药记录',
+        'addFirstMedicationReminder': '点击下方按钮新增您的第一个用药提醒',
+        'editMedication': '编辑',
+        'deleteMedication': '删除',
+        'reminderTime': '提醒时间',
+        'notes': '备注',
+        'addNewMedication': '新增用药',
+        'daily': '每日',
+        'twiceDaily': '每日两次',
+        'threeTimes': '每日三次',
+        'weekly': '每周',
+        'asNeeded': '需要时',
+        'earlyMorning': '凌晨',
+        'morningTime': '上午',
+        'noon': '中午',
+        'afternoonTime': '下午',
+        'eveningTime': '晚上',
+        'confirmDeleteMedication': '确定要删除这个用药提醒吗？',
+        'deleteFailed': '删除失败，请重试',
+        'loadFailed': '载入用药数据失败'
       },
       'en': {
         'back': 'Back',
@@ -102,14 +146,36 @@ const Medications: React.FC = () => {
         'loading': 'Loading...',
         'error': 'Loading failed',
         'retry': 'Retry',
-        'edit': 'Edit',
-        'delete': 'Delete',
         'mg': 'mg',
         'timesPerDay': 'times/day',
         'morning': 'Morning',
         'afternoon': 'Afternoon',
         'evening': 'Evening',
-        'night': 'Night'
+        'night': 'Night',
+        'totalMedicationsCount': 'Total Medications',
+        'reminderCount': 'Reminders',
+        'medicationList': 'Medication List',
+        'manageAllMedications': 'Manage all your medication reminders',
+        'noMedicationRecords': 'No medication records yet',
+        'addFirstMedicationReminder': 'Click the button below to add your first medication reminder',
+        'editMedication': 'Edit',
+        'deleteMedication': 'Delete',
+        'reminderTime': 'Reminder Time',
+        'notes': 'Notes',
+        'addNewMedication': 'Add Medication',
+        'daily': 'Daily',
+        'twiceDaily': 'Twice Daily',
+        'threeTimes': 'Three Times',
+        'weekly': 'Weekly',
+        'asNeeded': 'As Needed',
+        'earlyMorning': 'Early Morning',
+        'morningTime': 'Morning',
+        'noon': 'Noon',
+        'afternoonTime': 'Afternoon',
+        'eveningTime': 'Evening',
+        'confirmDeleteMedication': 'Are you sure you want to delete this medication reminder?',
+        'deleteFailed': 'Delete failed, please try again',
+        'loadFailed': 'Failed to load medication data'
       }
     };
     
@@ -204,7 +270,7 @@ const Medications: React.FC = () => {
       
       setMedications(formattedMedications);
     } catch (err) {
-      setError('無法載入用藥數據');
+      setError(getText('loadFailed'));
       console.error('載入用藥數據失敗:', err);
     } finally {
       setLoading(false);
@@ -226,7 +292,7 @@ const Medications: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (window.confirm('確定要刪除這個用藥提醒嗎？')) {
+    if (window.confirm(getText('confirmDeleteMedication'))) {
       try {
         // 使用 HealthDataService 刪除數據
         await healthDataService.deleteMedicationRecord(id);
@@ -236,7 +302,7 @@ const Medications: React.FC = () => {
         console.log('刪除成功:', id);
       } catch (err) {
         console.error('刪除失敗:', err);
-        alert('刪除失敗，請重試');
+        alert(getText('deleteFailed'));
       }
     }
   };
@@ -253,11 +319,11 @@ const Medications: React.FC = () => {
       const hour = parseInt(hours);
       const minute = parseInt(minutes);
       
-      if (hour < 6) return `凌晨${hour}:${minute.toString().padStart(2, '0')}`;
-      if (hour < 12) return `上午${hour}:${minute.toString().padStart(2, '0')}`;
-      if (hour === 12) return `中午${hour}:${minute.toString().padStart(2, '0')}`;
-      if (hour < 18) return `下午${hour}:${minute.toString().padStart(2, '0')}`;
-      return `晚上${hour}:${minute.toString().padStart(2, '0')}`;
+      if (hour < 6) return `${getText('earlyMorning')}${hour}:${minute.toString().padStart(2, '0')}`;
+      if (hour < 12) return `${getText('morningTime')}${hour}:${minute.toString().padStart(2, '0')}`;
+      if (hour === 12) return `${getText('noon')}${hour}:${minute.toString().padStart(2, '0')}`;
+      if (hour < 18) return `${getText('afternoonTime')}${hour}:${minute.toString().padStart(2, '0')}`;
+      return `${getText('eveningTime')}${hour}:${minute.toString().padStart(2, '0')}`;
     } catch (error) {
       return time;
     }
@@ -266,11 +332,11 @@ const Medications: React.FC = () => {
   // 格式化頻率顯示
   const formatFrequency = (frequency: string) => {
     const frequencyMap: { [key: string]: string } = {
-      'daily': '每日',
-      'twice-daily': '每日兩次',
-      'three-times': '每日三次',
-      'weekly': '每週',
-      'as-needed': '需要時'
+      'daily': getText('daily'),
+      'twice-daily': getText('twiceDaily'),
+      'three-times': getText('threeTimes'),
+      'weekly': getText('weekly'),
+      'as-needed': getText('asNeeded')
     };
     return frequencyMap[frequency] || frequency;
   };
@@ -339,10 +405,10 @@ const Medications: React.FC = () => {
         <main className="main-content">
           <div className="error-state">
             <div className="error-icon">⚠️</div>
-            <h3 className="error-title">載入失敗</h3>
+            <h3 className="error-title">{getText('error')}</h3>
             <p className="error-description">{error}</p>
             <button onClick={fetchMedications} className="retry-button">
-              重試
+              {getText('retry')}
             </button>
           </div>
         </main>
@@ -355,12 +421,12 @@ const Medications: React.FC = () => {
       {/* 自定義導航欄 - Apple 風格 */}
       <header className="custom-header">
         <div className="header-content">
-          <button onClick={handleBack} className="back-button" type="button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M19 12H5M12 19l-7-7 7-7"/>
-            </svg>
-            返回
-          </button>
+            <button onClick={handleBack} className="back-button" type="button">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M19 12H5M12 19l-7-7 7-7"/>
+              </svg>
+              {getText('back')}
+            </button>
           <h1 className="header-title">{getText('medicationManagement')}</h1>
         </div>
       </header>
@@ -385,7 +451,7 @@ const Medications: React.FC = () => {
               </div>
               <div className="stat-content">
                 <div className="stat-value">{totalMedications}</div>
-                <div className="stat-label">總用藥數</div>
+                <div className="stat-label">{getText('totalMedicationsCount')}</div>
               </div>
             </div>
 
@@ -398,7 +464,7 @@ const Medications: React.FC = () => {
               </div>
               <div className="stat-content">
                 <div className="stat-value">{totalReminders}</div>
-                <div className="stat-label">提醒次數</div>
+                <div className="stat-label">{getText('reminderCount')}</div>
               </div>
             </div>
           </div>
@@ -407,16 +473,16 @@ const Medications: React.FC = () => {
         {/* 用藥列表 */}
         <div className="medications-section">
           <div className="section-header">
-            <h2 className="section-title">用藥清單</h2>
-            <p className="section-subtitle">管理您的所有用藥提醒</p>
+            <h2 className="section-title">{getText('medicationList')}</h2>
+            <p className="section-subtitle">{getText('manageAllMedications')}</p>
           </div>
           
           <div className="medications-list">
             {medications.length === 0 ? (
               <div className="empty-state">
                 <div className="empty-icon">💊</div>
-                <h3 className="empty-title">還沒有用藥記錄</h3>
-                <p className="empty-description">點擊下方按鈕新增您的第一個用藥提醒</p>
+                <h3 className="empty-title">{getText('noMedicationRecords')}</h3>
+                <p className="empty-description">{getText('addFirstMedicationReminder')}</p>
               </div>
             ) : (
               medications.map((medication) => (
@@ -429,7 +495,7 @@ const Medications: React.FC = () => {
                           onClick={() => handleEdit(medication._id)}
                           className="action-button edit-button"
                           type="button"
-                          title="編輯"
+                          title={getText('editMedication')}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -441,7 +507,7 @@ const Medications: React.FC = () => {
                           onClick={() => handleDelete(medication._id)}
                           className="action-button delete-button"
                           type="button"
-                          title="刪除"
+                          title={getText('deleteMedication')}
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <polyline points="3,6 5,6 21,6"/>
@@ -469,7 +535,7 @@ const Medications: React.FC = () => {
                             <circle cx="12" cy="12" r="10"/>
                             <polyline points="12,6 12,12 16,14"/>
                           </svg>
-                          提醒時間
+                          {getText('reminderTime')}
                         </div>
                         <div className="time-slots">
                           {medication.timeSlots
@@ -493,7 +559,7 @@ const Medications: React.FC = () => {
                             <line x1="16" y1="17" x2="8" y2="17"/>
                             <polyline points="10,9 9,9 8,9"/>
                           </svg>
-                          備註
+                          {getText('notes')}
                         </div>
                         <p className="notes-content">{medication.notes}</p>
                       </div>
@@ -513,7 +579,7 @@ const Medications: React.FC = () => {
             <line x1="12" y1="5" x2="12" y2="19"/>
             <line x1="5" y1="12" x2="19" y2="12"/>
           </svg>
-          <span>新增用藥</span>
+          <span>{getText('addNewMedication')}</span>
         </button>
       </div>
     </div>

@@ -49,7 +49,17 @@ const BloodPressure: React.FC = () => {
         'addFirstRecord': '添加您的第一筆血壓記錄',
         'confirmDelete': '確定要刪除這筆記錄嗎？',
         'deleteFailed': '刪除失敗，請重試',
-        'loadFailed': '載入血壓記錄失敗'
+        'loadFailed': '載入血壓記錄失敗',
+        'systolicPressure': '收縮壓',
+        'diastolicPressure': '舒張壓',
+        'pulse': '脈搏',
+        'noBloodPressureRecords': '尚無血壓記錄',
+        'addFirstBloodPressureRecord': '點擊右下角「+」按鈕或右上角「+ 新增」按鈕開始記錄您的血壓',
+        'addFirstRecordButton': '新增第一筆記錄',
+        'edit': '編輯',
+        'delete': '刪除',
+        'notes': '備註',
+        'addBloodPressureRecord': '新增血壓記錄'
       },
       'zh-CN': {
         'back': '返回',
@@ -76,7 +86,17 @@ const BloodPressure: React.FC = () => {
         'addFirstRecord': '添加您的第一笔血压记录',
         'confirmDelete': '确定要删除这笔记录吗？',
         'deleteFailed': '删除失败，请重试',
-        'loadFailed': '载入血压记录失败'
+        'loadFailed': '载入血压记录失败',
+        'systolicPressure': '收缩压',
+        'diastolicPressure': '舒张压',
+        'pulse': '脉搏',
+        'noBloodPressureRecords': '尚无血压记录',
+        'addFirstBloodPressureRecord': '点击右下角「+」按钮或右上角「+ 新增」按钮开始记录您的血压',
+        'addFirstRecordButton': '新增第一笔记录',
+        'edit': '编辑',
+        'delete': '删除',
+        'notes': '备注',
+        'addBloodPressureRecord': '新增血压记录'
       },
       'en': {
         'back': 'Back',
@@ -103,7 +123,17 @@ const BloodPressure: React.FC = () => {
         'addFirstRecord': 'Add your first blood pressure record',
         'confirmDelete': 'Are you sure you want to delete this record?',
         'deleteFailed': 'Delete failed, please try again',
-        'loadFailed': 'Failed to load blood pressure records'
+        'loadFailed': 'Failed to load blood pressure records',
+        'systolicPressure': 'Systolic Pressure',
+        'diastolicPressure': 'Diastolic Pressure',
+        'pulse': 'Pulse',
+        'noBloodPressureRecords': 'No blood pressure records',
+        'addFirstBloodPressureRecord': 'Click the "+" button in the bottom right or top right to start recording your blood pressure',
+        'addFirstRecordButton': 'Add First Record',
+        'edit': 'Edit',
+        'delete': 'Delete',
+        'notes': 'Notes',
+        'addBloodPressureRecord': 'Add Blood Pressure Record'
       }
     };
     
@@ -417,13 +447,13 @@ const BloodPressure: React.FC = () => {
           ) : records.length === 0 ? (
             <div className="empty-state">
               <div className="empty-icon">📊</div>
-              <h3>尚無血壓記錄</h3>
-              <p>點擊右下角「+」按鈕或右上角「+ 新增」按鈕開始記錄您的血壓</p>
+              <h3>{getText('noBloodPressureRecords')}</h3>
+              <p>{getText('addFirstBloodPressureRecord')}</p>
               <button 
                 className="primary-button"
                 onClick={() => navigate('/blood-pressure/add')}
               >
-                新增第一筆記錄
+                {getText('addFirstRecordButton')}
               </button>
             </div>
           ) : (
@@ -444,7 +474,7 @@ const BloodPressure: React.FC = () => {
                         <button 
                           className="edit-button"
                           onClick={() => handleEditRecord(record)}
-                          title="編輯"
+                          title={getText('edit')}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
@@ -454,7 +484,7 @@ const BloodPressure: React.FC = () => {
                         <button 
                           className="delete-button"
                           onClick={() => handleDeleteRecord(record._id!)}
-                          title="刪除"
+                          title={getText('delete')}
                         >
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
@@ -466,22 +496,22 @@ const BloodPressure: React.FC = () => {
                     <div className="record-content">
                       <div className="blood-pressure-values">
                         <div className="bp-value">
-                          <span className="bp-label">收縮壓</span>
+                          <span className="bp-label">{getText('systolicPressure')}</span>
                           <span className="bp-number">{record.systolic}</span>
-                          <span className="bp-unit">mmHg</span>
+                          <span className="bp-unit">{getText('mmHg')}</span>
                         </div>
                         <div className="bp-separator">/</div>
                         <div className="bp-value">
-                          <span className="bp-label">舒張壓</span>
+                          <span className="bp-label">{getText('diastolicPressure')}</span>
                           <span className="bp-number">{record.diastolic}</span>
-                          <span className="bp-unit">mmHg</span>
+                          <span className="bp-unit">{getText('mmHg')}</span>
                         </div>
                       </div>
                       
                       <div className="pulse-value">
-                        <span className="pulse-label">脈搏</span>
+                        <span className="pulse-label">{getText('pulse')}</span>
                         <span className="pulse-number">{record.pulse}</span>
-                        <span className="pulse-unit">bpm</span>
+                        <span className="pulse-unit">{getText('bpm')}</span>
                       </div>
                       
                       <div className="record-status">
@@ -496,7 +526,7 @@ const BloodPressure: React.FC = () => {
                     
                     {record.note && (
                       <div className="record-note">
-                        <span className="note-label">備註：</span>
+                        <span className="note-label">{getText('notes')}：</span>
                         <span className="note-text">{record.note}</span>
                       </div>
                     )}
@@ -512,7 +542,7 @@ const BloodPressure: React.FC = () => {
       <button 
         className="floating-add-button"
         onClick={() => navigate('/blood-pressure/add')}
-        title="新增血壓記錄"
+        title={getText('addBloodPressureRecord')}
       >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M12 5v14M5 12h14"/>

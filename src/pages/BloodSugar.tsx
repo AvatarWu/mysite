@@ -17,6 +17,168 @@ const BloodSugar: React.FC = () => {
   const [records, setRecords] = useState<BloodSugarRecord[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // 多語言函數
+  const getText = (key: string) => {
+    const savedSettings = localStorage.getItem('careold-settings');
+    let language = 'zh-TW';
+    
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        language = settings.general?.language || 'zh-TW';
+      } catch (error) {
+        console.error('讀取語言設定失敗:', error);
+      }
+    }
+    
+    const texts = {
+      'zh-TW': {
+        'back': '返回',
+        'bloodSugarManagement': '血糖管理',
+        'add': '新增',
+        'averageBloodSugar': '平均血糖',
+        'recordCount': '記錄數量',
+        'mgdL': 'mg/dL',
+        'records': '筆',
+        'latestStatus': '最新狀態',
+        'lowBloodSugar': '低血糖',
+        'normal': '正常',
+        'high': '偏高',
+        'highBloodSugar': '高血糖',
+        'bloodSugarRecords': '血糖記錄',
+        'loading': '載入中...',
+        'noBloodSugarRecords': '尚無血糖記錄',
+        'addFirstBloodSugarRecord': '點擊右上角「新增」按鈕開始記錄',
+        'addBloodSugarRecord': '新增血糖記錄',
+        'beforeBreakfast': '早餐前',
+        'afterLunch2h': '午餐後2小時',
+        'edit': '編輯',
+        'delete': '刪除',
+        'notes': '備註',
+        'confirmDelete': '確定要刪除這筆記錄嗎？',
+        'deleteFailed': '刪除失敗，請重試',
+        'loadFailed': '載入血糖記錄失敗'
+      },
+      'zh-CN': {
+        'back': '返回',
+        'bloodSugarManagement': '血糖管理',
+        'add': '新增',
+        'averageBloodSugar': '平均血糖',
+        'recordCount': '记录数量',
+        'mgdL': 'mg/dL',
+        'records': '笔',
+        'latestStatus': '最新状态',
+        'lowBloodSugar': '低血糖',
+        'normal': '正常',
+        'high': '偏高',
+        'highBloodSugar': '高血糖',
+        'bloodSugarRecords': '血糖记录',
+        'loading': '载入中...',
+        'noBloodSugarRecords': '尚无血糖记录',
+        'addFirstBloodSugarRecord': '点击右上角「新增」按钮开始记录',
+        'addBloodSugarRecord': '新增血糖记录',
+        'beforeBreakfast': '早餐前',
+        'afterLunch2h': '午餐后2小时',
+        'edit': '编辑',
+        'delete': '删除',
+        'notes': '备注',
+        'confirmDelete': '确定要删除这笔记录吗？',
+        'deleteFailed': '删除失败，请重试',
+        'loadFailed': '载入血糖记录失败'
+      },
+      'en': {
+        'back': 'Back',
+        'bloodSugarManagement': 'Blood Sugar Management',
+        'add': 'Add',
+        'averageBloodSugar': 'Average Blood Sugar',
+        'recordCount': 'Record Count',
+        'mgdL': 'mg/dL',
+        'records': 'records',
+        'latestStatus': 'Latest Status',
+        'lowBloodSugar': 'Low Blood Sugar',
+        'normal': 'Normal',
+        'high': 'High',
+        'highBloodSugar': 'High Blood Sugar',
+        'bloodSugarRecords': 'Blood Sugar Records',
+        'loading': 'Loading...',
+        'noBloodSugarRecords': 'No blood sugar records',
+        'addFirstBloodSugarRecord': 'Click the "Add" button in the top right to start recording',
+        'addBloodSugarRecord': 'Add Blood Sugar Record',
+        'beforeBreakfast': 'Before Breakfast',
+        'afterLunch2h': '2 Hours After Lunch',
+        'edit': 'Edit',
+        'delete': 'Delete',
+        'notes': 'Notes',
+        'confirmDelete': 'Are you sure you want to delete this record?',
+        'deleteFailed': 'Delete failed, please try again',
+        'loadFailed': 'Failed to load blood sugar records'
+      }
+    };
+    
+    return (texts as any)[language]?.[key] || (texts as any)['zh-TW'][key] || key;
+  };
+
+  // 應用主題到頁面
+  useEffect(() => {
+    const applyTheme = () => {
+      const savedSettings = localStorage.getItem('careold-settings');
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          const theme = settings.general?.appearance || 'auto';
+          
+          if (theme === 'dark') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+            document.body.setAttribute('data-theme', 'dark');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#ffffff');
+          } else if (theme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+            document.body.setAttribute('data-theme', 'light');
+            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+            document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+          } else {
+            // 自動模式
+            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+            if (prefersDark) {
+              document.documentElement.setAttribute('data-theme', 'dark');
+              document.body.setAttribute('data-theme', 'dark');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#ffffff');
+            } else {
+              document.documentElement.setAttribute('data-theme', 'light');
+              document.body.setAttribute('data-theme', 'light');
+              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
+              document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
+            }
+          }
+        } catch (error) {
+          console.error('應用主題失敗:', error);
+        }
+      }
+    };
+
+    applyTheme();
+
+    // 監聽主題變更事件
+    const handleThemeChange = (_event: CustomEvent) => {
+      applyTheme();
+    };
+    
+    const handleLanguageChange = (_event: CustomEvent) => {
+      // 重新載入頁面以應用語言變更
+      window.location.reload();
+    };
+    
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     loadRecords();
   }, []);
@@ -47,7 +209,7 @@ const BloodSugar: React.FC = () => {
       ];
       setRecords(mockRecords);
     } catch (error) {
-      console.error('載入血糖記錄失敗:', error);
+      console.error(getText('loadFailed'), error);
     } finally {
       setLoading(false);
     }
@@ -55,13 +217,13 @@ const BloodSugar: React.FC = () => {
 
   const getBloodSugarStatus = (value: number) => {
     if (value < 70) {
-      return { status: '低血糖', color: '#FF9500', icon: '⚠️' };
+      return { status: getText('lowBloodSugar'), color: '#FF9500', icon: '⚠️' };
     } else if (value <= 140) {
-      return { status: '正常', color: '#34C759', icon: '✅' };
+      return { status: getText('normal'), color: '#34C759', icon: '✅' };
     } else if (value <= 200) {
-      return { status: '偏高', color: '#FF9500', icon: '⚠️' };
+      return { status: getText('high'), color: '#FF9500', icon: '⚠️' };
     } else {
-      return { status: '高血糖', color: '#FF3B30', icon: '🔴' };
+      return { status: getText('highBloodSugar'), color: '#FF3B30', icon: '🔴' };
     }
   };
 
@@ -131,7 +293,7 @@ const BloodSugar: React.FC = () => {
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007aff" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            <span style={{ color: '#007aff', fontSize: '16px', fontWeight: '500' }}>返回</span>
+            <span style={{ color: '#007aff', fontSize: '16px', fontWeight: '500' }}>{getText('back')}</span>
           </div>
           <div 
             className="custom-title" 
@@ -151,7 +313,7 @@ const BloodSugar: React.FC = () => {
               zIndex: 1000
             }}
           >
-            血糖管理
+            {getText('bloodSugarManagement')}
           </div>
           <div
             onClick={() => navigate('/blood-sugar/add')}
@@ -178,7 +340,7 @@ const BloodSugar: React.FC = () => {
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
               <path d="M12 5v14M5 12h14"/>
             </svg>
-            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>新增</span>
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '600' }}>{getText('add')}</span>
           </div>
         </div>
       </header>
@@ -192,14 +354,14 @@ const BloodSugar: React.FC = () => {
               <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="stat-icon">📊</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{statistics.avgValue}</div>
-                <div className="stat-label" style={{ color: '#8e8e93' }}>平均血糖</div>
-                <div className="stat-unit" style={{ color: '#8e8e93' }}>mg/dL</div>
+                <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('averageBloodSugar')}</div>
+                <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('mgdL')}</div>
               </div>
               <div className="stat-card" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
                 <div className="stat-icon">📈</div>
                 <div className="stat-value" style={{ color: '#ffffff' }}>{records.length}</div>
-                <div className="stat-label" style={{ color: '#8e8e93' }}>記錄數量</div>
-                <div className="stat-unit" style={{ color: '#8e8e93' }}>筆</div>
+                <div className="stat-label" style={{ color: '#8e8e93' }}>{getText('recordCount')}</div>
+                <div className="stat-unit" style={{ color: '#8e8e93' }}>{getText('records')}</div>
               </div>
             </div>
           </div>
@@ -212,9 +374,9 @@ const BloodSugar: React.FC = () => {
               {statistics.latestStatus.icon}
             </div>
             <div className="status-content">
-              <div className="status-title" style={{ color: '#ffffff' }}>最新狀態</div>
+              <div className="status-title" style={{ color: '#ffffff' }}>{getText('latestStatus')}</div>
               <div className="status-subtitle" style={{ color: '#8e8e93' }}>
-                {statistics.latestStatus.status} - {records[0]?.value} mg/dL
+                {statistics.latestStatus.status} - {records[0]?.value} {getText('mgdL')}
               </div>
             </div>
           </div>
@@ -222,16 +384,16 @@ const BloodSugar: React.FC = () => {
 
         {/* 記錄列表 */}
         <div className="records-section">
-          <h2 style={{ color: '#ffffff' }}>血糖記錄</h2>
+          <h2 style={{ color: '#ffffff' }}>{getText('bloodSugarRecords')}</h2>
           {loading ? (
             <div className="loading-state" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
-              <div style={{ color: '#ffffff' }}>載入中...</div>
+              <div style={{ color: '#ffffff' }}>{getText('loading')}</div>
             </div>
           ) : records.length === 0 ? (
             <div className="empty-state" style={{ backgroundColor: '#000000', border: '0.5px solid rgba(255, 255, 255, 0.1)' }}>
-              <div style={{ color: '#ffffff' }}>尚無血糖記錄</div>
+              <div style={{ color: '#ffffff' }}>{getText('noBloodSugarRecords')}</div>
               <div style={{ color: '#8e8e93', fontSize: '14px', marginTop: '8px' }}>
-                點擊右上角「新增」按鈕開始記錄
+                {getText('addFirstBloodSugarRecord')}
               </div>
             </div>
           ) : (
