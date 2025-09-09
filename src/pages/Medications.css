@@ -249,28 +249,33 @@
 
 .medication-actions {
   display: flex;
-  gap: 4px; /* 減少間距避免重疊 */
+  gap: 12px; /* 增加間距確保按鈕分離 */
   flex-shrink: 0;
   align-items: center;
   justify-content: flex-end;
-  min-width: 80px; /* 確保容器有固定寬度 */
-  height: 36px; /* 固定高度與按鈕一致 */
+  min-width: 120px; /* 進一步增加最小寬度 */
+  height: 44px; /* 匹配按鈕高度 */
+  /* 添加邊框調試（臨時） */
+  /* border: 1px solid red; */
 }
 
 .action-button {
   background: transparent;
   border: none;
-  padding: 6px; /* 減少 padding 避免重疊 */
+  padding: 10px; /* 增加 padding 提供更多點擊區域 */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px; /* 固定寬度 */
-  height: 36px; /* 固定高度 */
+  width: 44px; /* 進一步增加寬度 */
+  height: 44px; /* 進一步增加高度 */
   flex-shrink: 0; /* 防止被壓縮 */
   box-sizing: border-box; /* 確保 padding 包含在寬度內 */
+  position: relative; /* 確保定位穩定 */
+  /* 添加邊框調試（臨時） */
+  /* border: 1px solid blue; */
 }
 
 .edit-button {
@@ -290,9 +295,10 @@
 }
 
 .action-button svg {
-  width: 18px;
-  height: 18px;
+  width: 20px; /* 稍微增加圖標尺寸 */
+  height: 20px; /* 稍微增加圖標尺寸 */
   flex-shrink: 0; /* 防止圖標被壓縮 */
+  display: block; /* 確保圖標正確顯示 */
 }
 
 .medication-details {
