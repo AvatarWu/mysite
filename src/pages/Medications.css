@@ -249,17 +249,18 @@
 
 .medication-actions {
   display: flex;
-  gap: 8px;
+  gap: 4px; /* 減少間距避免重疊 */
   flex-shrink: 0;
   align-items: center;
   justify-content: flex-end;
   min-width: 80px; /* 確保容器有固定寬度 */
+  height: 36px; /* 固定高度與按鈕一致 */
 }
 
 .action-button {
   background: transparent;
   border: none;
-  padding: 8px;
+  padding: 6px; /* 減少 padding 避免重疊 */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -269,7 +270,7 @@
   width: 36px; /* 固定寬度 */
   height: 36px; /* 固定高度 */
   flex-shrink: 0; /* 防止被壓縮 */
-  position: relative; /* 確保定位穩定 */
+  box-sizing: border-box; /* 確保 padding 包含在寬度內 */
 }
 
 .edit-button {
@@ -291,11 +292,7 @@
 .action-button svg {
   width: 18px;
   height: 18px;
-  position: absolute; /* 絕對定位確保圖標居中 */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%); /* 完美居中 */
-  pointer-events: none; /* 防止圖標干擾點擊事件 */
+  flex-shrink: 0; /* 防止圖標被壓縮 */
 }
 
 .medication-details {
