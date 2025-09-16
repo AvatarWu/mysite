@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import './AddBloodSugar.css';
+import { healthDataService } from '../services/HealthDataService';
 
 interface BloodSugarFormData {
   value: string;
@@ -34,10 +35,30 @@ const AddBloodSugar: React.FC = () => {
 
   const loadRecord = async (recordId: string) => {
     try {
-      // 模擬載入記錄數據
-      console.log('載入記錄:', recordId);
+      setLoading(true);
+      const records = await healthDataService.getBloodSugarRecords();
+      const record = records.find(r => r._id === recordId);
+      
+      if (record) {
+        setFormData({
+          value: record.value.toString(),
+          unit: record.unit,
+          date: record.date,
+          time: record.time || '00:00',
+          note: record.note || ''
+        });
+        console.log('載入血糖記錄成功:', record);
+      } else {
+        console.error('找不到指定的血糖記錄');
+        alert('找不到指定的血糖記錄');
+        navigate('/blood-sugar');
+      }
     } catch (error) {
       console.error('載入記錄失敗:', error);
+      alert('載入記錄失敗');
+      navigate('/blood-sugar');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -89,13 +110,29 @@ const AddBloodSugar: React.FC = () => {
 
     setLoading(true);
     try {
-      // 模擬保存數據
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const recordData = {
+        value: parseFloat(formData.value),
+        unit: formData.unit as 'mg/dL' | 'mmol/L',
+        type: 'beforeMeal' as const, // 默認類型，可以根據需要調整
+        date: formData.date,
+        time: formData.time,
+        note: formData.note
+      };
+
+      if (isEdit && id) {
+        // 更新現有記錄
+        await healthDataService.updateBloodSugarRecord(id, recordData);
+        console.log('更新血糖記錄成功:', recordData);
+      } else {
+        // 創建新記錄
+        await healthDataService.addBloodSugarRecord(recordData);
+        console.log('新增血糖記錄成功:', recordData);
+      }
       
-      console.log('保存血糖記錄:', formData);
       navigate('/blood-sugar');
     } catch (error) {
       console.error('保存失敗:', error);
+      alert('保存失敗，請重試');
     } finally {
       setLoading(false);
     }

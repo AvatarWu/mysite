@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BloodSugar.css';
+import { healthDataService } from '../services/HealthDataService';
 
 interface BloodSugarRecord {
   id: string;
@@ -235,33 +236,38 @@ const BloodSugar: React.FC = () => {
 
   useEffect(() => {
     loadRecords();
+    
+    // 監聽頁面可見性變化，當頁面重新可見時重新載入數據
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('頁面重新可見，重新載入血糖記錄');
+        loadRecords();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const loadRecords = async () => {
     try {
       setLoading(true);
-      // 模擬數據載入
-      const mockRecords: BloodSugarRecord[] = [
-        {
-          id: '1',
-          value: 120,
-          unit: 'mg/dL',
-          date: '2024-01-15',
-          time: '08:30',
-          note: '早餐前',
-          status: 'normal'
-        },
-        {
-          id: '2',
-          value: 180,
-          unit: 'mg/dL',
-          date: '2024-01-15',
-          time: '12:00',
-          note: '午餐後2小時',
-          status: 'high'
-        }
-      ];
-      setRecords(mockRecords);
+      const data = await healthDataService.getBloodSugarRecords();
+      // 轉換數據格式以匹配組件期望的格式
+      const formattedRecords = data.map((record: any) => ({
+        id: record._id || record.id,
+        value: record.value,
+        unit: record.unit,
+        date: record.date,
+        time: record.time || '00:00',
+        note: record.note || record.notes,
+        status: record.status || getBloodSugarStatus(record.value).status
+      }));
+      setRecords(formattedRecords);
+      console.log('載入血糖記錄:', formattedRecords);
     } catch (error) {
       console.error(getText('loadFailed'), error);
     } finally {
@@ -276,10 +282,9 @@ const BloodSugar: React.FC = () => {
   const handleDeleteRecord = async (id: string) => {
     if (window.confirm(getText('confirmDelete'))) {
       try {
-        // 從記錄中移除
-        setRecords(prevRecords => prevRecords.filter(record => record.id !== id));
-        // 這裡可以添加實際的 API 調用來刪除記錄
-        console.log('刪除血糖記錄:', id);
+        await healthDataService.deleteBloodSugarRecord(id);
+        await loadRecords(); // 重新載入記錄
+        console.log('刪除血糖記錄成功:', id);
       } catch (error) {
         console.error('刪除記錄失敗:', error);
         alert(getText('deleteFailed'));
@@ -448,15 +453,45 @@ const BloodSugar: React.FC = () => {
 
         {/* 記錄列表 */}
         <div className="records-section">
-          <h2 style={{ color: '#ffffff' }}>{getText('bloodSugarRecords')}</h2>
+          <h2 style={{ 
+            color: '#2c1810', 
+            fontSize: '20px', 
+            fontWeight: '700',
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)',
+            letterSpacing: '-0.3px'
+          }}>
+            {getText('bloodSugarRecords')}
+          </h2>
           {loading ? (
             <div className="loading-state" style={{  }}>
-              <div style={{ color: '#ffffff' }}>{getText('loading')}</div>
+              <div style={{ 
+                color: '#2c1810', 
+                fontSize: '16px', 
+                fontWeight: '500',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)'
+              }}>
+                {getText('loading')}
+              </div>
             </div>
           ) : records.length === 0 ? (
             <div className="empty-state" style={{  }}>
-              <div style={{ color: '#ffffff' }}>{getText('noBloodSugarRecords')}</div>
-              <div style={{ color: '#8e8e93', fontSize: '14px', marginTop: '8px' }}>
+              <div style={{ 
+                color: '#2c1810', 
+                fontSize: '18px', 
+                fontWeight: '600',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.3)',
+                letterSpacing: '-0.2px'
+              }}>
+                {getText('noBloodSugarRecords')}
+              </div>
+              <div style={{ 
+                color: '#5d4037', 
+                fontSize: '14px', 
+                marginTop: '8px',
+                fontWeight: '500',
+                textShadow: '0 1px 2px rgba(255, 255, 255, 0.2)',
+                lineHeight: '1.4'
+              }}>
                 {getText('addFirstBloodSugarRecord')}
               </div>
             </div>
