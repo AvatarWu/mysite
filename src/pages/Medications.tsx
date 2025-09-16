@@ -432,13 +432,40 @@ const Medications: React.FC = () => {
       <div className="medications-page">
         <header className="custom-header">
           <div className="header-content">
-            <button onClick={handleBack} className="back-button" type="button">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div 
+              onClick={handleBack}
+              className="custom-back-btn"
+              style={{
+                position: 'absolute',
+                left: '20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: '#000000',
+                border: '1px solid #000000',
+                color: '#ffffff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                minWidth: '60px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                zIndex: 1001,
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                touchAction: 'manipulation'
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              {getText('back')}
-            </button>
+              <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>{getText('back')}</span>
+            </div>
             <h1 className="header-title">{getText('medicationManagement')}</h1>
+            <div className="header-spacer"></div>
           </div>
         </header>
         
@@ -457,13 +484,40 @@ const Medications: React.FC = () => {
       <div className="medications-page">
         <header className="custom-header">
           <div className="header-content">
-            <button onClick={handleBack} className="back-button" type="button">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <div 
+              onClick={handleBack}
+              className="custom-back-btn"
+              style={{
+                position: 'absolute',
+                left: '20px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                background: '#000000',
+                border: '1px solid #000000',
+                color: '#ffffff',
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: 'pointer',
+                minWidth: '60px',
+                minHeight: '44px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                zIndex: 1001,
+                userSelect: 'none',
+                WebkitUserSelect: 'none',
+                touchAction: 'manipulation'
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
                 <path d="M19 12H5M12 19l-7-7 7-7"/>
               </svg>
-              {getText('back')}
-            </button>
+              <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>{getText('back')}</span>
+            </div>
             <h1 className="header-title">{getText('medicationManagement')}</h1>
+            <div className="header-spacer"></div>
           </div>
         </header>
         
@@ -486,13 +540,41 @@ const Medications: React.FC = () => {
       {/* 自定義導航欄 - Apple 風格 */}
       <header className="custom-header">
         <div className="header-content">
-            <button onClick={handleBack} className="back-button" type="button">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M19 12H5M12 19l-7-7 7-7"/>
-              </svg>
-              {getText('back')}
-            </button>
+          <div 
+            onClick={handleBack}
+            className="custom-back-btn"
+            style={{
+              position: 'absolute',
+              left: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#000000',
+              border: '1px solid #000000',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              minWidth: '60px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              zIndex: 1001,
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>{getText('back')}</span>
+          </div>
           <h1 className="header-title">{getText('medicationManagement')}</h1>
+          {/* 右側空白區域，確保標題居中 */}
+          <div className="header-spacer"></div>
         </div>
       </header>
 

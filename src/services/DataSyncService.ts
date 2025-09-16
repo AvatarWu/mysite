@@ -232,9 +232,11 @@ class DataSyncService {
 
   // 處理單個變更
   private async processChange(change: PendingChange): Promise<void> {
+    // 檢查是否有認證令牌，如果沒有則跳過服務器同步
     const token = localStorage.getItem('token');
     if (!token) {
-      throw new Error('未找到認證令牌');
+      console.log('未找到認證令牌，跳過服務器同步，僅保存到本地');
+      return; // 直接返回，不拋出錯誤
     }
 
     const headers = {

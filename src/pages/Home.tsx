@@ -171,7 +171,7 @@ const Home: React.FC = () => {
       description: getText('weightManagementDesc'),
       icon: '⚖️',
       color: '#16a34a',
-      route: '/weight-list'
+      route: '/weight-management'
     },
     {
       id: 'blood-pressure',
@@ -207,7 +207,7 @@ const Home: React.FC = () => {
       description: getText('emergencyHelpDesc'),
       icon: '🚨',
       color: '#dc2626',
-      route: '/emergency'
+      route: '/emergency-help'
     },
     {
       id: 'reminder',
@@ -215,7 +215,7 @@ const Home: React.FC = () => {
       description: getText('setReminderDesc'),
       icon: '⏰',
       color: '#3b82f6',
-      route: '/reminders'
+      route: '/reminder-management'
     }
   ];
 

@@ -1,0 +1,784 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { reminderService, Reminder, ReminderSettings } from '../services/ReminderService';
+import './ReminderManagement.css';
+
+// 添加錯誤邊界來捕獲導入錯誤
+console.log('ReminderManagement 模組載入成功');
+
+const ReminderManagement: React.FC = () => {
+  console.log('ReminderManagement 組件渲染');
+  
+  try {
+    console.log('ReminderManagement 組件初始化開始');
+    const navigate = useNavigate();
+    console.log('useNavigate 初始化成功');
+    
+    const [reminders, setReminders] = useState<Reminder[]>([]);
+    console.log('reminders state 初始化成功');
+    
+    const [settings, setSettings] = useState<ReminderSettings>(() => {
+      console.log('開始初始化 settings state');
+      try {
+        const settings = reminderService.getSettings();
+        console.log('settings 載入成功:', settings);
+        return settings;
+      } catch (error) {
+        console.error('settings 載入失敗:', error);
+        return {
+          healthReminders: true,
+          medicationAlerts: true,
+          appointmentReminders: true,
+          systemUpdates: false,
+          emergencyAlerts: true,
+          weeklyReports: false,
+          quietHours: { enabled: false, start: '22:00', end: '08:00' },
+          soundEnabled: true,
+          vibrationEnabled: true
+        };
+      }
+    });
+    console.log('settings state 初始化成功');
+    
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
+    const [showSettingsModal, setShowSettingsModal] = useState(false);
+    
+    console.log('ReminderManagement 組件初始化成功');
+
+    useEffect(() => {
+    console.log('ReminderManagement useEffect 執行');
+    try {
+      console.log('開始載入提醒數據...');
+      loadReminders();
+      console.log('提醒數據載入完成，數量:', reminders.length);
+      
+      console.log('開始載入設定...');
+      loadSettings();
+      console.log('設定載入完成');
+      
+      // 創建預設提醒（如果沒有提醒的話）
+      const existingReminders = reminderService.getReminders();
+      console.log('現有提醒數量:', existingReminders.length);
+      if (existingReminders.length === 0) {
+        console.log('創建預設提醒...');
+        reminderService.createDefaultReminders();
+        loadReminders();
+        console.log('預設提醒創建完成');
+      }
+      console.log('useEffect 執行完成');
+    } catch (error) {
+      console.error('ReminderManagement useEffect 錯誤:', error);
+      if (error instanceof Error) {
+        console.error('錯誤堆疊:', error.stack);
+      }
+    }
+  }, []);
+
+  const loadReminders = () => {
+    setReminders(reminderService.getReminders());
+  };
+
+  const loadSettings = () => {
+    setSettings(reminderService.getSettings());
+  };
+
+  const handleAddReminder = (reminderData: Omit<Reminder, '_id' | 'createdAt' | 'updatedAt'>) => {
+    reminderService.addReminder(reminderData);
+    loadReminders();
+    setShowAddModal(false);
+  };
+
+  const handleUpdateReminder = (id: string, updates: Partial<Reminder>) => {
+    reminderService.updateReminder(id, updates);
+    loadReminders();
+    setEditingReminder(null);
+  };
+
+  const handleDeleteReminder = (id: string) => {
+    if (window.confirm('確定要刪除這個提醒嗎？')) {
+      reminderService.deleteReminder(id);
+      loadReminders();
+    }
+  };
+
+  const handleToggleReminder = (id: string) => {
+    const reminder = reminders.find(r => r._id === id);
+    if (reminder) {
+      handleUpdateReminder(id, { enabled: !reminder.enabled });
+    }
+  };
+
+  const handleUpdateSettings = (updates: Partial<ReminderSettings>) => {
+    reminderService.updateSettings(updates);
+    setSettings({ ...settings, ...updates });
+  };
+
+  const getText = (key: string): string => {
+    const texts: Record<string, Record<string, string>> = {
+      'zh-TW': {
+        reminderManagement: '提醒管理',
+        addReminder: '新增提醒',
+        reminderSettings: '提醒設定',
+        healthReminders: '健康提醒',
+        medicationAlerts: '用藥提醒',
+        appointmentReminders: '預約提醒',
+        emergencyAlerts: '緊急警報',
+        weeklyReports: '週報',
+        quietHours: '靜音時間',
+        soundEnabled: '聲音提醒',
+        vibrationEnabled: '震動提醒',
+        back: '返回',
+        edit: '編輯',
+        delete: '刪除',
+        enabled: '啟用',
+        disabled: '停用',
+        today: '今日',
+        upcoming: '即將到來',
+        noReminders: '暫無提醒',
+        createFirstReminder: '創建您的第一個提醒',
+        reminderType: '提醒類型',
+        reminderTime: '提醒時間',
+        reminderDays: '提醒日期',
+        reminderPriority: '優先級',
+        title: '標題',
+        description: '描述',
+        category: '分類',
+        repeat: '重複',
+        daily: '每日',
+        weekly: '每週',
+        monthly: '每月',
+        once: '一次',
+        low: '低',
+        medium: '中',
+        high: '高',
+        urgent: '緊急',
+        health: '健康',
+        medication: '用藥',
+        appointment: '預約',
+        emergency: '緊急',
+        custom: '自訂',
+        save: '儲存',
+        cancel: '取消',
+        startTime: '開始時間',
+        endTime: '結束時間',
+        enabledStatus: '啟用',
+        disabledStatus: '停用'
+      }
+    };
+
+    const lang = localStorage.getItem('language') || 'zh-TW';
+    return texts[lang]?.[key] || texts['zh-TW'][key] || key;
+  };
+
+  const getDayNames = (): string[] => {
+    return ['日', '一', '二', '三', '四', '五', '六'];
+  };
+
+  const getTypeIcon = (type: Reminder['type']): string => {
+    switch (type) {
+      case 'health': return '🏥';
+      case 'medication': return '💊';
+      case 'appointment': return '📅';
+      case 'emergency': return '🚨';
+      default: return '⏰';
+    }
+  };
+
+  const getPriorityColor = (priority: Reminder['priority']): string => {
+    switch (priority) {
+      case 'low': return '#34c759';
+      case 'medium': return '#ff9500';
+      case 'high': return '#ff3b30';
+      case 'urgent': return '#af52de';
+      default: return '#8e8e93';
+    }
+  };
+
+  console.log('ReminderManagement 組件返回渲染');
+  console.log('當前狀態:', { reminders: reminders.length, settings, showAddModal, editingReminder, showSettingsModal });
+  
+  // 添加簡單的測試渲染
+  if (reminders.length === 0 && !showAddModal && !showSettingsModal) {
+    console.log('顯示空狀態');
+  }
+  
+  // 添加錯誤邊界
+  try {
+    return (
+      <div className="reminder-management-page">
+      {/* 自定義標題欄 */}
+      <header className="custom-header">
+        <div className="header-content">
+          <div
+            onClick={() => navigate('/settings')}
+            className="custom-back-btn"
+            style={{
+              position: 'absolute',
+              left: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#000000',
+              border: '1px solid #000000',
+              color: '#ffffff',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '16px',
+              fontWeight: '500',
+              minWidth: '60px',
+              minHeight: '44px',
+              zIndex: 1001
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>返回</span>
+          </div>
+          
+          <div 
+            className="custom-title" 
+            style={{ 
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#ffffff', 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              margin: '0',
+              textAlign: 'center',
+              backgroundColor: 'transparent',
+              zIndex: 1000
+            }}
+          >
+            {getText('reminderManagement')}
+          </div>
+
+          <button
+            onClick={() => setShowSettingsModal(true)}
+            className="settings-button"
+            style={{
+              position: 'absolute',
+              right: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#007AFF',
+              border: '1px solid #007AFF',
+              color: '#ffffff',
+              padding: '8px 12px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: '500',
+              minWidth: '60px',
+              minHeight: '44px',
+              zIndex: 1001
+            }}
+          >
+            設定
+          </button>
+        </div>
+      </header>
+
+      {/* 主要內容 */}
+      <main className="main-content">
+        {/* 統計卡片 */}
+        <div className="stats-cards">
+          <div className="stat-card">
+            <div className="stat-number">{reminders.filter(r => r.enabled).length}</div>
+            <div className="stat-label">啟用提醒</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{reminderService.getTodayReminders().length}</div>
+            <div className="stat-label">今日提醒</div>
+          </div>
+          <div className="stat-card">
+            <div className="stat-number">{reminderService.getUpcomingReminders().length}</div>
+            <div className="stat-label">即將到來</div>
+          </div>
+        </div>
+
+        {/* 提醒列表 */}
+        <div className="reminders-section">
+          <div className="section-header">
+            <h2 className="section-title">我的提醒</h2>
+            <button
+              onClick={() => setShowAddModal(true)}
+              className="add-button"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              {getText('addReminder')}
+            </button>
+          </div>
+
+          {reminders.length === 0 ? (
+            <div className="empty-state">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/>
+              </svg>
+              <p>{getText('noReminders')}</p>
+              <button
+                onClick={() => setShowAddModal(true)}
+                className="create-button"
+              >
+                {getText('createFirstReminder')}
+              </button>
+            </div>
+          ) : (
+            <div className="reminders-list">
+              {reminders.map((reminder) => (
+                <div key={reminder._id} className={`reminder-card ${!reminder.enabled ? 'disabled' : ''}`}>
+                  <div className="reminder-header">
+                    <div className="reminder-icon">
+                      {getTypeIcon(reminder.type)}
+                    </div>
+                    <div className="reminder-info">
+                      <h3 className="reminder-title">{reminder.title}</h3>
+                      <p className="reminder-description">{reminder.description}</p>
+                      <div className="reminder-meta">
+                        <span className="reminder-time">{reminder.time}</span>
+                        <span className="reminder-category">{reminder.category}</span>
+                        <span 
+                          className="reminder-priority"
+                          style={{ color: getPriorityColor(reminder.priority) }}
+                        >
+                          {getText(reminder.priority)}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="reminder-actions">
+                      <button
+                        onClick={() => handleToggleReminder(reminder._id)}
+                        className={`toggle-button ${reminder.enabled ? 'enabled' : 'disabled'}`}
+                        title={reminder.enabled ? getText('disabledStatus') : getText('enabledStatus')}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          {reminder.enabled ? (
+                            <path d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 0 0 1.946-.806 3.42 3.42 0 0 1 4.438 0 3.42 3.42 0 0 0 1.946.806 3.42 3.42 0 0 1 3.138 3.138 3.42 3.42 0 0 0 .806 1.946 3.42 3.42 0 0 1 0 4.438 3.42 3.42 0 0 0-.806 1.946 3.42 3.42 0 0 1-3.138 3.138 3.42 3.42 0 0 0-1.946.806 3.42 3.42 0 0 1-4.438 0 3.42 3.42 0 0 0-1.946-.806 3.42 3.42 0 0 1-3.138-3.138 3.42 3.42 0 0 0-.806-1.946 3.42 3.42 0 0 1 0-4.438 3.42 3.42 0 0 0 .806-1.946 3.42 3.42 0 0 1 3.138-3.138z"/>
+                          ) : (
+                            <path d="M18 6L6 18M6 6l12 12"/>
+                          )}
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => setEditingReminder(reminder)}
+                        className="edit-button"
+                        title={getText('edit')}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReminder(reminder._id)}
+                        className="delete-button"
+                        title={getText('delete')}
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="reminder-days">
+                    {getDayNames().map((day, index) => (
+                      <span
+                        key={index}
+                        className={`day-indicator ${reminder.days.includes(index) ? 'active' : ''}`}
+                      >
+                        {day}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* 新增/編輯提醒模態框 */}
+      {showAddModal && (
+        <ReminderModal
+          onSave={handleAddReminder}
+          onCancel={() => setShowAddModal(false)}
+          getText={getText}
+        />
+      )}
+
+      {editingReminder && (
+        <ReminderModal
+          reminder={editingReminder}
+          onSave={(updates) => handleUpdateReminder(editingReminder._id, updates)}
+          onCancel={() => setEditingReminder(null)}
+          getText={getText}
+        />
+      )}
+
+      {/* 提醒設定模態框 */}
+      {showSettingsModal && (
+        <ReminderSettingsModal
+          settings={settings}
+          onSave={handleUpdateSettings}
+          onCancel={() => setShowSettingsModal(false)}
+          getText={getText}
+        />
+      )}
+    </div>
+    );
+  } catch (error) {
+    console.error('ReminderManagement 渲染錯誤:', error);
+    if (error instanceof Error) {
+      console.error('錯誤堆疊:', error.stack);
+    }
+    return (
+      <div className="reminder-management-page">
+        <div style={{ padding: '20px', textAlign: 'center', color: '#ffffff' }}>
+          <h2>提醒管理</h2>
+          <p>頁面載入時發生錯誤，請重新整理頁面。</p>
+          <p>錯誤信息: {error instanceof Error ? error.message : String(error)}</p>
+          <button 
+            onClick={() => navigate('/settings')}
+            style={{
+              background: '#007AFF',
+              color: '#ffffff',
+              border: 'none',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            返回設定
+          </button>
+        </div>
+      </div>
+    );
+  } catch (error) {
+    console.error('ReminderManagement 組件初始化錯誤:', error);
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2>組件初始化錯誤</h2>
+        <p>錯誤: {error instanceof Error ? error.message : String(error)}</p>
+      </div>
+    );
+  }
+};
+
+// 提醒模態框組件
+interface ReminderModalProps {
+  reminder?: Reminder;
+  onSave: (reminder: Omit<Reminder, '_id' | 'createdAt' | 'updatedAt'>) => void;
+  onCancel: () => void;
+  getText: (key: string) => string;
+}
+
+const ReminderModal: React.FC<ReminderModalProps> = ({ reminder, onSave, onCancel, getText }) => {
+  const [formData, setFormData] = useState({
+    title: reminder?.title || '',
+    description: reminder?.description || '',
+    type: reminder?.type || 'health' as Reminder['type'],
+    time: reminder?.time || '08:00',
+    days: reminder?.days || [1, 2, 3, 4, 5],
+    enabled: reminder?.enabled ?? true,
+    repeat: reminder?.repeat || 'daily' as Reminder['repeat'],
+    category: reminder?.category || '',
+    priority: reminder?.priority || 'medium' as Reminder['priority']
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.title.trim()) return;
+
+    onSave(formData);
+  };
+
+  const handleDayToggle = (day: number) => {
+    setFormData(prev => ({
+      ...prev,
+      days: prev.days.includes(day)
+        ? prev.days.filter(d => d !== day)
+        : [...prev.days, day].sort()
+    }));
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>{reminder ? getText('edit') : getText('addReminder')}</h3>
+          <button onClick={onCancel} className="close-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <form onSubmit={handleSubmit} className="modal-form">
+          <div className="form-group">
+            <label className="form-label">{getText('title')}</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.title}
+              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+              placeholder="提醒標題"
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('description')}</label>
+            <textarea
+              className="form-textarea"
+              value={formData.description}
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="提醒描述"
+              rows={3}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('reminderType')}</label>
+            <select
+              className="form-select"
+              value={formData.type}
+              onChange={(e) => setFormData(prev => ({ ...prev, type: e.target.value as Reminder['type'] }))}
+            >
+              <option value="health">{getText('health')}</option>
+              <option value="medication">{getText('medication')}</option>
+              <option value="appointment">{getText('appointment')}</option>
+              <option value="emergency">{getText('emergency')}</option>
+              <option value="custom">{getText('custom')}</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('reminderTime')}</label>
+            <input
+              type="time"
+              className="form-input"
+              value={formData.time}
+              onChange={(e) => setFormData(prev => ({ ...prev, time: e.target.value }))}
+            />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('reminderDays')}</label>
+            <div className="days-selector">
+              {['日', '一', '二', '三', '四', '五', '六'].map((day, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={`day-button ${formData.days.includes(index) ? 'active' : ''}`}
+                  onClick={() => handleDayToggle(index)}
+                >
+                  {day}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('reminderPriority')}</label>
+            <select
+              className="form-select"
+              value={formData.priority}
+              onChange={(e) => setFormData(prev => ({ ...prev, priority: e.target.value as Reminder['priority'] }))}
+            >
+              <option value="low">{getText('low')}</option>
+              <option value="medium">{getText('medium')}</option>
+              <option value="high">{getText('high')}</option>
+              <option value="urgent">{getText('urgent')}</option>
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">{getText('category')}</label>
+            <input
+              type="text"
+              className="form-input"
+              value={formData.category}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+              placeholder="提醒分類"
+            />
+          </div>
+
+          <div className="form-actions">
+            <button type="button" onClick={onCancel} className="cancel-button">
+              {getText('cancel')}
+            </button>
+            <button type="submit" className="save-button">
+              {getText('save')}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
+// 提醒設定模態框組件
+interface ReminderSettingsModalProps {
+  settings: ReminderSettings;
+  onSave: (updates: Partial<ReminderSettings>) => void;
+  onCancel: () => void;
+  getText: (key: string) => string;
+}
+
+const ReminderSettingsModal: React.FC<ReminderSettingsModalProps> = ({ settings, onSave, onCancel, getText }) => {
+  const [tempSettings, setTempSettings] = useState<ReminderSettings>(settings);
+
+  const handleSave = () => {
+    onSave(tempSettings);
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <div className="modal-header">
+          <h3>{getText('reminderSettings')}</h3>
+          <button onClick={onCancel} className="close-button">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="settings-content">
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('healthReminders')}</div>
+              <div className="setting-desc">健康檢查提醒</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.healthReminders}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, healthReminders: e.target.checked }))}
+            />
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('medicationAlerts')}</div>
+              <div className="setting-desc">用藥提醒</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.medicationAlerts}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, medicationAlerts: e.target.checked }))}
+            />
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('appointmentReminders')}</div>
+              <div className="setting-desc">預約提醒</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.appointmentReminders}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, appointmentReminders: e.target.checked }))}
+            />
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('emergencyAlerts')}</div>
+              <div className="setting-desc">緊急警報</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.emergencyAlerts}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, emergencyAlerts: e.target.checked }))}
+            />
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('quietHours')}</div>
+              <div className="setting-desc">靜音時間設定</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.quietHours.enabled}
+              onChange={(e) => setTempSettings(prev => ({ 
+                ...prev, 
+                quietHours: { ...prev.quietHours, enabled: e.target.checked }
+              }))}
+            />
+          </div>
+
+          {tempSettings.quietHours.enabled && (
+            <div className="time-settings">
+              <div className="time-input-group">
+                <label>{getText('startTime')}</label>
+                <input
+                  type="time"
+                  value={tempSettings.quietHours.start}
+                  onChange={(e) => setTempSettings(prev => ({ 
+                    ...prev, 
+                    quietHours: { ...prev.quietHours, start: e.target.value }
+                  }))}
+                />
+              </div>
+              <div className="time-input-group">
+                <label>{getText('endTime')}</label>
+                <input
+                  type="time"
+                  value={tempSettings.quietHours.end}
+                  onChange={(e) => setTempSettings(prev => ({ 
+                    ...prev, 
+                    quietHours: { ...prev.quietHours, end: e.target.value }
+                  }))}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('soundEnabled')}</div>
+              <div className="setting-desc">聲音提醒</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.soundEnabled}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, soundEnabled: e.target.checked }))}
+            />
+          </div>
+
+          <div className="setting-item">
+            <div className="setting-info">
+              <div className="setting-title">{getText('vibrationEnabled')}</div>
+              <div className="setting-desc">震動提醒</div>
+            </div>
+            <input
+              type="checkbox"
+              checked={tempSettings.vibrationEnabled}
+              onChange={(e) => setTempSettings(prev => ({ ...prev, vibrationEnabled: e.target.checked }))}
+            />
+          </div>
+        </div>
+
+        <div className="form-actions">
+          <button onClick={onCancel} className="cancel-button">
+            {getText('cancel')}
+          </button>
+          <button onClick={handleSave} className="save-button">
+            {getText('save')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ReminderManagement;

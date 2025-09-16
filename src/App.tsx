@@ -13,6 +13,10 @@ import BloodPressure from './pages/BloodPressure';
 import BloodSugar from './pages/BloodSugar';
 import AddBloodPressure from './pages/AddBloodPressure';
 import AddBloodSugar from './pages/AddBloodSugar';
+import WeightList from './pages/WeightList';
+import AddWeight from './pages/AddWeight';
+import EmergencyHelp from './pages/EmergencyHelp';
+import ReminderManagement from './pages/ReminderManagement';
 
 // 導入新的設計系統
 import './theme/design-system.css';
@@ -738,11 +742,12 @@ const App: React.FC = () => {
       }
     });
     
-    // 開始監聽 DOM 變化
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
+    // 暫時禁用 DOM 變化監聽器來測試
+    // observer.observe(document.body, {
+    //   childList: true,
+    //   subtree: true
+    // });
+    console.log('App.tsx: DOM 變化監聽器已禁用');
     
     // 清理事件監聽器
     return () => {
@@ -755,6 +760,44 @@ const App: React.FC = () => {
     };
   }, []);
 
+  // 添加路由調試日誌
+  console.log('App.tsx: 渲染路由配置');
+  console.log('App.tsx: 當前URL:', window.location.href);
+  console.log('App.tsx: 當前路徑:', window.location.pathname);
+  console.log('App.tsx: 渲染時間:', new Date().toLocaleString());
+  
+  // 添加路由變化監聽
+  useEffect(() => {
+    const handleRouteChange = () => {
+      console.log('App.tsx: 路由變化檢測到');
+      console.log('App.tsx: 新URL:', window.location.href);
+      console.log('App.tsx: 新路徑:', window.location.pathname);
+    };
+    
+    // 監聽所有路由變化
+    const originalPushState = history.pushState;
+    const originalReplaceState = history.replaceState;
+    
+    history.pushState = function(...args) {
+      console.log('App.tsx: pushState 被調用', args);
+      originalPushState.apply(history, args);
+      handleRouteChange();
+    };
+    
+    history.replaceState = function(...args) {
+      console.log('App.tsx: replaceState 被調用', args);
+      originalReplaceState.apply(history, args);
+      handleRouteChange();
+    };
+    
+    window.addEventListener('popstate', handleRouteChange);
+    return () => {
+      window.removeEventListener('popstate', handleRouteChange);
+      history.pushState = originalPushState;
+      history.replaceState = originalReplaceState;
+    };
+  }, []);
+  
   return (
     <div className="app-container">
       <Router>
@@ -773,7 +816,12 @@ const App: React.FC = () => {
             <Route path="/blood-sugar" element={<BloodSugar />} />
             <Route path="/blood-sugar/add" element={<AddBloodSugar />} />
           <Route path="/blood-sugar/edit/:id" element={<AddBloodSugar />} />
-          <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/weight-management" element={<WeightList />} />
+            <Route path="/add-weight" element={<AddWeight />} />
+            <Route path="/edit-weight/:id" element={<AddWeight />} />
+            <Route path="/emergency-help" element={<EmergencyHelp />} />
+            <Route path="/reminder-management" element={<ReminderManagement />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
       </Router>
     </div>

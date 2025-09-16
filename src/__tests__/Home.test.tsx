@@ -155,7 +155,7 @@ describe('Home Component', () => {
       const weightCard = screen.getByText('體重管理').closest('.feature-card');
       fireEvent.click(weightCard!);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/weight-list');
+      expect(mockNavigate).toHaveBeenCalledWith('/weight-management');
     });
 
     test('點擊血壓管理卡片應該導航到正確頁面', () => {
@@ -200,7 +200,7 @@ describe('Home Component', () => {
       const reminderCard = screen.getByText('設置提醒').closest('.card');
       fireEvent.click(reminderCard!);
       
-      expect(mockNavigate).toHaveBeenCalledWith('/reminders');
+      expect(mockNavigate).toHaveBeenCalledWith('/reminder-management');
     });
 
     test('點擊底部導航項目應該導航到正確頁面', () => {

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { healthDataService, BloodPressureRecord } from '../services/HealthDataService';
+import { keyboardService } from '../services/KeyboardService';
 import './AddBloodPressure.css';
 
 const AddBloodPressure: React.FC = () => {
@@ -32,7 +33,16 @@ const AddBloodPressure: React.FC = () => {
         time: now.toTimeString().slice(0, 5)
       }));
     }
-    
+
+    // 初始化鍵盤服務
+    keyboardService.setupAllInputFields();
+    keyboardService.setKeyboardResizeMode('body');
+    keyboardService.setKeyboardStyle('light');
+
+    // 清理函數
+    return () => {
+      keyboardService.cleanup();
+    };
   }, [isEdit, id]);
 
   const loadRecord = async (recordId: string) => {
@@ -147,7 +157,12 @@ const AddBloodPressure: React.FC = () => {
         <div className="header-content" style={{ position: 'relative', height: '44px', display: 'flex', alignItems: 'center' }}>
           {/* 返回按鈕 - 絕對定位在左側 */}
           <div 
-            onClick={() => navigate('/blood-pressure')} 
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              console.log('返回按鈕被點擊');
+              navigate('/blood-pressure');
+            }} 
             className="custom-back-btn"
             style={{
               position: 'absolute',
@@ -167,7 +182,10 @@ const AddBloodPressure: React.FC = () => {
               fontWeight: '500',
               minWidth: '60px',
               minHeight: '44px',
-              zIndex: 1001
+              zIndex: 1001,
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation'
             }}
           >
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
@@ -240,6 +258,7 @@ const AddBloodPressure: React.FC = () => {
                   className={`form-input ${errors.systolic ? 'error' : ''}`}
                   value={formData.systolic}
                   onChange={(e) => handleInputChange('systolic', e.target.value)}
+                  onFocus={(e) => keyboardService.setupInputField(e.target)}
                   placeholder="120"
                   min="50"
                   max="300"
@@ -263,6 +282,7 @@ const AddBloodPressure: React.FC = () => {
                   className={`form-input ${errors.diastolic ? 'error' : ''}`}
                   value={formData.diastolic}
                   onChange={(e) => handleInputChange('diastolic', e.target.value)}
+                  onFocus={(e) => keyboardService.setupInputField(e.target)}
                   placeholder="80"
                   min="30"
                   max="200"

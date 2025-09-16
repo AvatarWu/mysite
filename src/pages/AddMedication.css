@@ -26,39 +26,20 @@
 }
 
 .header-content {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  position: relative;
   padding: 16px 20px;
   max-width: 600px;
   margin: 0 auto;
   min-height: 44px;
   /* 確保 header 內容有足夠的頂部間距 */
   margin-top: 0;
+  /* 確保內容不會溢出 */
+  overflow: visible;
+  /* 強制確保三個元素都有空間 */
+  width: 100%;
 }
 
-.back-button {
-  background: transparent;
-  border: none;
-  color: #007aff;
-  padding: 8px;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 16px;
-  font-weight: 500;
-  /* 確保按鈕可以正確接收觸控事件 */
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-  /* 確保按鈕在文字之上 */
-  z-index: 1001;
-  background-color: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-}
+/* 返回按鈕樣式 - 現在使用絕對定位，不需要這些規則 */
 
 .back-button:hover {
   background: rgba(0, 122, 255, 0.08);
@@ -80,20 +61,7 @@
   letter-spacing: -0.3px;
 }
 
-.save-button {
-  background: transparent;
-  border: none;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  min-width: 60px;
-  /* 確保按鈕可以正確接收觸控事件 */
-  -webkit-tap-highlight-color: transparent;
-  touch-action: manipulation;
-}
+/* 保存按鈕樣式 - 現在使用絕對定位，不需要這些規則 */
 
 .save-button.active {
   color: #007aff;
@@ -107,6 +75,10 @@
 .save-button.disabled {
   color: #8e8e93;
   cursor: not-allowed;
+  opacity: 0.8;
+  /* 確保按鈕仍然可見 */
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
 .save-button.disabled:hover {
@@ -621,10 +593,30 @@
   
   .header-content {
     padding: 16px 18px;
+    /* 確保按鈕在小螢幕上可見 */
+    flex-wrap: nowrap;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .back-button {
+    max-width: 70px;
+    font-size: 14px;
   }
   
   .header-title {
     font-size: 18px;
+    /* 防止標題過長擠壓按鈕 */
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  
+  .save-button {
+    /* 確保按鈕在小螢幕上可見 */
+    flex-shrink: 0;
+    min-width: 50px;
+    font-size: 14px;
+    padding: 6px 12px;
   }
 }
 
@@ -647,6 +639,34 @@
     min-width: 100% !important;
     height: 56px !important;
     min-height: 56px !important;
+  }
+  
+  .header-content {
+    padding: 12px 16px;
+    /* 確保按鈕在超小螢幕上可見 */
+    flex-wrap: nowrap;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .back-button {
+    max-width: 60px;
+    font-size: 13px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+    /* 防止標題過長擠壓按鈕 */
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  
+  .save-button {
+    /* 確保按鈕在超小螢幕上可見 */
+    flex-shrink: 0;
+    min-width: 45px;
+    font-size: 13px;
+    padding: 5px 10px;
   }
 }
 

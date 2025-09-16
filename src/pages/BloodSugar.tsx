@@ -269,6 +269,24 @@ const BloodSugar: React.FC = () => {
     }
   };
 
+  const handleEditRecord = (record: BloodSugarRecord) => {
+    navigate(`/blood-sugar/edit/${record.id}`);
+  };
+
+  const handleDeleteRecord = async (id: string) => {
+    if (window.confirm(getText('confirmDelete'))) {
+      try {
+        // 從記錄中移除
+        setRecords(prevRecords => prevRecords.filter(record => record.id !== id));
+        // 這裡可以添加實際的 API 調用來刪除記錄
+        console.log('刪除血糖記錄:', id);
+      } catch (error) {
+        console.error('刪除記錄失敗:', error);
+        alert(getText('deleteFailed'));
+      }
+    }
+  };
+
   const getBloodSugarStatus = (value: number) => {
     if (value < 70) {
       return { status: getText('lowBloodSugar'), color: '#FF9500', icon: '⚠️' };
@@ -461,18 +479,67 @@ const BloodSugar: React.FC = () => {
                         {record.note && ` • ${record.note}`}
                       </div>
                     </div>
-                    <div 
-                      className="record-status"
-                      style={{ 
-                        backgroundColor: status.color,
-                        color: '#ffffff',
-                        fontSize: '14px',
-                        fontWeight: '600',
-                        padding: '6px 12px',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      {status.status}
+                    <div className="record-actions">
+                      <div 
+                        className="record-status"
+                        style={{ 
+                          backgroundColor: status.color,
+                          color: '#ffffff',
+                          fontSize: '14px',
+                          fontWeight: '600',
+                          padding: '6px 12px',
+                          borderRadius: '8px',
+                          marginRight: '8px'
+                        }}
+                      >
+                        {status.status}
+                      </div>
+                      <button 
+                        className="edit-button"
+                        onClick={() => handleEditRecord(record)}
+                        title={getText('edit')}
+                        style={{
+                          background: 'rgba(0, 122, 255, 0.1)',
+                          border: '1px solid rgba(0, 122, 255, 0.3)',
+                          borderRadius: '8px',
+                          padding: '8px',
+                          marginRight: '4px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)'
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#007AFF" strokeWidth="2.5">
+                          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                        </svg>
+                      </button>
+                      <button 
+                        className="delete-button"
+                        onClick={() => handleDeleteRecord(record.id)}
+                        title={getText('delete')}
+                        style={{
+                          background: 'rgba(255, 59, 48, 0.1)',
+                          border: '1px solid rgba(255, 59, 48, 0.3)',
+                          borderRadius: '8px',
+                          padding: '8px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                          backdropFilter: 'blur(10px)',
+                          WebkitBackdropFilter: 'blur(10px)'
+                        }}
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FF3B30" strokeWidth="2.5">
+                          <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 );

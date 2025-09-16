@@ -82,6 +82,12 @@
   z-index: 1000;
 }
 
+.header-spacer {
+  width: 80px; /* 與返回按鈕相同的寬度，確保標題居中 */
+  height: 44px;
+  flex-shrink: 0;
+}
+
 /* 主要內容區域 */
 .main-content {
   padding: 24px 20px;

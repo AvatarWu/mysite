@@ -18,6 +18,8 @@ interface SettingsData {
   };
   privacy: {
     dataSharing: boolean;
+    locationServices: boolean;
+    crashReports: boolean;
   };
   notifications: {
     healthReminders: boolean;
@@ -30,8 +32,15 @@ interface SettingsData {
 }
 
 const Settings: React.FC = () => {
+  console.log('Settings 組件渲染');
   const navigate = useNavigate();
-  const [isDark, setIsDark] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    // 檢查系統主題偏好
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      return true;
+    }
+    return false;
+  });
   const [isHighContrast, setIsHighContrast] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [showAppearanceMenu, setShowAppearanceMenu] = useState(false);
@@ -55,6 +64,8 @@ const Settings: React.FC = () => {
     },
     privacy: {
       dataSharing: false,
+      locationServices: false,
+      crashReports: true,
     },
     notifications: {
       healthReminders: true,
@@ -154,6 +165,10 @@ const Settings: React.FC = () => {
         'privacy': '隱私與安全',
         'dataSharing': '數據分享',
         'dataSharingDesc': '允許與醫療機構分享數據',
+        'locationServices': '位置服務',
+        'locationServicesDesc': '允許應用程式存取位置資訊',
+        'crashReports': '崩潰報告',
+        'crashReportsDesc': '自動發送崩潰報告以改善應用程式',
         'back': '返回',
         'save': '儲存',
         'healthReminders': '健康提醒',
@@ -217,6 +232,10 @@ const Settings: React.FC = () => {
         'privacy': '隐私与安全',
         'dataSharing': '数据分享',
         'dataSharingDesc': '允许与医疗机构分享数据',
+        'locationServices': '位置服务',
+        'locationServicesDesc': '允许应用程序访问位置信息',
+        'crashReports': '崩溃报告',
+        'crashReportsDesc': '自动发送崩溃报告以改善应用程序',
         'back': '返回',
         'save': '保存',
         'healthReminders': '健康提醒',
@@ -280,6 +299,10 @@ const Settings: React.FC = () => {
         'privacy': 'Privacy & Security',
         'dataSharing': 'Data Sharing',
         'dataSharingDesc': 'Allow sharing data with medical institutions',
+        'locationServices': 'Location Services',
+        'locationServicesDesc': 'Allow app to access location information',
+        'crashReports': 'Crash Reports',
+        'crashReportsDesc': 'Automatically send crash reports to improve the app',
         'back': 'Back',
         'save': 'Save',
         'healthReminders': 'Health Reminders',
@@ -343,6 +366,10 @@ const Settings: React.FC = () => {
         'privacy': 'プライバシーとセキュリティ',
         'dataSharing': 'データ共有',
         'dataSharingDesc': '医療機関とのデータ共有を許可',
+        'locationServices': '位置情報サービス',
+        'locationServicesDesc': 'アプリが位置情報にアクセスすることを許可',
+        'crashReports': 'クラッシュレポート',
+        'crashReportsDesc': 'アプリの改善のためクラッシュレポートを自動送信',
         'back': '戻る',
         'save': '保存',
         'healthReminders': '健康リマインダー',
@@ -385,8 +412,9 @@ const Settings: React.FC = () => {
           setIsDark(false);
           document.documentElement.setAttribute('data-theme', 'light');
         } else {
-          // 自動模式
+          // 自動模式 - 檢查系統主題
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+          console.log('系統主題偏好:', prefersDark ? 'dark' : 'light');
           setIsDark(prefersDark);
           document.documentElement.setAttribute('data-theme', prefersDark ? 'dark' : 'light');
         }
@@ -1820,6 +1848,100 @@ const Settings: React.FC = () => {
           </div>
         </div>
 
+        {/* 健康管理區塊 */}
+        <div style={{
+          background: isHighContrast ? (isDark ? '#000000' : '#ffffff') : (isDark ? '#1c1c1e' : '#ffffff'),
+          borderRadius: '12px',
+          marginBottom: '20px',
+          overflow: 'hidden',
+          border: isHighContrast ? (isDark ? '1px solid #ffffff' : '1px solid #000000') : 'none',
+          boxShadow: isHighContrast ? 'none' : (isDark ? '0 1px 3px rgba(0, 0, 0, 0.3)' : '0 1px 3px rgba(0, 0, 0, 0.1)'),
+        }}>
+          <div style={{
+            padding: '16px 20px',
+            borderBottom: isHighContrast
+              ? (isDark ? '0.5px solid #ffffff' : '0.5px solid #000000')
+              : '0.5px solid rgba(0, 0, 0, 0.1)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={() => navigate('/emergency-help')}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#000000'),
+                marginBottom: '2px',
+              }}>
+                緊急求助
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+              }}>
+                緊急聯絡人和醫療資訊管理
+              </div>
+            </div>
+            <div style={{
+              color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+              fontSize: '14px'
+            }}>
+              ›
+            </div>
+          </div>
+          
+          <div style={{
+            padding: '16px 20px',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={() => {
+            console.log('=== 點擊提醒管理開始 ===');
+            console.log('點擊提醒管理');
+            console.log('當前URL:', window.location.href);
+            console.log('當前路徑:', window.location.pathname);
+            console.log('準備導航到: /reminder-management');
+            alert('點擊提醒管理按鈕！');
+            console.log('準備調用 navigate 函數');
+            try {
+              navigate('/reminder-management');
+              console.log('導航函數已調用');
+            } catch (error) {
+              console.error('導航函數調用失敗:', error);
+            }
+            console.log('=== 點擊提醒管理結束 ===');
+          }}
+          >
+            <div style={{ flex: 1 }}>
+              <div style={{
+                fontSize: '16px',
+                fontWeight: '500',
+                color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#000000'),
+                marginBottom: '2px',
+              }}>
+                提醒管理
+              </div>
+              <div style={{
+                fontSize: '13px',
+                color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+              }}>
+                健康提醒和通知設定
+              </div>
+            </div>
+            <div style={{
+              color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+              fontSize: '14px'
+            }}>
+              ›
+            </div>
+          </div>
+        </div>
+
         {/* 隱私與安全設定 */}
         <div style={{ marginBottom: '32px' }}>
           <h2 style={{
@@ -1870,6 +1992,99 @@ const Settings: React.FC = () => {
               <AppleToggle
                 checked={tempSettings.privacy.dataSharing}
                 onChange={() => handleToggle('privacy', 'dataSharing')}
+              />
+            </div>
+
+            {/* 位置服務 - 階段 1 重新開發 */}
+            <div style={{
+              padding: '16px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: '#007AFF',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                    <circle cx="12" cy="10" r="3"></circle>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: '17px',
+                    fontWeight: '400',
+                    color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
+                    marginBottom: '2px',
+                  }}>
+                    {getText('locationServices')}
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+                  }}>
+                    {getText('locationServicesDesc')}
+                  </div>
+                </div>
+              </div>
+              <AppleToggle
+                checked={tempSettings.privacy.locationServices}
+                onChange={() => handleToggle('privacy', 'locationServices')}
+              />
+            </div>
+
+            {/* 崩潰報告 - 階段 2 重新開發 */}
+            <div style={{
+              padding: '16px 20px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <div style={{
+                  width: '32px',
+                  height: '32px',
+                  borderRadius: '8px',
+                  background: '#8E8E93',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14,2 14,8 20,8"></polyline>
+                    <line x1="16" y1="13" x2="8" y2="13"></line>
+                    <line x1="16" y1="17" x2="8" y2="17"></line>
+                    <polyline points="10,9 9,9 8,9"></polyline>
+                  </svg>
+                </div>
+                <div>
+                  <div style={{
+                    fontSize: '17px',
+                    fontWeight: '400',
+                    color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#1d1d1f'),
+                    marginBottom: '2px',
+                  }}>
+                    {getText('crashReports')}
+                  </div>
+                  <div style={{
+                    fontSize: '13px',
+                    color: isHighContrast ? (isDark ? '#ffffff' : '#000000') : (isDark ? '#ffffff' : '#8E8E93'),
+                  }}>
+                    {getText('crashReportsDesc')}
+                  </div>
+                </div>
+              </div>
+              <AppleToggle
+                checked={tempSettings.privacy.crashReports}
+                onChange={() => handleToggle('privacy', 'crashReports')}
               />
             </div>
           </div>

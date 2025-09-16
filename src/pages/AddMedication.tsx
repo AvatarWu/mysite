@@ -174,28 +174,109 @@ const AddMedication: React.FC = () => {
   //   return `晚上${hour}:${minute.toString().padStart(2, '0')}`;
   // };
 
-  const isFormValid = formData.name.trim() && formData.dosage.trim();
+  const isFormValid = Boolean(formData.name.trim() && formData.dosage.trim());
+  
+  // 調試信息
+  console.log('表單驗證狀態:', {
+    name: formData.name.trim(),
+    dosage: formData.dosage.trim(),
+    isFormValid,
+    isSaving,
+    buttonClass: `save-button ${isFormValid && !isSaving ? 'active' : 'disabled'}`,
+    buttonDisabled: !isFormValid || isSaving
+  });
 
   return (
     <div className="add-medication-page">
       {/* 自定義導航欄 - Apple 風格 */}
       <header className="custom-header">
         <div className="header-content">
-          <button onClick={handleBack} className="back-button" type="button">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          {/* 返回按鈕 - 絕對定位在左側 */}
+          <div
+            onClick={handleBack}
+            className="custom-back-btn"
+            style={{
+              position: 'absolute',
+              left: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: '#000000',
+              border: '1px solid #000000',
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: 'pointer',
+              minWidth: '60px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              zIndex: 1001,
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation'
+            }}
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            返回
-          </button>
-          <h1 className="header-title">新增用藥</h1>
-          <button 
-            onClick={handleSave} 
-            className={`save-button ${isFormValid && !isSaving ? 'active' : 'disabled'}`}
-            disabled={!isFormValid || isSaving}
-            type="button"
+            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>返回</span>
+          </div>
+          
+          {/* 標題 - 絕對定位在中央 */}
+          <div 
+            className="custom-title" 
+            style={{ 
+              position: 'absolute',
+              left: '50%',
+              top: '50%',
+              transform: 'translate(-50%, -50%)',
+              color: '#ffffff', 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              margin: '0',
+              textAlign: 'center',
+              letterSpacing: '-0.3px',
+              backgroundColor: 'transparent',
+              zIndex: 1000
+            }}
+          >
+            新增用藥
+          </div>
+          
+          {/* 保存按鈕 - 絕對定位在右側 */}
+          <div
+            onClick={handleSave}
+            className="custom-save-btn"
+            style={{
+              position: 'absolute',
+              right: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              background: isFormValid && !isSaving ? '#000000' : '#8e8e93',
+              border: `1px solid ${isFormValid && !isSaving ? '#000000' : '#8e8e93'}`,
+              color: '#ffffff',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              fontSize: '16px',
+              fontWeight: '500',
+              cursor: isFormValid && !isSaving ? 'pointer' : 'not-allowed',
+              minWidth: '60px',
+              minHeight: '44px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1001,
+              userSelect: 'none',
+              WebkitUserSelect: 'none',
+              touchAction: 'manipulation',
+              opacity: isFormValid && !isSaving ? 1 : 0.6
+            }}
           >
             {isSaving ? '儲存中...' : '完成'}
-          </button>
+          </div>
         </div>
       </header>
 
