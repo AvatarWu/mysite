@@ -1,13 +1,16 @@
-/* 緊急求助頁面樣式 */
+/* 緊急求助頁面樣式 - Apple 設計模式 */
+
 .emergency-help-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
+  background: var(--theme-bg);
+  color: var(--theme-text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", sans-serif;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
 }
 
-/* 頂部導航 */
-.emergency-header {
+/* 自定義導航欄 - Apple 風格 */
+.custom-header {
   position: fixed;
   top: 0;
   left: 0;
@@ -29,111 +32,75 @@
   padding: 0 20px;
 }
 
-/* 主要內容 */
-.emergency-main {
+/* 主要內容區域 */
+.main-content {
   padding: calc(80px + env(safe-area-inset-top)) 20px 20px;
   max-width: 600px;
   margin: 0 auto;
 }
 
-/* 緊急撥號區域 */
-.emergency-call-section {
-  margin-bottom: 30px;
-}
-
-.emergency-call-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border-radius: 20px;
-  padding: 30px;
-  text-align: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-
-.emergency-icon {
-  font-size: 48px;
-  margin-bottom: 16px;
-  animation: pulse 2s infinite;
-}
-
-@keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
-}
-
-.emergency-title {
-  font-size: 24px;
-  font-weight: 700;
-  margin-bottom: 8px;
-  color: #ffffff;
-}
-
-.emergency-description {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.8);
+/* 統計概覽 */
+.stats-overview {
   margin-bottom: 24px;
 }
 
-.emergency-buttons {
-  display: flex;
-  gap: 16px;
-  justify-content: center;
-  flex-wrap: wrap;
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
 }
 
-.emergency-call-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 24px;
-  border: none;
-  border-radius: 12px;
+.stat-card {
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 20px 16px;
+  text-align: center;
+  border: var(--theme-card-border, 1px solid rgba(0, 0, 0, 0.1));
+  box-shadow: var(--theme-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.emergency-card {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e8e);
+  color: white;
+}
+
+.stat-card.contacts-card {
+  background: linear-gradient(135deg, #4ecdc4, #6dd5ed);
+  color: white;
+}
+
+.stat-card.medical-card {
+  background: linear-gradient(135deg, #45b7d1, #6bb6ff);
+  color: white;
+}
+
+.stat-icon {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.stat-value {
   font-size: 18px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 140px;
-  justify-content: center;
-}
-
-.emergency-call-btn.primary {
-  background: #ff4757;
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(255, 71, 87, 0.3);
-}
-
-.emergency-call-btn.primary:hover {
-  background: #ff3742;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 71, 87, 0.4);
-}
-
-.emergency-call-btn.secondary {
-  background: #2ed573;
-  color: #ffffff;
-  box-shadow: 0 4px 16px rgba(46, 213, 115, 0.3);
-}
-
-.emergency-call-btn.secondary:hover {
-  background: #26d065;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 213, 115, 0.4);
-}
-
-.btn-icon {
-  font-size: 20px;
-}
-
-/* 區塊標題 */
-.section-title {
-  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 16px;
-  color: #ffffff;
+  margin-bottom: 4px;
+  color: inherit;
 }
 
+.stat-label {
+  font-size: 12px;
+  font-weight: 500;
+  opacity: 0.9;
+  color: inherit;
+}
+
+/* 區域標題 */
 .section-header {
   display: flex;
   justify-content: space-between;
@@ -141,102 +108,112 @@
   margin-bottom: 16px;
 }
 
-/* 主要聯絡人 */
-.primary-contact-section {
-  margin-bottom: 30px;
+.section-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--theme-text, #1d1d1f);
+  margin: 0;
 }
 
-.primary-contact-card {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-}
-
-.contact-info {
-  flex: 1;
-}
-
-.contact-name {
-  font-size: 18px;
-  font-weight: 600;
-  margin-bottom: 4px;
-  color: #ffffff;
-}
-
-.contact-relationship {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 4px;
-}
-
-.contact-phone {
+.section-description {
   font-size: 16px;
-  color: #ffffff;
-  font-weight: 500;
+  color: var(--theme-text-secondary, #666666);
+  margin: 8px 0 0 0;
 }
 
-.primary-badge {
-  background: #ffa726;
-  color: #ffffff;
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  margin-left: 8px;
-  font-weight: 600;
-}
-
-.call-primary-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #4caf50;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  padding: 12px 20px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-}
-
-.call-primary-btn:hover {
-  background: #45a049;
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
-}
-
-/* 聯絡人列表 */
-.contacts-section {
-  margin-bottom: 30px;
-}
-
-.add-contact-btn {
+/* 按鈕樣式 */
+.add-btn, .edit-btn {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
   padding: 8px 16px;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--theme-card-border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+  color: var(--theme-text, #1d1d1f);
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  backdrop-filter: blur(20px);
 }
 
-.add-contact-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
+.add-btn:hover, .edit-btn:hover {
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.9));
   transform: translateY(-1px);
+}
+
+/* 緊急撥號區域 */
+.emergency-call-section {
+  margin-bottom: 32px;
+}
+
+.emergency-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.emergency-btn {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--theme-card-border, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--theme-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.emergency-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.emergency-btn.police-btn {
+  background: linear-gradient(135deg, #ff3b30, #ff6b6b);
+  color: white;
+  border: none;
+}
+
+.emergency-btn.ambulance-btn {
+  background: linear-gradient(135deg, #34c759, #4cd964);
+  color: white;
+  border: none;
+}
+
+.btn-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+}
+
+.btn-content {
+  flex: 1;
+}
+
+.btn-title {
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.btn-subtitle {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+/* 聯絡人區域 */
+.contacts-section {
+  margin-bottom: 32px;
 }
 
 .contacts-list {
@@ -245,22 +222,76 @@
   gap: 12px;
 }
 
-.contact-item {
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(20px);
-  border-radius: 12px;
-  padding: 16px;
+.contact-card {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.3s ease;
+  gap: 16px;
+  padding: 16px;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--theme-card-border, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--theme-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+  transition: all 0.2s ease;
 }
 
-.contact-item:hover {
-  background: rgba(255, 255, 255, 0.2);
+.contact-card:hover {
   transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.contact-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #007aff, #5ac8fa);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.avatar-text {
+  color: white;
+}
+
+.contact-info {
+  flex: 1;
+}
+
+.contact-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text, #1d1d1f);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.primary-badge {
+  background: #007aff;
+  color: white;
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.contact-relationship {
+  font-size: 14px;
+  color: var(--theme-text-secondary, #666666);
+  margin-bottom: 2px;
+}
+
+.contact-phone {
+  font-size: 16px;
+  color: var(--theme-text, #1d1d1f);
+  font-weight: 500;
 }
 
 .contact-actions {
@@ -268,412 +299,284 @@
   gap: 8px;
 }
 
-.call-btn, .edit-btn, .delete-btn {
-  width: 36px;
-  height: 36px;
+.action-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
   border: none;
-  border-radius: 8px;
-  font-size: 16px;
-  cursor: pointer;
-  transition: all 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.call-btn {
-  background: #4caf50;
-  color: #ffffff;
-}
-
-.call-btn:hover {
-  background: #45a049;
-  transform: scale(1.1);
-}
-
-.edit-btn {
-  background: #2196f3;
-  color: #ffffff;
-}
-
-.edit-btn:hover {
-  background: #1976d2;
-  transform: scale(1.1);
-}
-
-.delete-btn {
-  background: #f44336;
-  color: #ffffff;
-}
-
-.delete-btn:hover {
-  background: #d32f2f;
-  transform: scale(1.1);
-}
-
-/* 醫療資訊 */
-.medical-info-section {
-  margin-bottom: 30px;
-}
-
-.edit-medical-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  border-radius: 8px;
-  padding: 8px 16px;
-  font-size: 14px;
-  font-weight: 500;
   cursor: pointer;
-  transition: all 0.3s ease;
-  backdrop-filter: blur(10px);
-}
-
-.edit-medical-btn:hover {
-  background: rgba(255, 255, 255, 0.3);
-  transform: translateY(-1px);
-}
-
-.medical-info-card {
-  background: rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-width: 48px;
+  min-height: 48px;
+  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
   backdrop-filter: blur(20px);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  -webkit-backdrop-filter: blur(20px);
 }
 
-.medical-item {
-  display: flex;
-  margin-bottom: 12px;
-  align-items: flex-start;
-}
-
-.medical-item:last-child {
-  margin-bottom: 0;
-}
-
-.medical-label {
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.9);
-  min-width: 80px;
-  margin-right: 12px;
-}
-
-.medical-value {
-  color: #ffffff;
-  flex: 1;
-}
-
-/* 模態框樣式 */
-.modal-overlay {
-  position: fixed;
+.action-btn::before {
+  content: '';
+  position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 20px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0.1));
+  border-radius: 24px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-.modal-content {
-  background: #ffffff;
-  border-radius: 20px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 80vh;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-  animation: modalSlideIn 0.3s ease-out;
+.action-btn:hover::before {
+  opacity: 1;
 }
 
-@keyframes modalSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
+.action-btn.call-btn {
+  background: rgba(52, 199, 89, 0.1);
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.2), 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(52, 199, 89, 0.3);
 }
 
-.modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
-  padding: 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.action-btn.edit-btn {
+  background: rgba(0, 122, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2), 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(0, 122, 255, 0.3);
 }
 
-.modal-title {
-  font-size: 20px;
-  font-weight: 700;
-  margin: 0;
+.action-btn.delete-btn {
+  background: rgba(255, 59, 48, 0.1);
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.2), 0 1px 4px rgba(0, 0, 0, 0.1);
+  border: 2px solid rgba(255, 59, 48, 0.3);
 }
 
-.close-button {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: #ffffff;
-  width: 32px;
-  height: 32px;
-  border-radius: 16px;
-  font-size: 20px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
+.action-btn:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
-.close-button:hover {
-  background: rgba(255, 255, 255, 0.3);
+.action-btn:hover {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.action-btn.call-btn:hover {
+  background: rgba(52, 199, 89, 0.2);
+  border-color: rgba(52, 199, 89, 0.6);
+  box-shadow: 0 4px 16px rgba(52, 199, 89, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.edit-btn:hover {
+  background: rgba(0, 122, 255, 0.2);
+  border-color: rgba(0, 122, 255, 0.6);
+  box-shadow: 0 4px 16px rgba(0, 122, 255, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.action-btn.delete-btn:hover {
+  background: rgba(255, 59, 48, 0.2);
+  border-color: rgba(255, 59, 48, 0.6);
+  box-shadow: 0 4px 16px rgba(255, 59, 48, 0.3), 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* 確保 SVG 圖標清晰可見 */
+.action-btn svg {
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+  transition: transform 0.2s ease;
+}
+
+.action-btn:hover svg {
   transform: scale(1.1);
 }
 
-.modal-form {
-  padding: 24px;
-  max-height: 60vh;
-  overflow-y: auto;
+/* 深色模式下的按鈕優化 */
+[data-theme="dark"] .action-btn {
+  backdrop-filter: blur(30px);
+  -webkit-backdrop-filter: blur(30px);
 }
 
-.form-group {
+[data-theme="dark"] .action-btn.call-btn {
+  background: rgba(52, 199, 89, 0.15);
+  border: 2px solid rgba(52, 199, 89, 0.4);
+  box-shadow: 0 2px 8px rgba(52, 199, 89, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .action-btn.edit-btn {
+  background: rgba(0, 122, 255, 0.15);
+  border: 2px solid rgba(0, 122, 255, 0.4);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .action-btn.delete-btn {
+  background: rgba(255, 59, 48, 0.15);
+  border: 2px solid rgba(255, 59, 48, 0.4);
+  box-shadow: 0 2px 8px rgba(255, 59, 48, 0.3), 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+[data-theme="dark"] .action-btn:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* 確保按鈕在各種背景下都清晰可見 */
+.contact-card {
+  position: relative;
+}
+
+.contact-actions {
+  position: relative;
+  z-index: 2;
+}
+
+/* 醫療資訊區域 */
+.medical-info-section {
+  margin-bottom: 32px;
+}
+
+.medical-info-card {
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  border: 1px solid var(--theme-card-border, rgba(0, 0, 0, 0.1));
+  border-radius: 16px;
+  padding: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: var(--theme-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.medical-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
   margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
-.form-label {
-  display: block;
-  font-size: 16px;
+.medical-item:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.medical-icon {
+  font-size: 24px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 122, 255, 0.1);
+  border-radius: 12px;
+}
+
+.medical-content {
+  flex: 1;
+}
+
+.medical-label {
+  font-size: 14px;
   font-weight: 600;
-  color: #333333;
+  color: var(--theme-text-secondary, #666666);
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.medical-value {
+  font-size: 16px;
+  color: var(--theme-text, #1d1d1f);
+  line-height: 1.4;
+}
+
+/* 空狀態 */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  background: var(--theme-card-bg, rgba(255, 255, 255, 0.8));
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  border: 1px solid var(--theme-card-border, rgba(0, 0, 0, 0.1));
+  box-shadow: var(--theme-card-shadow, 0 2px 8px rgba(0, 0, 0, 0.1));
+}
+
+.empty-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.6;
+}
+
+.empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--theme-text, #1d1d1f);
   margin-bottom: 8px;
 }
 
-.form-input, .form-select, .form-textarea {
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e0e0e0;
-  border-radius: 12px;
-  font-size: 16px;
-  color: #333333;
-  background: #ffffff;
-  transition: all 0.3s ease;
-  font-family: inherit;
-}
-
-.form-input:focus, .form-select:focus, .form-textarea:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.form-textarea {
-  resize: vertical;
-  min-height: 80px;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-size: 16px;
-  color: #333333;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  accent-color: #667eea;
-}
-
-.checkbox-text {
-  font-weight: 500;
-}
-
-/* 陣列輸入樣式 */
-.array-input {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.array-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #f5f5f5;
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid #e0e0e0;
-}
-
-.item-text {
-  flex: 1;
-  color: #333333;
+.empty-subtitle {
   font-size: 14px;
+  color: var(--theme-text-secondary, #666666);
+  line-height: 1.5;
 }
 
-.remove-item-btn {
-  background: #f44336;
+/* 主題變量支持 */
+[data-theme="dark"] .emergency-help-page {
+  background: linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%);
   color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  width: 24px;
-  height: 24px;
-  font-size: 16px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
 }
 
-.remove-item-btn:hover {
-  background: #d32f2f;
-  transform: scale(1.1);
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .emergency-btn,
+[data-theme="dark"] .contact-card,
+[data-theme="dark"] .medical-info-card,
+[data-theme="dark"] .empty-state {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.form-actions {
-  display: flex;
-  gap: 12px;
-  justify-content: flex-end;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid #e0e0e0;
-}
-
-.cancel-button, .save-button {
-  padding: 12px 24px;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  min-width: 100px;
-}
-
-.cancel-button {
-  background: #f5f5f5;
-  color: #666666;
-  border: 2px solid #e0e0e0;
-}
-
-.cancel-button:hover {
-  background: #eeeeee;
-  transform: translateY(-1px);
-}
-
-.save-button {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+[data-theme="dark"] .section-title,
+[data-theme="dark"] .contact-name,
+[data-theme="dark"] .contact-phone,
+[data-theme="dark"] .medical-value,
+[data-theme="dark"] .empty-title {
   color: #ffffff;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
-.save-button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+[data-theme="dark"] .section-description,
+[data-theme="dark"] .contact-relationship,
+[data-theme="dark"] .medical-label,
+[data-theme="dark"] .empty-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+[data-theme="light"] .emergency-help-page {
+  background: linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%);
+  color: #1d1d1f;
 }
 
 /* 響應式設計 */
 @media (max-width: 480px) {
-  .emergency-main {
-    padding: 80px 16px 20px;
+  .main-content {
+    padding: calc(80px + env(safe-area-inset-top)) 16px 16px;
   }
   
-  .emergency-call-card {
-    padding: 24px 20px;
+  .stats-grid {
+    gap: 8px;
   }
   
-  .emergency-buttons {
-    flex-direction: column;
-    align-items: center;
+  .stat-card {
+    padding: 16px 12px;
   }
   
-  .emergency-call-btn {
-    width: 100%;
-    max-width: 200px;
+  .emergency-btn {
+    padding: 16px;
   }
   
-  .primary-contact-card {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
+  .contact-card {
+    padding: 12px;
   }
   
-  .contact-item {
-    flex-direction: column;
-    gap: 12px;
-    text-align: center;
-  }
-  
-  .contact-actions {
-    justify-content: center;
-  }
-  
-  .modal-content {
-    margin: 10px;
-    max-height: 90vh;
-  }
-  
-  .form-actions {
-    flex-direction: column;
-  }
-  
-  .cancel-button, .save-button {
-    width: 100%;
-  }
-}
-
-/* 深色模式適配 */
-@media (prefers-color-scheme: dark) {
-  .modal-content {
-    background: #1a1a1a;
-    color: #ffffff;
-  }
-  
-  .form-input, .form-select, .form-textarea {
-    background: #2a2a2a;
-    border-color: #404040;
-    color: #ffffff;
-  }
-  
-  .form-input:focus, .form-select:focus, .form-textarea:focus {
-    border-color: #667eea;
-    background: #333333;
-  }
-  
-  .form-label, .checkbox-text {
-    color: #ffffff;
-  }
-  
-  .array-item {
-    background: #333333;
-    border-color: #404040;
-  }
-  
-  .item-text {
-    color: #ffffff;
-  }
-  
-  .cancel-button {
-    background: #333333;
-    color: #ffffff;
-    border-color: #404040;
-  }
-  
-  .cancel-button:hover {
-    background: #404040;
+  .medical-info-card {
+    padding: 16px;
   }
 }

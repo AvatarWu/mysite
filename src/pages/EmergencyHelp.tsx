@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './EmergencyHelp.css';
+import { themeService } from '../services/ThemeService';
 
 interface EmergencyContact {
   _id: string;
@@ -33,36 +34,115 @@ const EmergencyHelp: React.FC = () => {
   const [showAddContact, setShowAddContact] = useState(false);
   const [showMedicalInfo, setShowMedicalInfo] = useState(false);
 
+  // 應用主題到頁面
+  useEffect(() => {
+    // 應用主題
+    themeService.applyTheme();
+
+    // 監聽主題變更
+    const cleanupTheme = themeService.onThemeChange(() => {
+      console.log('EmergencyHelp.tsx: 主題變更，重新應用');
+      themeService.applyTheme();
+    });
+
+    // 監聽系統主題變更
+    const cleanupSystemTheme = themeService.onSystemThemeChange(() => {
+      console.log('EmergencyHelp.tsx: 系統主題變更，重新應用');
+      themeService.applyTheme();
+    });
+
+    // 監聽自定義主題變更事件
+    const handleThemeChange = (event: CustomEvent) => {
+      console.log('EmergencyHelp.tsx: 收到主題變更事件:', event.detail);
+      themeService.applyTheme();
+    };
+    
+    const handleLanguageChange = (_event: CustomEvent) => {
+      // 重新載入頁面以應用語言變更
+      window.location.reload();
+    };
+    
+    window.addEventListener('themeChanged', handleThemeChange as EventListener);
+    window.addEventListener('languageChanged', handleLanguageChange as EventListener);
+    
+    return () => {
+      cleanupTheme();
+      cleanupSystemTheme();
+      window.removeEventListener('themeChanged', handleThemeChange as EventListener);
+      window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
+    };
+  }, []);
+
   useEffect(() => {
     loadEmergencyData();
+    
+    // 監聽頁面可見性變化，當頁面重新可見時重新載入數據
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('頁面重新可見，重新載入緊急數據');
+        loadEmergencyData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const loadEmergencyData = () => {
     try {
       // 載入緊急聯絡人
       const savedContacts = localStorage.getItem('emergencyContacts');
+      console.log('載入緊急聯絡人數據:', savedContacts);
       if (savedContacts) {
-        setContacts(JSON.parse(savedContacts));
+        const parsedContacts = JSON.parse(savedContacts);
+        console.log('解析後的聯絡人數據:', parsedContacts);
+        setContacts(parsedContacts);
+      } else {
+        console.log('沒有找到保存的聯絡人數據');
+        setContacts([]);
       }
 
       // 載入醫療資訊
       const savedMedicalInfo = localStorage.getItem('medicalInfo');
       if (savedMedicalInfo) {
-        setMedicalInfo(JSON.parse(savedMedicalInfo));
+        const parsed = JSON.parse(savedMedicalInfo);
+        // 確保數組字段正確初始化
+        setMedicalInfo({
+          bloodType: parsed.bloodType || '',
+          allergies: Array.isArray(parsed.allergies) ? parsed.allergies : 
+                    (typeof parsed.allergies === 'string' && parsed.allergies.trim() ? 
+                     parsed.allergies.split(',').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          medications: Array.isArray(parsed.medications) ? parsed.medications : 
+                      (typeof parsed.medications === 'string' && parsed.medications.trim() ? 
+                       parsed.medications.split('\n').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          conditions: Array.isArray(parsed.conditions) ? parsed.conditions : 
+                     (typeof parsed.conditions === 'string' && parsed.conditions.trim() ? 
+                      parsed.conditions.split(',').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          emergencyNotes: parsed.emergencyNotes || parsed.emergencyNote || ''
+        });
+        console.log('載入醫療資訊:', parsed);
+        console.log('轉換後的醫療資訊:', {
+          bloodType: parsed.bloodType || '',
+          allergies: Array.isArray(parsed.allergies) ? parsed.allergies : 
+                    (typeof parsed.allergies === 'string' && parsed.allergies.trim() ? 
+                     parsed.allergies.split(',').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          medications: Array.isArray(parsed.medications) ? parsed.medications : 
+                      (typeof parsed.medications === 'string' && parsed.medications.trim() ? 
+                       parsed.medications.split('\n').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          conditions: Array.isArray(parsed.conditions) ? parsed.conditions : 
+                     (typeof parsed.conditions === 'string' && parsed.conditions.trim() ? 
+                      parsed.conditions.split(',').map((item: string) => item.trim()).filter((item: string) => item) : []),
+          emergencyNotes: parsed.emergencyNotes || parsed.emergencyNote || ''
+        });
       }
     } catch (error) {
       console.error('載入緊急數據失敗:', error);
     }
   };
 
-  const saveEmergencyData = () => {
-    try {
-      localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
-      localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
-    } catch (error) {
-      console.error('保存緊急數據失敗:', error);
-    }
-  };
 
   const addContact = (contact: Omit<EmergencyContact, '_id' | 'createdAt' | 'updatedAt'>) => {
     const newContact: EmergencyContact = {
@@ -74,7 +154,10 @@ const EmergencyHelp: React.FC = () => {
 
     setContacts(prev => {
       const updated = [...prev, newContact];
-      saveEmergencyData();
+      // 使用更新後的狀態保存數據
+      localStorage.setItem('emergencyContacts', JSON.stringify(updated));
+      console.log('新增聯絡人並保存:', newContact);
+      console.log('更新後的聯絡人列表:', updated);
       return updated;
     });
   };
@@ -83,7 +166,10 @@ const EmergencyHelp: React.FC = () => {
   const deleteContact = (id: string) => {
     setContacts(prev => {
       const updated = prev.filter(contact => contact._id !== id);
-      saveEmergencyData();
+      // 使用更新後的狀態保存數據
+      localStorage.setItem('emergencyContacts', JSON.stringify(updated));
+      console.log('刪除聯絡人並保存:', id);
+      console.log('更新後的聯絡人列表:', updated);
       return updated;
     });
   };
@@ -93,69 +179,66 @@ const EmergencyHelp: React.FC = () => {
   };
 
   const updateMedicalInfo = (updates: Partial<MedicalInfo>) => {
-    setMedicalInfo(prev => {
-      const updated = { ...prev, ...updates };
-      saveEmergencyData();
-      return updated;
-    });
+    const updated = { ...medicalInfo, ...updates };
+    setMedicalInfo(updated);
+    
+    // 保存到 localStorage
+    try {
+      localStorage.setItem('medicalInfo', JSON.stringify(updated));
+      console.log('醫療資訊已保存:', updated);
+    } catch (error) {
+      console.error('保存醫療資訊失敗:', error);
+    }
   };
 
-  const primaryContact = contacts.find(contact => contact.isPrimary);
+  // const primaryContact = contacts.find(contact => contact.isPrimary);
 
   return (
-    <div className="emergency-help-page">
-      {/* 頂部導航 */}
-      <header className="emergency-header">
+    <div className="emergency-help-page" style={{ minHeight: '100vh' }}>
+      {/* 自定義導航欄 - Apple 風格 */}
+      <header className="custom-header">
         <div className="header-content">
-          {/* 返回按鈕 */}
           <div 
             onClick={() => navigate('/')} 
             className="custom-back-btn"
             style={{
-              position: 'absolute',
-              left: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              zIndex: 1001,
-              background: '#000000',
-              border: '1px solid #000000',
               color: '#ffffff',
-              padding: '8px 16px',
+              padding: '8px',
               borderRadius: '8px',
-              fontSize: '16px',
-              fontWeight: '500',
               cursor: 'pointer',
-              minWidth: '60px',
-              minHeight: '44px',
               display: 'flex',
               alignItems: 'center',
               gap: '6px',
-              userSelect: 'none',
-              WebkitUserSelect: 'none',
-              touchAction: 'manipulation'
+              fontSize: '16px',
+              fontWeight: '500',
+              position: 'absolute',
+              left: '20px',
+              zIndex: 1001,
+              minWidth: '60px',
+              minHeight: '44px'
             }}
           >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="2">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#007aff" strokeWidth="2">
               <path d="M19 12H5M12 19l-7-7 7-7"/>
             </svg>
-            <span style={{ color: '#ffffff', fontSize: '16px', fontWeight: '500' }}>返回</span>
+            <span style={{ color: '#007aff', fontSize: '16px', fontWeight: '500' }}>返回</span>
           </div>
-          
-          {/* 標題 */}
           <div 
-            className="custom-title"
-            style={{
+            className="custom-title" 
+            style={{ 
+              color: '#ffffff', 
+              fontSize: '20px', 
+              fontWeight: '600', 
+              margin: '0',
+              textAlign: 'center',
+              flex: '1',
+              backgroundColor: 'transparent',
               position: 'absolute',
               left: '50%',
               top: '50%',
               transform: 'translate(-50%, -50%)',
-              zIndex: 1000,
-              color: '#ffffff',
-              fontSize: '20px',
-              fontWeight: '700',
-              textAlign: 'center',
-              margin: '0',
-              textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
+              width: '100%',
+              zIndex: 1000
             }}
           >
             緊急求助
@@ -163,102 +246,130 @@ const EmergencyHelp: React.FC = () => {
         </div>
       </header>
 
-      {/* 主要內容 */}
-      <main className="emergency-main">
-        {/* 緊急撥號區域 */}
-        <div className="emergency-call-section">
-          <div className="emergency-call-card">
-            <div className="emergency-icon">🚨</div>
-            <h2 className="emergency-title">緊急情況</h2>
-            <p className="emergency-description">如遇緊急情況，請立即撥打以下電話</p>
-            
-            <div className="emergency-buttons">
-              <button 
-                className="emergency-call-btn primary"
-                onClick={() => callContact('110')}
-              >
-                <span className="btn-icon">🚔</span>
-                <span className="btn-text">報警 110</span>
-              </button>
-              
-              <button 
-                className="emergency-call-btn secondary"
-                onClick={() => callContact('119')}
-              >
-                <span className="btn-icon">🚑</span>
-                <span className="btn-text">救護車 119</span>
-              </button>
+      {/* 主要內容區域 */}
+      <main className="main-content">
+        {/* 統計概覽 */}
+        <div className="stats-overview">
+          <div className="stats-grid">
+            <div className="stat-card emergency-card">
+              <div className="stat-icon">🚨</div>
+              <div className="stat-value">緊急</div>
+              <div className="stat-label">求助</div>
+            </div>
+            <div className="stat-card contacts-card">
+              <div className="stat-icon">👥</div>
+              <div className="stat-value">{contacts.length}</div>
+              <div className="stat-label">聯絡人</div>
+            </div>
+            <div className="stat-card medical-card">
+              <div className="stat-icon">🏥</div>
+              <div className="stat-value">醫療</div>
+              <div className="stat-label">資訊</div>
             </div>
           </div>
         </div>
 
-        {/* 主要聯絡人 */}
-        {primaryContact && (
-          <div className="primary-contact-section">
-            <h3 className="section-title">主要聯絡人</h3>
-            <div className="primary-contact-card">
-              <div className="contact-info">
-                <div className="contact-name">{primaryContact.name}</div>
-                <div className="contact-relationship">{primaryContact.relationship}</div>
-                <div className="contact-phone">{primaryContact.phone}</div>
-              </div>
-              <button 
-                className="call-primary-btn"
-                onClick={() => callContact(primaryContact.phone)}
-              >
-                <span className="btn-icon">📞</span>
-                撥打
-              </button>
-            </div>
+        {/* 緊急撥號區域 */}
+        <div className="emergency-call-section">
+          <div className="section-header">
+            <h2 className="section-title">緊急情況</h2>
+            <p className="section-description">如遇緊急情況，請立即撥打以下電話</p>
           </div>
-        )}
+          
+          <div className="emergency-buttons">
+            <button 
+              className="emergency-btn police-btn"
+              onClick={() => callContact('110')}
+            >
+              <div className="btn-icon">🚔</div>
+              <div className="btn-content">
+                <div className="btn-title">報警</div>
+                <div className="btn-subtitle">110</div>
+              </div>
+            </button>
+            
+            <button 
+              className="emergency-btn ambulance-btn"
+              onClick={() => callContact('119')}
+            >
+              <div className="btn-icon">🚑</div>
+              <div className="btn-content">
+                <div className="btn-title">救護車</div>
+                <div className="btn-subtitle">119</div>
+              </div>
+            </button>
+          </div>
+        </div>
 
         {/* 緊急聯絡人列表 */}
         <div className="contacts-section">
           <div className="section-header">
             <h3 className="section-title">緊急聯絡人</h3>
             <button 
-              className="add-contact-btn"
+              className="add-btn"
               onClick={() => setShowAddContact(true)}
             >
-              <span className="btn-icon">+</span>
-              新增聯絡人
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 5v14M5 12h14"/>
+              </svg>
+              新增
             </button>
           </div>
 
           <div className="contacts-list">
-            {contacts.map(contact => (
-              <div key={contact._id} className="contact-item">
-                <div className="contact-info">
-                  <div className="contact-name">
-                    {contact.name}
-                    {contact.isPrimary && <span className="primary-badge">主要</span>}
-                  </div>
-                  <div className="contact-relationship">{contact.relationship}</div>
-                  <div className="contact-phone">{contact.phone}</div>
-                </div>
-                <div className="contact-actions">
-                  <button 
-                    className="call-btn"
-                    onClick={() => callContact(contact.phone)}
-                  >
-                    📞
-                  </button>
-                  <button 
-                    className="edit-btn"
-                    onClick={() => {/* TODO: 編輯聯絡人 */}}
-                  >
-                    ✏️
-                  </button>
-                  <button 
-                    className="delete-btn"
-                    onClick={() => deleteContact(contact._id)}
-                  >
-                    🗑️
-                  </button>
-                </div>
+            {contacts.length === 0 ? (
+              <div className="empty-state">
+                <div className="empty-icon">👥</div>
+                <div className="empty-title">尚無緊急聯絡人</div>
+                <div className="empty-subtitle">點擊「新增」按鈕開始添加</div>
               </div>
-            ))}
+            ) : (
+              contacts.map(contact => (
+                <div key={contact._id} className="contact-card">
+                  <div className="contact-avatar">
+                    <div className="avatar-text">{contact.name.charAt(0)}</div>
+                  </div>
+                  <div className="contact-info">
+                    <div className="contact-name">
+                      {contact.name}
+                      {contact.isPrimary && <span className="primary-badge">主要</span>}
+                    </div>
+                    <div className="contact-relationship">{contact.relationship}</div>
+                    <div className="contact-phone">{contact.phone}</div>
+                  </div>
+                  <div className="contact-actions">
+                    <button 
+                      className="action-btn call-btn"
+                      onClick={() => callContact(contact.phone)}
+                      title="撥打電話"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#34c759" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      className="action-btn edit-btn"
+                      onClick={() => {/* TODO: 編輯聯絡人 */}}
+                      title="編輯聯絡人"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#007aff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
+                    <button 
+                      className="action-btn delete-btn"
+                      onClick={() => deleteContact(contact._id)}
+                      title="刪除聯絡人"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff3b30" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
 
@@ -267,41 +378,59 @@ const EmergencyHelp: React.FC = () => {
           <div className="section-header">
             <h3 className="section-title">醫療資訊</h3>
             <button 
-              className="edit-medical-btn"
+              className="edit-btn"
               onClick={() => setShowMedicalInfo(true)}
             >
-              <span className="btn-icon">✏️</span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+              </svg>
               編輯
             </button>
           </div>
 
           <div className="medical-info-card">
             <div className="medical-item">
-              <span className="medical-label">血型：</span>
-              <span className="medical-value">{medicalInfo.bloodType || '未設定'}</span>
+              <div className="medical-icon">🩸</div>
+              <div className="medical-content">
+                <div className="medical-label">血型</div>
+                <div className="medical-value">{medicalInfo.bloodType || '未設定'}</div>
+              </div>
             </div>
             <div className="medical-item">
-              <span className="medical-label">過敏史：</span>
-              <span className="medical-value">
-                {medicalInfo.allergies.length > 0 ? medicalInfo.allergies.join(', ') : '無'}
-              </span>
+              <div className="medical-icon">⚠️</div>
+              <div className="medical-content">
+                <div className="medical-label">過敏史</div>
+                <div className="medical-value">
+                  {Array.isArray(medicalInfo.allergies) && medicalInfo.allergies.length > 0 ? medicalInfo.allergies.join(', ') : '無'}
+                </div>
+              </div>
             </div>
             <div className="medical-item">
-              <span className="medical-label">常用藥物：</span>
-              <span className="medical-value">
-                {medicalInfo.medications.length > 0 ? medicalInfo.medications.join(', ') : '無'}
-              </span>
+              <div className="medical-icon">💊</div>
+              <div className="medical-content">
+                <div className="medical-label">常用藥物</div>
+                <div className="medical-value">
+                  {Array.isArray(medicalInfo.medications) && medicalInfo.medications.length > 0 ? medicalInfo.medications.join(', ') : '無'}
+                </div>
+              </div>
             </div>
             <div className="medical-item">
-              <span className="medical-label">慢性病：</span>
-              <span className="medical-value">
-                {medicalInfo.conditions.length > 0 ? medicalInfo.conditions.join(', ') : '無'}
-              </span>
+              <div className="medical-icon">🏥</div>
+              <div className="medical-content">
+                <div className="medical-label">慢性病</div>
+                <div className="medical-value">
+                  {Array.isArray(medicalInfo.conditions) && medicalInfo.conditions.length > 0 ? medicalInfo.conditions.join(', ') : '無'}
+                </div>
+              </div>
             </div>
             {medicalInfo.emergencyNotes && (
               <div className="medical-item">
-                <span className="medical-label">緊急備註：</span>
-                <span className="medical-value">{medicalInfo.emergencyNotes}</span>
+                <div className="medical-icon">📝</div>
+                <div className="medical-content">
+                  <div className="medical-label">緊急備註</div>
+                  <div className="medical-value">{medicalInfo.emergencyNotes}</div>
+                </div>
               </div>
             )}
           </div>
@@ -428,6 +557,11 @@ interface MedicalInfoModalProps {
 
 const MedicalInfoModal: React.FC<MedicalInfoModalProps> = ({ onClose, onSave, medicalInfo }) => {
   const [formData, setFormData] = useState(medicalInfo);
+
+  // 當 medicalInfo prop 更新時，同步更新表單數據
+  useEffect(() => {
+    setFormData(medicalInfo);
+  }, [medicalInfo]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

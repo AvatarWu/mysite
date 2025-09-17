@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './BloodSugar.css';
 import { healthDataService } from '../services/HealthDataService';
+import { themeService } from '../services/ThemeService';
 
 interface BloodSugarRecord {
   id: string;
@@ -148,76 +149,25 @@ const BloodSugar: React.FC = () => {
 
   // 應用主題到頁面
   useEffect(() => {
-    const applyTheme = () => {
-      const savedSettings = localStorage.getItem('careold-settings');
-      if (savedSettings) {
-        try {
-          const settings = JSON.parse(savedSettings);
-          const theme = settings.general?.appearance || 'auto';
-          
-          if (theme === 'dark') {
-            document.documentElement.setAttribute('data-theme', 'dark');
-            document.body.setAttribute('data-theme', 'dark');
-            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
-            document.documentElement.style.setProperty('--theme-text', '#ffffff');
-          } else if (theme === 'light') {
-            document.documentElement.setAttribute('data-theme', 'light');
-            document.body.setAttribute('data-theme', 'light');
-            document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
-            document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
-          } else {
-            // 自動模式
-            const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            if (prefersDark) {
-              document.documentElement.setAttribute('data-theme', 'dark');
-              document.body.setAttribute('data-theme', 'dark');
-              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
-              document.documentElement.style.setProperty('--theme-text', '#ffffff');
-            } else {
-              document.documentElement.setAttribute('data-theme', 'light');
-              document.body.setAttribute('data-theme', 'light');
-              document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
-              document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
-            }
-          }
-        } catch (error) {
-          console.error('應用主題失敗:', error);
-        }
-      }
-    };
+    // 應用主題
+    themeService.applyTheme();
 
-    applyTheme();
+    // 監聽主題變更
+    const cleanupTheme = themeService.onThemeChange(() => {
+      console.log('BloodSugar.tsx: 主題變更，重新應用');
+      themeService.applyTheme();
+    });
 
-    // 監聽主題變更事件
+    // 監聽系統主題變更
+    const cleanupSystemTheme = themeService.onSystemThemeChange(() => {
+      console.log('BloodSugar.tsx: 系統主題變更，重新應用');
+      themeService.applyTheme();
+    });
+
+    // 監聽自定義主題變更事件
     const handleThemeChange = (event: CustomEvent) => {
       console.log('BloodSugar.tsx: 收到主題變更事件:', event.detail);
-      // 直接應用主題，不重新讀取localStorage
-      const theme = event.detail.theme;
-      const isDark = event.detail.isDark;
-      
-      if (theme === 'dark') {
-        document.documentElement.setAttribute('data-theme', 'dark');
-        document.body.setAttribute('data-theme', 'dark');
-        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
-        document.documentElement.style.setProperty('--theme-text', '#ffffff');
-      } else if (theme === 'light') {
-        document.documentElement.setAttribute('data-theme', 'light');
-        document.body.setAttribute('data-theme', 'light');
-        document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
-        document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
-      } else if (theme === 'auto') {
-        if (isDark) {
-          document.documentElement.setAttribute('data-theme', 'dark');
-          document.body.setAttribute('data-theme', 'dark');
-          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #2d1b0e 0%, #3d2815 20%, #4d331c 40%, #5d3e23 60%, #6d492a 80%, #7d5431 100%)');
-          document.documentElement.style.setProperty('--theme-text', '#ffffff');
-        } else {
-          document.documentElement.setAttribute('data-theme', 'light');
-          document.body.setAttribute('data-theme', 'light');
-          document.documentElement.style.setProperty('--theme-bg', 'linear-gradient(135deg, #fff8f0 0%, #ffe8d6 20%, #ffd4b3 40%, #ffc49b 60%, #ffb380 80%, #ffa366 100%)');
-          document.documentElement.style.setProperty('--theme-text', '#1d1d1f');
-        }
-      }
+      themeService.applyTheme();
     };
     
     const handleLanguageChange = (_event: CustomEvent) => {
@@ -229,6 +179,8 @@ const BloodSugar: React.FC = () => {
     window.addEventListener('languageChanged', handleLanguageChange as EventListener);
     
     return () => {
+      cleanupTheme();
+      cleanupSystemTheme();
       window.removeEventListener('themeChanged', handleThemeChange as EventListener);
       window.removeEventListener('languageChanged', handleLanguageChange as EventListener);
     };
